@@ -1,0 +1,13 @@
+settings_title=Settings
+settings_volume=Volume
+settings_language=Language
+settings_back=Press ESC to go back
+language_english=English
+language_hebrew=Hebrew
+language_arabic=Arabic
+menu_start=START GAME
+menu_settings=SETTINGS
+menu_help=HELP
+menu_exit=EXIT
+game_title=Desert Ball
+loading_text=Loading...
