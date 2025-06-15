@@ -6,6 +6,7 @@
 #include "ResourceManager.h"
 #include <fstream>
 #include <iostream>
+#include "App.h"
 
 bool LevelLoader::loadFromFile(const std::string& filename) {
     std::ifstream file(filename);
@@ -33,16 +34,25 @@ void LevelLoader::loadLevel(const std::string& path, Map& map, b2World& world, T
         return;
     }
 
+    // Load all lines into memory to determine total height
+    std::vector<std::string> lines;
     std::string line;
-    int y = 0;
-
     while (std::getline(file, line)) {
-        for (int x = 0; x < line.length(); ++x) {
-            float posX = static_cast<float>(x * TILE_SIZE);
-            float posY = static_cast<float>(y * TILE_SIZE);
-            char symbol = line[x];
+        lines.push_back(line);
+    }
 
-            // Place tiles based on character
+    const int mapHeight = static_cast<int>(lines.size());
+
+    for (int y = 0; y < mapHeight; ++y) {
+        const std::string& row = lines[y];
+        
+
+        for (int x = 0; x < row.length(); ++x) {
+            float posX = static_cast<float>(x * TILE_SIZE);
+            float posY = WINDOW_HEIGHT - TILE_SIZE - static_cast<float>(y * TILE_SIZE);  // Align to bottom
+
+            char symbol = row[x];
+
             switch (symbol) {
             case 'M':
                 map.addTile(std::make_unique<GroundTile>(world, posX, posY, TileType::Middle, textures));
@@ -50,13 +60,15 @@ void LevelLoader::loadLevel(const std::string& path, Map& map, b2World& world, T
             case 'L':
                 map.addTile(std::make_unique<GroundTile>(world, posX, posY, TileType::Left, textures));
                 break;
-            case 'l':
+            case 'F':
+                posY -= TILE_SIZE;
                 map.addTile(std::make_unique<GroundTile>(world, posX, posY, TileType::LeftEdge, textures));
                 break;
             case 'R':
                 map.addTile(std::make_unique<GroundTile>(world, posX, posY, TileType::Right, textures));
                 break;
-            case 'r':
+            case 'E':
+                posY -= TILE_SIZE;
                 map.addTile(std::make_unique<GroundTile>(world, posX, posY, TileType::RightEdge, textures));
                 break;
             case 'G':
@@ -66,17 +78,16 @@ void LevelLoader::loadLevel(const std::string& path, Map& map, b2World& world, T
                 map.addTile(std::make_unique<GroundTile>(world, posX, posY, TileType::Sea, textures));
                 break;
             case 'X': {
-                // Flag must be placed over a ground tile
+                // Flag always placed above a middle tile
                 map.addTile(std::make_unique<GroundTile>(world, posX, posY, TileType::Middle, textures));
                 map.addTile(std::make_unique<Flag>(posX + TILE_SIZE / 2.f, posY - TILE_SIZE, textures));
                 break;
             }
             case '-':
             default:
-                break; // Empty or unrecognized tile
+                break; // Do nothing for empty/unknown tiles
             }
         }
-        ++y;
     }
 }
 

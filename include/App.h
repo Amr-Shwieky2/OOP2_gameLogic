@@ -6,6 +6,7 @@
 #include "IScreen.h"
 #include "GameplayScreen.h"
 
+// App.h
 class App {
 public:
     App();
@@ -16,4 +17,8 @@ private:
 
     std::unique_ptr<sf::RenderWindow> m_window;
     std::unique_ptr<IScreen> m_screen;
+
+
+
+    bool m_isFullscreen = false;
 };

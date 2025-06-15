@@ -8,9 +8,11 @@
 #include "Map.h"
 #include "ResourceManager.h"
 #include "LevelManager.h"
+#include "Player.h"
+#include "UIOverlay.h"
 
 constexpr float WINDOW_WIDTH = 1400.f;
-constexpr float WINDOW_HEIGHT = 800.f;
+constexpr float WINDOW_HEIGHT = 900.f;
 
 
 class GameplayScreen : public IScreen {
@@ -34,7 +36,9 @@ private:
     InputService m_input;
     TextureManager m_textures;
 
-    std::unique_ptr<Ball> m_ball;
+    std::unique_ptr<Player> m_player;
     std::unique_ptr<Map> m_map;
+	std::unique_ptr<UIOverlay> m_ui;
+
     LevelManager m_levelManager;
 };
