@@ -69,6 +69,12 @@ void GameplayScreen::update(float deltaTime) {
         // Update UI with live values from player
         m_ui->update(m_player->getScore(), m_player->getLives());
     }
+    for (auto& collectible : m_map->getCollectibles()) {
+        if (!collectible->isCollected() &&
+            collectible->getBounds().intersects(m_player->getBounds())) {
+            collectible->onCollect(*m_player);
+        }
+    }
 
     updateCamera();
 }

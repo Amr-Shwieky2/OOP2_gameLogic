@@ -69,3 +69,8 @@ sf::Vector2f Ball::getPosition() const {
     b2Vec2 pos = m_body->GetPosition();
     return sf::Vector2f(pos.x * PPM, pos.y * PPM);
 }
+
+sf::FloatRect Ball::getBounds() const
+{
+    return m_sprite.getGlobalBounds();
+}

@@ -17,6 +17,18 @@ void Map::render(sf::RenderTarget& target) const {
     for (const auto& tile : m_tiles) {
         tile->render(target);
     }
+    for (const auto& c : m_collectibles)
+        c->render(target);
+}
+
+void Map::addCollectible(std::unique_ptr<Collectible> c)
+{
+	m_collectibles.push_back(std::move(c));
+}
+
+std::vector<std::unique_ptr<Collectible>>& Map::getCollectibles()
+{
+    return m_collectibles;
 }
 
 void Map::loadFromFile(const std::string& path) {

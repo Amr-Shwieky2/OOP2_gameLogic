@@ -8,6 +8,7 @@
 #include "GroundTile.h"
 #include "Flag.h"
 #include "ResourceManager.h"
+#include <LifeGift.h>
 
 class LevelLoader; // Forward declaration
 
@@ -27,8 +28,13 @@ public:
     // Draw map to the screen
     void render(sf::RenderTarget& target) const;
 
+    void addCollectible(std::unique_ptr<Collectible> c);
+    std::vector<std::unique_ptr<Collectible>>& getCollectibles();
+
 private:
     std::vector<std::unique_ptr<Tile>> m_tiles;
+    std::vector<std::unique_ptr<Collectible>> m_collectibles;
+
     b2World& m_world;
     TextureManager& m_textures;
 };

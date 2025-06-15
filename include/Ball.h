@@ -18,6 +18,7 @@ public:
     void update(float dt);
     void render(sf::RenderTarget& target) const;
 
+    sf::FloatRect getBounds() const;
     sf::Vector2f getPosition() const;
 
 private:

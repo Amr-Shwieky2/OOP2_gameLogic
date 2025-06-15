@@ -7,6 +7,8 @@
 #include <fstream>
 #include <iostream>
 #include "App.h"
+#include <Coin.h>
+#include <SpeedGift.h>
 
 bool LevelLoader::loadFromFile(const std::string& filename) {
     std::ifstream file(filename);
@@ -83,6 +85,16 @@ void LevelLoader::loadLevel(const std::string& path, Map& map, b2World& world, T
                 map.addTile(std::make_unique<Flag>(posX + TILE_SIZE / 2.f, posY - TILE_SIZE, textures));
                 break;
             }
+            case 'C': // Coin
+                map.addCollectible(std::make_unique<Coin>(posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));
+                break;
+
+            case 'H': // LifeGift
+                map.addCollectible(std::make_unique<LifeGift>(posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));
+                break;
+            case 's': // Speed gift
+                map.addCollectible(std::make_unique<SpeedGift>(posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));
+                break;
             case '-':
             default:
                 break; // Do nothing for empty/unknown tiles
