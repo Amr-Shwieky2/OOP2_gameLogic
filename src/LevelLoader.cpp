@@ -3,21 +3,28 @@
 #include "TileType.h"
 #include "GroundTile.h"
 #include "Flag.h"
-#include "ResourceManager.h"
+#include "App.h"
+
+// Gifts / collectibles
+#include "Coin.h"
+#include "LifeHeartGift.h"
+#include "SpeedGift.h"
+#include "HeadwindStormGift.h"
+#include "ReverseMovementGift.h"
+#include "ProtectiveShieldGift.h"
+#include "CloseBox.h"
+#include "RareCoinGift.h"
+
 #include <fstream>
 #include <iostream>
-#include "App.h"
-#include <Coin.h>
-#include <SpeedGift.h>
+#include <memory>
 
 bool LevelLoader::loadFromFile(const std::string& filename) {
     std::ifstream file(filename);
-    if (!file.is_open())
-        return false;
+    if (!file.is_open()) return false;
 
     m_levelData.clear();
     std::string line;
-
     while (std::getline(file, line)) {
         std::vector<TileType> row;
         for (char c : line) {
@@ -25,7 +32,6 @@ bool LevelLoader::loadFromFile(const std::string& filename) {
         }
         m_levelData.push_back(row);
     }
-
     return true;
 }
 
@@ -36,7 +42,6 @@ void LevelLoader::loadLevel(const std::string& path, Map& map, b2World& world, T
         return;
     }
 
-    // Load all lines into memory to determine total height
     std::vector<std::string> lines;
     std::string line;
     while (std::getline(file, line)) {
@@ -47,12 +52,10 @@ void LevelLoader::loadLevel(const std::string& path, Map& map, b2World& world, T
 
     for (int y = 0; y < mapHeight; ++y) {
         const std::string& row = lines[y];
-        
 
         for (int x = 0; x < row.length(); ++x) {
             float posX = static_cast<float>(x * TILE_SIZE);
-            float posY = WINDOW_HEIGHT - TILE_SIZE - static_cast<float>(y * TILE_SIZE);  // Align to bottom
-
+            float posY = WINDOW_HEIGHT - TILE_SIZE - static_cast<float>(y * TILE_SIZE);
             char symbol = row[x];
 
             switch (symbol) {
@@ -80,24 +83,48 @@ void LevelLoader::loadLevel(const std::string& path, Map& map, b2World& world, T
                 map.addTile(std::make_unique<GroundTile>(world, posX, posY, TileType::Sea, textures));
                 break;
             case 'X': {
-                // Flag always placed above a middle tile
                 map.addTile(std::make_unique<GroundTile>(world, posX, posY, TileType::Middle, textures));
                 map.addTile(std::make_unique<Flag>(posX + TILE_SIZE / 2.f, posY - TILE_SIZE, textures));
                 break;
             }
             case 'C': // Coin
-                map.addCollectible(std::make_unique<Coin>(posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));
+                map.addGameObject(std::make_unique<Coin>(posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));
+                break;
+            case 'H': // Life Heart
+                map.addGameObject(std::make_unique<LifeHeartGift>(posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));
+                break;
+            case 's': // Speed Gift
+                map.addGameObject(std::make_unique<SpeedGift>(posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));
+                break;
+            case 'B': // Reverse Movement Gift
+                map.addGameObject(std::make_unique<ReverseMovementGift>(
+                    posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));
                 break;
 
-            case 'H': // LifeGift
-                map.addCollectible(std::make_unique<LifeGift>(posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));
+            case 'P': // Protective Shield Gift
+                map.addGameObject(std::make_unique<ProtectiveShieldGift>(
+                    posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));
                 break;
-            case 's': // Speed gift
-                map.addCollectible(std::make_unique<SpeedGift>(posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));
+
+            case 'W': // Headwind Storm Gift
+                map.addGameObject(std::make_unique<HeadwindStormGift>(
+                    posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));
                 break;
+
+            case 'O': // CloseBox
+                map.addGameObject(std::make_unique<CloseBox>(
+                    posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));
+                break;
+
+            case 'Z': // RareCoinGift (optional: use mostly via CloseBox spawn)
+                map.addGameObject(std::make_unique<RareCoinGift>(
+                    posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));
+                break;
+
+                // TODO: Add cases like CloseBox, ReverseGift, Shield, etc.
             case '-':
             default:
-                break; // Do nothing for empty/unknown tiles
+                break; // skip unknown symbols
             }
         }
     }

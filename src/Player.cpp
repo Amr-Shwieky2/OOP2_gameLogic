@@ -1,7 +1,7 @@
 #include "Player.h"
 
 Player::Player(b2World& world, float startX, float startY, TextureManager& textures)
-    : m_ball(world, startX, startY, textures) {
+    : m_ball(world, startX, startY, textures), m_textures(textures), m_speedMultiplier(1.0f){
 }
 
 void Player::handleInput(const InputService& input) {
@@ -51,6 +51,11 @@ void Player::loseLife() {
 void Player::reset() {
     m_score = 0;
     m_lives = 3;
+}
+
+TextureManager& Player::getTextureManager()
+{
+    return m_textures;
 }
 
 void Player::applyEffect(PlayerEffect effect, float duration) {

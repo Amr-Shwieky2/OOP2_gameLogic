@@ -5,10 +5,10 @@
 #include "InputService.h"
 #include "ResourceManager.h"
 
-static constexpr float PPM = 100.f;              // Pixels Per Meter
-static constexpr float BALL_RADIUS = 0.35f;      // In meters
-static constexpr float MOVE_SPEED = 5.f;         // m/s
-static constexpr float JUMP_IMPULSE = 2.8f;       // Force to jump
+static constexpr float PPM = 100.f;
+static constexpr float BALL_RADIUS = 0.35f; // Better fit on tile
+static constexpr float MOVE_SPEED = 5.f;
+static constexpr float JUMP_IMPULSE = 3.2f;
 
 class Ball {
 public:
@@ -21,10 +21,20 @@ public:
     sf::FloatRect getBounds() const;
     sf::Vector2f getPosition() const;
 
+    void setMagnetActive(bool active);
+    void setTransparent(bool active);
+
+    bool isMagnetActive() const;
+    bool isTransparent() const;
+
 private:
+    void updateVisualState();
+
     b2Body* m_body = nullptr;
     sf::Sprite m_sprite;
+    TextureManager& m_textures;
+
     bool m_onGround = false;
-
-
+    bool m_isMagnetic = false;
+    bool m_isTransparent = false;
 };

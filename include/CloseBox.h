@@ -1,20 +1,20 @@
 #pragma once
-
 #include "GameObject.h"
 #include "ResourceManager.h"
 
-class SpeedGift : public GameObject {
+class CloseBox : public GameObject {
 public:
-    SpeedGift(float x, float y, TextureManager& textures);
+    CloseBox(float x, float y, TextureManager& textures);
 
     void render(sf::RenderTarget& target) const override;
     sf::FloatRect getBounds() const override;
     void accept(GameObjectVisitor& visitor) override;
 
-    void collect();
-    bool isCollected() const;
+    bool isOpened() const;
+    void open();
 
 private:
     sf::Sprite m_sprite;
-    bool m_collected = false;
+    bool m_opened = false;
+    TextureManager& m_textures;
 };

@@ -3,9 +3,9 @@
 #include "GameObject.h"
 #include "ResourceManager.h"
 
-class SpeedGift : public GameObject {
+class HeadwindStormGift : public GameObject {
 public:
-    SpeedGift(float x, float y, TextureManager& textures);
+    HeadwindStormGift(float x, float y, TextureManager& textures);
 
     void render(sf::RenderTarget& target) const override;
     sf::FloatRect getBounds() const override;

@@ -1,18 +1,20 @@
 #pragma once
-
 #include "GameObject.h"
 #include "ResourceManager.h"
+#include <SFML/Graphics.hpp>
+#include "IUpdatable.h"
 
-class SpeedGift : public GameObject {
+class RareCoinGift : public GameObject, public IUpdatable {
 public:
-    SpeedGift(float x, float y, TextureManager& textures);
+    RareCoinGift(float x, float y, TextureManager& textures);
 
     void render(sf::RenderTarget& target) const override;
     sf::FloatRect getBounds() const override;
     void accept(GameObjectVisitor& visitor) override;
+    void update(float deltaTime) override;
 
-    void collect();
     bool isCollected() const;
+    void collect();
 
 private:
     sf::Sprite m_sprite;
