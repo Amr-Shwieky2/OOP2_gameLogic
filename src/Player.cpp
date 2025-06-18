@@ -1,61 +1,114 @@
 #include "Player.h"
+#include "GameObjectVisitor.h"
 
-Player::Player(b2World& world, float startX, float startY, TextureManager& textures)
-    : m_ball(world, startX, startY, textures), m_textures(textures), m_speedMultiplier(1.0f){
+Player::Player(b2World& world, float x, float y, TextureManager& textures)
+    : m_textures(textures)
+{
+    // Box2D body
+    b2BodyDef bodyDef;
+    bodyDef.type = b2_dynamicBody;
+    bodyDef.position.Set(x, y);
+    m_body = world.CreateBody(&bodyDef);
+
+    b2CircleShape shape;
+    shape.m_radius = PLAYER_RADIUS;
+
+    b2FixtureDef fixtureDef;
+    fixtureDef.shape = &shape;
+    fixtureDef.density = 1.0f;
+    fixtureDef.friction = 0.4f;
+    fixtureDef.restitution = 0.2f;
+    m_body->CreateFixture(&fixtureDef);
+
+    // Visual setup
+    m_sprite.setTexture(textures.getResource("NormalBall.png"));
+
+    // Set origin to center of the texture
+    sf::Vector2u textureSize = m_sprite.getTexture()->getSize();
+    m_sprite.setOrigin(textureSize.x / 2.f, textureSize.y / 2.f);
+
+    // Compute desired display size
+    float desiredDiameter = PLAYER_RADIUS * 2 * PPM;
+    float scaleX = desiredDiameter / textureSize.x;
+    float scaleY = desiredDiameter / textureSize.y;
+    m_sprite.setScale(scaleX, scaleY);
+
+    updateVisuals();
 }
 
 void Player::handleInput(const InputService& input) {
-    m_ball.handleInput(input);
+    float desiredVel = 0.f;
+
+    if (input.isKeyDown(sf::Keyboard::Left)) {
+        desiredVel = hasEffect(PlayerEffect::ReverseControl) ? PLAYER_MOVE_SPEED : -PLAYER_MOVE_SPEED;
+    }
+    if (input.isKeyDown(sf::Keyboard::Right)) {
+        desiredVel = hasEffect(PlayerEffect::ReverseControl) ? -PLAYER_MOVE_SPEED : PLAYER_MOVE_SPEED;
+    }
+
+    b2Vec2 vel = m_body->GetLinearVelocity();
+    float velChange = desiredVel - vel.x;
+    float impulse = m_body->GetMass() * velChange;
+    m_body->ApplyLinearImpulseToCenter(b2Vec2(impulse, 0.f), true);
+
+    if (input.isKeyPressed(sf::Keyboard::Space) && m_onGround) {
+        m_body->ApplyLinearImpulseToCenter(b2Vec2(0.f, -PLAYER_JUMP_IMPULSE), true);
+        m_onGround = false;
+    }
 }
 
 void Player::update(float deltaTime) {
-    m_ball.update(deltaTime);
+    m_effects.update(deltaTime);
+    updateVisuals();
+    updatePhysics(deltaTime);
+}
+
+void Player::updatePhysics(float) {
+    b2Vec2 pos = m_body->GetPosition();
+    m_sprite.setPosition(pos.x * PPM, pos.y * PPM);
+    m_sprite.setRotation(m_body->GetAngle() * 180.f / b2_pi);
+
+    m_onGround = std::abs(m_body->GetLinearVelocity().y) < 0.05f;
 }
 
 void Player::render(sf::RenderTarget& target) const {
-    m_ball.render(target);
+    target.draw(m_sprite);
+}
+
+void Player::accept(GameObjectVisitor& visitor) {
+    visitor.visit(*this);
+}
+
+sf::FloatRect Player::getBounds() const {
+    return m_sprite.getGlobalBounds();
 }
 
 sf::Vector2f Player::getPosition() const {
-    return m_ball.getPosition();
+    b2Vec2 pos = m_body->GetPosition();
+    return sf::Vector2f(pos.x * PPM, pos.y * PPM);
 }
 
-sf::FloatRect Player::getBounds() const
+void Player::addLife()
 {
-    return m_ball.getBounds();
+    if (m_lives < 3) {
+        ++m_lives;
+    }
+}
+
+void Player::increaseScore(int amount) {
+    m_score += amount;
+}
+
+void Player::loseLife() {
+    if (m_lives > 0) --m_lives;
 }
 
 int Player::getScore() const {
     return m_score;
 }
 
-void Player::addScore(int points) {
-    m_score += points;
-}
-
-void Player::addLife()
-{
-    if (m_lives < 3)
-        ++m_lives;
-}
-
 int Player::getLives() const {
     return m_lives;
-}
-
-void Player::loseLife() {
-    if (m_lives > 0)
-        --m_lives;
-}
-
-void Player::reset() {
-    m_score = 0;
-    m_lives = 3;
-}
-
-TextureManager& Player::getTextureManager()
-{
-    return m_textures;
 }
 
 void Player::applyEffect(PlayerEffect effect, float duration) {
@@ -66,19 +119,21 @@ bool Player::hasEffect(PlayerEffect effect) const {
     return m_effects.hasEffect(effect);
 }
 
-void Player::updateEffects(float deltaTime) {
-    m_effects.update(deltaTime);
+TextureManager& Player::getTextureManager() {
+    return m_textures;
+}
 
-    // Example: Apply speed boost multiplier
-    if (hasEffect(PlayerEffect::SpeedBoost)) {
-        m_speedMultiplier = 1.8f;
+void Player::updateVisuals() {
+    if (hasEffect(PlayerEffect::Transparent)) {
+        m_sprite.setTexture(m_textures.getResource("TransparentBall.png"));
+        m_sprite.setColor(sf::Color(255, 255, 255, 100));
     }
-    else if (hasEffect(PlayerEffect::Headwind)) {
-        m_speedMultiplier = 0.5f;
+    else if (hasEffect(PlayerEffect::Magnetic)) {
+        m_sprite.setTexture(m_textures.getResource("MagneticBall.png"));
+        m_sprite.setColor(sf::Color::White);
     }
     else {
-        m_speedMultiplier = 1.0f;
+        m_sprite.setTexture(m_textures.getResource("NormalBall.png"));
+        m_sprite.setColor(sf::Color::White);
     }
-
-    // You can later add logic here for Shield, ReverseControl, etc.
 }

@@ -1,26 +1,31 @@
 #include "GameplayScreen.h"
+#include <iostream>
 #include "App.h"
 
 GameplayScreen::GameplayScreen()
     : m_world(b2Vec2(0.f, 9.8f)) // Gravity
 {
+    // Load background
     if (!m_backgroundTexture.loadFromFile("backGroundGame.jpg")) {
         throw std::runtime_error("Failed to load background image.");
     }
+
     m_backgroundSprite.setTexture(m_backgroundTexture);
     float scaleY = WINDOW_HEIGHT / m_backgroundTexture.getSize().y;
     m_backgroundSprite.setScale(scaleY, scaleY);
 
+    // Load levels
     m_levelManager.addLevel("level1.txt");
     m_levelManager.addLevel("level2.txt");
 
+    // Create map and player
     m_map = std::make_unique<Map>(m_world, m_textures);
-    m_ui = std::make_unique<UIOverlay>(WINDOW_WIDTH);
-
     loadLevel();
 
     m_camera.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     m_camera.setCenter(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f);
+
+    m_ui = std::make_unique<UIOverlay>(WINDOW_WIDTH);
 }
 
 GameplayScreen::~GameplayScreen() = default;
@@ -28,6 +33,7 @@ GameplayScreen::~GameplayScreen() = default;
 void GameplayScreen::loadLevel() {
     const std::string& path = m_levelManager.getCurrentLevelPath();
     m_map->loadFromFile(path);
+
     m_player = std::make_unique<Player>(m_world, 128.f / PPM, 600.f / PPM, m_textures);
 }
 
@@ -36,9 +42,9 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
 
     sf::Event event;
     while (window.pollEvent(event)) {
-        if (event.type == sf::Event::Closed) {
+        if (event.type == sf::Event::Closed)
             window.close();
-        }
+
         m_ui->handleEvent(event, window);
     }
 }
@@ -51,22 +57,11 @@ void GameplayScreen::update(float deltaTime) {
     if (m_player) {
         m_player->handleInput(m_input);
         m_player->update(deltaTime);
-        m_player->updateEffects(deltaTime);
-
         m_ui->update(m_player->getScore(), m_player->getLives());
     }
 
-    m_map->update(deltaTime);
-
-    CollisionResolver resolver(*m_player, [this](std::unique_ptr<GameObject> obj) {
-        m_map->addGameObject(std::move(obj));
-        });
-
-    for (auto& obj : m_map->getGameObjects()) {
-        if (obj->getBounds().intersects(m_player->getBounds())) {
-            obj->accept(resolver);
-        }
-    }
+    if (m_map)
+        m_map->update(deltaTime);
 
     updateCamera();
 }
@@ -87,7 +82,9 @@ void GameplayScreen::render(sf::RenderWindow& window) {
         window.draw(repeatedBg);
     }
 
-    m_map->render(window);
+    if (m_map)
+        m_map->render(window);
+
     if (m_player)
         m_player->render(window);
 
@@ -96,7 +93,8 @@ void GameplayScreen::render(sf::RenderWindow& window) {
 
 void GameplayScreen::updateCamera() {
     if (!m_player) return;
-    sf::Vector2f pos = m_player->getPosition();
-    float newX = std::max(pos.x, WINDOW_WIDTH / 2.f);
+
+    sf::Vector2f playerPos = m_player->getPosition();
+    float newX = std::max(playerPos.x, WINDOW_WIDTH / 2.f);
     m_camera.setCenter(newX, WINDOW_HEIGHT / 2.f);
 }

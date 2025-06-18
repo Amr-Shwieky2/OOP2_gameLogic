@@ -2,20 +2,15 @@
 
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
-#include <memory>
 #include "IScreen.h"
 #include "InputService.h"
-#include "Map.h"
 #include "Player.h"
-#include "UIOverlay.h"
-#include "LevelManager.h"
+#include "Map.h"
 #include "ResourceManager.h"
-#include "CollisionResolver.h"
-#include "IUpdatable.h"
-#include "GameObject.h"
+#include "LevelManager.h"
+#include "UIOverlay.h"
+#include "Constants.h"
 
-constexpr float WINDOW_WIDTH = 1400.f;
-constexpr float WINDOW_HEIGHT = 900.f;
 
 class GameplayScreen : public IScreen {
 public:
@@ -43,5 +38,4 @@ private:
     std::unique_ptr<UIOverlay> m_ui;
 
     LevelManager m_levelManager;
-    std::vector<std::unique_ptr<IUpdatable>> m_updatables;
 };

@@ -1,11 +1,10 @@
+// LifeHeartGift.cpp
 #include "LifeHeartGift.h"
-#include "GameObjectVisitor.h"
 
 LifeHeartGift::LifeHeartGift(float x, float y, TextureManager& textures) {
-    sf::Texture& tex = textures.getResource("LifeHeartGift.png");
-    m_sprite.setTexture(tex);
-    m_sprite.setScale(0.08f, 0.08f);
+    m_sprite.setTexture(textures.getResource("LifeHeart.png"));
     m_sprite.setPosition(x, y);
+    m_sprite.setScale(0.5f, 0.5f);
 }
 
 void LifeHeartGift::render(sf::RenderTarget& target) const {
@@ -21,8 +20,11 @@ void LifeHeartGift::accept(GameObjectVisitor& visitor) {
     visitor.visit(*this);
 }
 
-void LifeHeartGift::collect() {
-    m_collected = true;
+void LifeHeartGift::onCollect(Player& player) {
+    if (!m_collected) {
+        m_collected = true;
+        player.addLife();
+    }
 }
 
 bool LifeHeartGift::isCollected() const {

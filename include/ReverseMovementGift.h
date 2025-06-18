@@ -1,9 +1,13 @@
 #pragma once
 
-#include "GameObject.h"
+#include "StaticGameObject.h"
 #include "ResourceManager.h"
+#include "PlayerEffectManager.h"
+#include "Player.h"
 
-class ReverseMovementGift : public GameObject {
+
+
+class ReverseMovementGift : public StaticGameObject {
 public:
     ReverseMovementGift(float x, float y, TextureManager& textures);
 
@@ -11,7 +15,7 @@ public:
     sf::FloatRect getBounds() const override;
     void accept(GameObjectVisitor& visitor) override;
 
-    void collect();
+    void onCollect(Player& player);
     bool isCollected() const;
 
 private:

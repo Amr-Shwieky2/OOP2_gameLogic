@@ -1,9 +1,11 @@
 #pragma once
 
-#include "GameObject.h"
+#include "StaticGameObject.h"
 #include "ResourceManager.h"
+#include "PlayerEffectManager.h"
+#include "Player.h"
 
-class ProtectiveShieldGift : public GameObject {
+class ProtectiveShieldGift : public StaticGameObject {
 public:
     ProtectiveShieldGift(float x, float y, TextureManager& textures);
 
@@ -11,11 +13,10 @@ public:
     sf::FloatRect getBounds() const override;
     void accept(GameObjectVisitor& visitor) override;
 
-    void collect();
+    void onCollect(Player& player);
     bool isCollected() const;
 
 private:
     sf::Sprite m_sprite;
     bool m_collected = false;
 };
-

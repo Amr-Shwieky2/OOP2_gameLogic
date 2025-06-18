@@ -1,10 +1,11 @@
 #include "ProtectiveShieldGift.h"
+#include "Player.h"
 #include "GameObjectVisitor.h"
 
 ProtectiveShieldGift::ProtectiveShieldGift(float x, float y, TextureManager& textures) {
     sf::Texture& tex = textures.getResource("ProtectiveShieldGift.png");
     m_sprite.setTexture(tex);
-    m_sprite.setScale(0.08f, 0.08f);
+    m_sprite.setScale(0.5f, 0.5f);
     m_sprite.setPosition(x, y);
 }
 
@@ -21,8 +22,11 @@ void ProtectiveShieldGift::accept(GameObjectVisitor& visitor) {
     visitor.visit(*this);
 }
 
-void ProtectiveShieldGift::collect() {
-    m_collected = true;
+void ProtectiveShieldGift::onCollect(Player& player) {
+    if (!m_collected) {
+        m_collected = true;
+        player.applyEffect(PlayerEffect::Shield, 2.f);
+    }
 }
 
 bool ProtectiveShieldGift::isCollected() const {

@@ -1,13 +1,9 @@
 #include "CloseBox.h"
-#include "GameObjectVisitor.h"
 
-CloseBox::CloseBox(float x, float y, TextureManager& textures)
-    : m_textures(textures)
-{
-    sf::Texture& tex = textures.getResource("CloseBox.png");
-    m_sprite.setTexture(tex);
-    m_sprite.setScale(0.08f, 0.08f);
+CloseBox::CloseBox(b2World& world, float x, float y, TextureManager& textures) {
+    m_sprite.setTexture(textures.getResource("CloseBox.png"));
     m_sprite.setPosition(x, y);
+    m_bounds = m_sprite.getGlobalBounds();
 }
 
 void CloseBox::render(sf::RenderTarget& target) const {
@@ -15,7 +11,7 @@ void CloseBox::render(sf::RenderTarget& target) const {
 }
 
 sf::FloatRect CloseBox::getBounds() const {
-    return m_sprite.getGlobalBounds();
+    return m_bounds;
 }
 
 void CloseBox::accept(GameObjectVisitor& visitor) {
@@ -29,6 +25,7 @@ bool CloseBox::isOpened() const {
 void CloseBox::open() {
     if (!m_opened) {
         m_opened = true;
-        m_sprite.setTexture(m_textures.getResource("OpenBox.png"));
+        m_sprite.setTextureRect(sf::IntRect(0, 0, 0, 0)); // Or swap to OpenBox texture
+        // Optional: play animation or sound
     }
 }

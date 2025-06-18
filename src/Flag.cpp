@@ -1,24 +1,21 @@
 #include "Flag.h"
+#include "GameObjectVisitor.h"
 
 Flag::Flag(float x, float y, TextureManager& textures) {
-    sf::Texture& texture = textures.getResource("redFlag.png");
-    m_sprite.setTexture(texture);
+    sf::Texture& tex = textures.getResource("redflag.png");
+    m_sprite.setTexture(tex);
     m_sprite.setPosition(x, y);
-    m_position = { x, y };
+    m_bounds = m_sprite.getGlobalBounds();
 }
 
 void Flag::render(sf::RenderTarget& target) const {
     target.draw(m_sprite);
 }
 
-bool Flag::isSolid() const {
-    return false;
-}
-
 sf::FloatRect Flag::getBounds() const {
-    return m_sprite.getGlobalBounds();
+    return m_bounds;
 }
 
-void Flag::update(float) {
-    // No logic needed
+void Flag::accept(GameObjectVisitor& visitor) {
+    visitor.visit(*this);
 }

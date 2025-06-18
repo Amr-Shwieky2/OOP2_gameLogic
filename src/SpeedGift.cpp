@@ -1,11 +1,10 @@
-﻿#include "SpeedGift.h"
-#include "GameObjectVisitor.h"
+﻿// SpeedGift.cpp
+#include "SpeedGift.h"
 
 SpeedGift::SpeedGift(float x, float y, TextureManager& textures) {
-    sf::Texture& tex = textures.getResource("SpeedGift.png");
-    m_sprite.setTexture(tex);
-    m_sprite.setScale(0.08f, 0.08f);
+    m_sprite.setTexture(textures.getResource("SpeedGift.png"));
     m_sprite.setPosition(x, y);
+    m_sprite.setScale(0.5f, 0.5f);
 }
 
 void SpeedGift::render(sf::RenderTarget& target) const {
@@ -21,8 +20,11 @@ void SpeedGift::accept(GameObjectVisitor& visitor) {
     visitor.visit(*this);
 }
 
-void SpeedGift::collect() {
-    m_collected = true;
+void SpeedGift::onCollect(Player& player) {
+    if (!m_collected) {
+        m_collected = true;
+        player.applyEffect(PlayerEffect::SpeedBoost, 1);
+    }
 }
 
 bool SpeedGift::isCollected() const {

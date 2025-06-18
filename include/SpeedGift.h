@@ -1,9 +1,12 @@
+// SpeedGift.h
 #pragma once
 
-#include "GameObject.h"
+#include "StaticGameObject.h"
 #include "ResourceManager.h"
+#include "Player.h"
+#include "GameObjectVisitor.h"
 
-class SpeedGift : public GameObject {
+class SpeedGift : public StaticGameObject {
 public:
     SpeedGift(float x, float y, TextureManager& textures);
 
@@ -11,7 +14,7 @@ public:
     sf::FloatRect getBounds() const override;
     void accept(GameObjectVisitor& visitor) override;
 
-    void collect();
+    void onCollect(Player& player);
     bool isCollected() const;
 
 private:

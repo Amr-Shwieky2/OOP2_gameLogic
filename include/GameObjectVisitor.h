@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "GameObject.h"
 
 // Forward declarations for the Visitor
@@ -11,6 +11,8 @@ class ProtectiveShieldGift;  // Assuming this is defined elsewhere
 class HeadwindStormGift;  // Assuming this is defined elsewhere
 class CloseBox;  // Assuming CloseBox is defined elsewhere
 class RareCoinGift;  // Assuming RareCoinGift is defined elsewhere
+class Flag;
+class GroundTile;
 
 // Add others as needed
 
@@ -18,16 +20,17 @@ class GameObjectVisitor {
 public:
     virtual ~GameObjectVisitor() = default;
 
-    virtual void visit(Player& player) = 0;
-    virtual void visit(Coin& coin) = 0;
-    virtual void visit(LifeHeartGift& gift) = 0;
-    virtual void visit(SpeedGift& gift) = 0;
-    virtual void visit(ReverseMovementGift& gift) = 0;
-	virtual void visit(ProtectiveShieldGift& gift) = 0;
-	virtual void visit(HeadwindStormGift& gift) = 0; // Assuming this is defined elsewhere
-	virtual void visit(CloseBox& box) = 0; // Assuming CloseBox is defined elsewhere
-	virtual void visit(RareCoinGift& gift) = 0; // Assuming RareCoinGift is defined elsewhere
+    virtual void visit(Player&) = 0;
+    virtual void visit(Coin&) = 0;
+    virtual void visit(LifeHeartGift&) = 0;
+    virtual void visit(SpeedGift&) = 0;
+    virtual void visit(ReverseMovementGift&) = 0;
+    virtual void visit(ProtectiveShieldGift&) = 0;
+    virtual void visit(HeadwindStormGift&) = 0;
+    virtual void visit(RareCoinGift&) = 0;
+    virtual void visit(CloseBox&) = 0;
 
-
-    // Add visit(...) for other game objects
+    // ✅ Add these:
+    virtual void visit(Flag&) = 0;
+    virtual void visit(GroundTile&) = 0;
 };

@@ -1,17 +1,8 @@
 #pragma once
 
 #include <unordered_map>
-#include <SFML/System/Clock.hpp>
-
-enum class PlayerEffect {
-    None,
-    SpeedBoost,
-    Shield,
-    ReverseControl,
-    Headwind,
-    Magnetic,
-    Transparent
-};
+#include <chrono>
+#include "PlayerEffect.h"
 
 class PlayerEffectManager {
 public:
@@ -25,6 +16,10 @@ public:
     void clearAll();
 
 private:
-    std::unordered_map<PlayerEffect, sf::Clock> m_activeEffects;
-    std::unordered_map<PlayerEffect, float> m_durations;
+    struct EffectTimer {
+        float elapsed = 0.f;
+        float duration = 0.f;
+    };
+
+    std::unordered_map<PlayerEffect, EffectTimer> m_effects;
 };

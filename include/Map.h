@@ -4,14 +4,10 @@
 #include <memory>
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
-#include "Tile.h"
-#include "GroundTile.h"
-#include "Flag.h"
-#include "ResourceManager.h"
-#include "IUpdatable.h"       // <-- Add this
-#include "GameObject.h"       // Needed for all dynamic items
 
-class LevelLoader; // Forward declaration
+#include "ResourceManager.h"
+#include "GameObject.h"
+#include "DynamicGameObject.h"
 
 class Map {
 public:
@@ -20,22 +16,19 @@ public:
     void loadFromFile(const std::string& path);
     void clear();
 
-    void addTile(std::unique_ptr<Tile> tile);
-    void render(sf::RenderTarget& target) const;
-
-    void addGameObject(std::unique_ptr<GameObject> obj);
-    void addUpdatable(IUpdatable* updatable);
+    // Unified adders
+    void addStatic(std::unique_ptr<GameObject> obj);
+    void addDynamic(std::unique_ptr<DynamicGameObject> obj);
 
     void update(float deltaTime);
+    void render(sf::RenderTarget& target) const;
 
-    std::vector<std::unique_ptr<GameObject>>& getGameObjects();
-
+    std::vector<std::unique_ptr<GameObject>>& getObjects();
 
 private:
-    std::vector<std::unique_ptr<Tile>> m_tiles;
-    std::vector<std::unique_ptr<GameObject>> m_gameObjects;
-    std::vector<IUpdatable*> m_updatables;
-
     b2World& m_world;
     TextureManager& m_textures;
+
+    std::vector<std::unique_ptr<GameObject>> m_gameObjects;
+    std::vector<DynamicGameObject*> m_updatables;
 };
