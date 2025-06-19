@@ -1,4 +1,7 @@
-#include "GameplayScreen.h"
+﻿#include "GameplayScreen.h"
+#include "CollisionSystem.h"
+#include "SurpriseBoxManager.h"  
+#include "SurpriseBoxScreen.h"
 #include <iostream>
 #include "App.h"
 
@@ -26,6 +29,8 @@ GameplayScreen::GameplayScreen()
     m_camera.setCenter(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f);
 
     m_ui = std::make_unique<UIOverlay>(WINDOW_WIDTH);
+
+    std::cout << "GameplayScreen initialized with collision and surprise box systems!" << std::endl;
 }
 
 GameplayScreen::~GameplayScreen() = default;
@@ -35,9 +40,29 @@ void GameplayScreen::loadLevel() {
     m_map->loadFromFile(path);
 
     m_player = std::make_unique<Player>(m_world, 128.f / PPM, 600.f / PPM, m_textures);
+
+    // ✅ إنشاء نظام التصادمات
+    m_collisionSystem = std::make_unique<CollisionSystem>(
+        *m_player,
+        [this](std::unique_ptr<GameObject> obj) { spawnGameObject(std::move(obj)); }
+    );
+
+    std::cout << "Level loaded with collision and surprise box systems!" << std::endl;
 }
 
 void GameplayScreen::handleEvents(sf::RenderWindow& window) {
+    // حفظ مرجع النافذة
+    m_window = &window;
+
+    // ✅ إنشاء SurpriseBoxManager بعد تعيين النافذة
+    if (!m_surpriseBoxManager && m_window) {
+        m_surpriseBoxManager = std::make_unique<SurpriseBoxManager>(m_textures, *m_window);
+        m_surpriseBoxManager->setSpawnCallback(
+            [this](std::unique_ptr<GameObject> obj) { spawnGameObject(std::move(obj)); }
+        );
+        std::cout << "✅ SurpriseBoxManager created after window assignment!" << std::endl;
+    }
+
     m_input.update();
 
     sf::Event event;
@@ -60,10 +85,36 @@ void GameplayScreen::update(float deltaTime) {
         m_ui->update(m_player->getScore(), m_player->getLives());
     }
 
-    if (m_map)
+    if (m_map) {
         m_map->update(deltaTime);
 
+        // ✅ فحص التصادمات
+        if (m_collisionSystem) {
+            m_collisionSystem->checkCollisions(m_map->getObjects());
+        }
+    }
+
+    // ✅ تحديث نظام الصندوق المفاجئ
+    if (m_surpriseBoxManager) {
+        static int lastScore = 0;
+        int currentScore = m_player->getScore();
+        if (currentScore > lastScore && (currentScore % 10) == 0) {
+            // كل 10 نقاط = عملة واحدة
+            m_surpriseBoxManager->onCoinCollected();
+        }
+        lastScore = currentScore;
+    }
+
     updateCamera();
+
+    // Debug info
+    static float debugTimer = 0.0f;
+    debugTimer += deltaTime;
+    if (debugTimer >= 2.0f) {
+        std::cout << "🎮 Player - Score: " << m_player->getScore()
+            << ", Lives: " << m_player->getLives() << std::endl;
+        debugTimer = 0.0f;
+    }
 }
 
 void GameplayScreen::render(sf::RenderWindow& window) {
@@ -97,4 +148,18 @@ void GameplayScreen::updateCamera() {
     sf::Vector2f playerPos = m_player->getPosition();
     float newX = std::max(playerPos.x, WINDOW_WIDTH / 2.f);
     m_camera.setCenter(newX, WINDOW_HEIGHT / 2.f);
+}
+
+void GameplayScreen::spawnGameObject(std::unique_ptr<GameObject> obj) {
+    if (!obj) return;
+
+    std::cout << "📦 Spawning new game object from box!" << std::endl;
+
+    if (auto dynamicObj = dynamic_cast<DynamicGameObject*>(obj.get())) {
+        auto ptr = std::unique_ptr<DynamicGameObject>(static_cast<DynamicGameObject*>(obj.release()));
+        m_map->addDynamic(std::move(ptr));
+    }
+    else {
+        m_map->addStatic(std::move(obj));
+    }
 }

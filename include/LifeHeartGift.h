@@ -1,4 +1,3 @@
-// LifeHeartGift.h
 #pragma once
 
 #include "StaticGameObject.h"

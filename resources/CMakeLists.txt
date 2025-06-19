@@ -24,11 +24,12 @@ configure_file ("./icons/MagneticBall.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./icons/NormalBall.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./icons/OpenBox.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./icons/ProtectiveShieldGift.png" ${CMAKE_BINARY_DIR} COPYONLY)
-configure_file ("./icons/RareCoinGidt.png" ${CMAKE_BINARY_DIR} COPYONLY)
+configure_file ("./icons/RareCoinGift.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./icons/ReverseMovementGift.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./icons/SpeedGift.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./icons/SquareEnemy.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./icons/TransparentBall.png" ${CMAKE_BINARY_DIR} COPYONLY)
+configure_file ("./icons/BoxBackground.png" ${CMAKE_BINARY_DIR} COPYONLY)
 
 
 configure_file ("./tile/ground.png" ${CMAKE_BINARY_DIR} COPYONLY)
