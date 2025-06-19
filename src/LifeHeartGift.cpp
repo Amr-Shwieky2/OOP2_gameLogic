@@ -2,7 +2,7 @@
 #include "LifeHeartGift.h"
 
 LifeHeartGift::LifeHeartGift(float x, float y, TextureManager& textures) {
-    m_sprite.setTexture(textures.getResource("LifeHeart.png"));
+    m_sprite.setTexture(textures.getResource("LifeHeartGift.png"));
     m_sprite.setPosition(x, y);
     m_sprite.setScale(0.5f, 0.5f);
 }
