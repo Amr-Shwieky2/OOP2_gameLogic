@@ -4,15 +4,12 @@
 #include <Box2D/Box2D.h>
 #include "IScreen.h"
 #include "InputService.h"
-#include "Ball.h"
+#include "Player.h"
 #include "Map.h"
 #include "ResourceManager.h"
 #include "LevelManager.h"
-#include "Player.h"
 #include "UIOverlay.h"
-
-constexpr float WINDOW_WIDTH = 1400.f;
-constexpr float WINDOW_HEIGHT = 900.f;
+#include "Constants.h"
 
 
 class GameplayScreen : public IScreen {
@@ -38,7 +35,7 @@ private:
 
     std::unique_ptr<Player> m_player;
     std::unique_ptr<Map> m_map;
-	std::unique_ptr<UIOverlay> m_ui;
+    std::unique_ptr<UIOverlay> m_ui;
 
     LevelManager m_levelManager;
 };

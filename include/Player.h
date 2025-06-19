@@ -1,28 +1,48 @@
-#pragma once
+﻿#pragma once
 
-#include "Ball.h"
+#include <SFML/Graphics.hpp>
+#include <Box2D/Box2D.h>
+#include "DynamicGameObject.h"
+#include "InputService.h"
+#include "ResourceManager.h"
+#include "PlayerEffectManager.h"
+#include "Constants.h"
 
-class Player {
+
+class Player : public DynamicGameObject {
 public:
-    Player(b2World& world, float startX, float startY, TextureManager& textures);
+    Player(b2World& world, float x, float y, TextureManager& textures);
 
     void handleInput(const InputService& input);
-    void update(float deltaTime);
-    void render(sf::RenderTarget& target) const;
+    void update(float deltaTime) override;
+    void render(sf::RenderTarget& target) const override;
 
-    // Score and lives
-    int getScore() const;
-    void addScore(int points);
-
-    int getLives() const;
-    void loseLife();
-    void reset();
-
-    // Ball interaction
+    void accept(GameObjectVisitor& visitor) override;
+    sf::FloatRect getBounds() const override;
     sf::Vector2f getPosition() const;
 
+    void addLife();
+    void increaseScore(int amount);
+    void loseLife();
+    int getScore() const;
+    int getLives() const;
+
+    void applyEffect(PlayerEffect effect, float duration);
+    bool hasEffect(PlayerEffect effect) const;
+
+    TextureManager& getTextureManager();
+
 private:
-    Ball m_ball;
+    void updateVisuals();
+    void updatePhysics(float deltaTime);
+
+    b2Body* m_body = nullptr;
+    sf::Sprite m_sprite;
+    TextureManager& m_textures;
+
+    PlayerEffectManager m_effects;
+
     int m_score = 0;
     int m_lives = 3;
+    bool m_onGround = false;
 };

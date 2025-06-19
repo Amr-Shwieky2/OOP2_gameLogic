@@ -1,34 +1,34 @@
-#pragma once
+﻿#pragma once
 
 #include <vector>
 #include <memory>
 #include <Box2D/Box2D.h>
 #include <SFML/Graphics.hpp>
-#include "Tile.h"
-#include "GroundTile.h"
-#include "Flag.h"
-#include "ResourceManager.h"
 
-class LevelLoader; // Forward declaration
+#include "ResourceManager.h"
+#include "GameObject.h"
+#include "DynamicGameObject.h"
 
 class Map {
 public:
     Map(b2World& world, TextureManager& textures);
 
-    // Load map from level file
     void loadFromFile(const std::string& path);
-
-    // Clear current tiles
     void clear();
 
-    // Add a new tile (used by loader)
-    void addTile(std::unique_ptr<Tile> tile);
+    // Unified adders
+    void addStatic(std::unique_ptr<GameObject> obj);
+    void addDynamic(std::unique_ptr<DynamicGameObject> obj);
 
-    // Draw map to the screen
+    void update(float deltaTime);
     void render(sf::RenderTarget& target) const;
 
+    std::vector<std::unique_ptr<GameObject>>& getObjects();
+
 private:
-    std::vector<std::unique_ptr<Tile>> m_tiles;
     b2World& m_world;
     TextureManager& m_textures;
+
+    std::vector<std::unique_ptr<GameObject>> m_gameObjects;
+    std::vector<DynamicGameObject*> m_updatables;
 };
