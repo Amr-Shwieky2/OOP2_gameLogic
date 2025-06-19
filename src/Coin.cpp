@@ -22,7 +22,7 @@ sf::FloatRect Coin::getBounds() const {
 void Coin::accept(GameObjectVisitor& visitor) {
     visitor.visit(*this);
 }
-
+//
 void Coin::update(float deltaTime) {
     if (m_collected) return;
 
