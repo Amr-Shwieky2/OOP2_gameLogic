@@ -1,4 +1,4 @@
-#include "UIOverlay.h"
+﻿#include "UIOverlay.h"
 #include <sstream>
 
 UIOverlay::UIOverlay(float windowWidth) {
@@ -11,26 +11,26 @@ UIOverlay::UIOverlay(float windowWidth) {
     m_timerText.setFont(m_font);
     m_pauseLabel.setFont(m_font);
 
-    m_scoreText.setCharacterSize(20);
-    m_livesText.setCharacterSize(20);
-    m_timerText.setCharacterSize(20);
-    m_pauseLabel.setCharacterSize(20);
+    m_scoreText.setCharacterSize(40);
+    m_livesText.setCharacterSize(40);
+    m_timerText.setCharacterSize(40);
+    m_pauseLabel.setCharacterSize(40);
 
-    m_scoreText.setFillColor(sf::Color::White);
-    m_livesText.setFillColor(sf::Color::White);
-    m_timerText.setFillColor(sf::Color::White);
-    m_pauseLabel.setFillColor(sf::Color::Black);
+    m_scoreText.setFillColor(sf::Color(150, 75, 20));
+    m_livesText.setFillColor(sf::Color(150, 75, 20));
+    m_timerText.setFillColor(sf::Color(150, 75, 20));
+    m_pauseLabel.setFillColor(sf::Color(150, 75, 20));
 
     m_scoreText.setPosition(20.f, 10.f);
-    m_livesText.setPosition(150.f, 10.f);
-    m_timerText.setPosition(280.f, 10.f);
+    m_livesText.setPosition(240.f, 10.f);
+    m_timerText.setPosition(440.f, 10.f);
 
-    m_pauseButton.setSize(sf::Vector2f(80, 30));
-    m_pauseButton.setFillColor(sf::Color(200, 200, 200));
-    m_pauseButton.setPosition(windowWidth - 100.f, 10.f);
+    m_pauseButton.setSize(sf::Vector2f(140.f, 50.f));
+    m_pauseButton.setFillColor(sf::Color(220, 200, 170));
+    m_pauseButton.setPosition(windowWidth - 185.f, 10.f);
 
     m_pauseLabel.setString("Pause");
-    m_pauseLabel.setPosition(windowWidth - 90.f, 12.f);
+    m_pauseLabel.setPosition(windowWidth - 160.f, 12.f);
 }
 
 void UIOverlay::handleEvent(const sf::Event& event, const sf::RenderWindow& window) {

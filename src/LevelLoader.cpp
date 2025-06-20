@@ -2,7 +2,6 @@
 #include "Map.h"
 #include "GroundTile.h"
 #include "Flag.h"
-#include "CloseBox.h"
 #include "Coin.h"
 #include "SpeedGift.h"
 #include "LifeHeartGift.h"
@@ -43,16 +42,12 @@ bool LevelLoader::loadFromFile(const std::string& path, Map& map, b2World& world
             case 'L':
                 map.addStatic(std::make_unique<GroundTile>(world, posX, posY, TileType::Left, textures));
                 break;
-            case 'F':
+            case 'E':
                 posY -= TILE_SIZE;
-                map.addStatic(std::make_unique<GroundTile>(world, posX, posY, TileType::LeftEdge, textures));
+                map.addStatic(std::make_unique<GroundTile>(world, posX, posY, TileType::Edge, textures));
                 break;
             case 'R':
                 map.addStatic(std::make_unique<GroundTile>(world, posX, posY, TileType::Right, textures));
-                break;
-            case 'E':
-                posY -= TILE_SIZE;
-                map.addStatic(std::make_unique<GroundTile>(world, posX, posY, TileType::RightEdge, textures));
                 break;
             case 'M':
                 map.addStatic(std::make_unique<GroundTile>(world, posX, posY, TileType::Middle, textures));
@@ -60,13 +55,12 @@ bool LevelLoader::loadFromFile(const std::string& path, Map& map, b2World& world
             case 'S':
                 map.addStatic(std::make_unique<GroundTile>(world, posX, posY, TileType::Sea, textures));
                 break;
+            case 'B':
+                map.addDynamic(std::make_unique<MovableBox>(world, posX, posY, TileType::Box, textures));
+                break;
 
             case 'X':
-                map.addStatic(std::make_unique<GroundTile>(world, posX, posY, TileType::Middle, textures));
                 map.addStatic(std::make_unique<Flag>(posX + TILE_SIZE / 2.f, posY - TILE_SIZE, textures));
-                break;
-            case 'B':
-                map.addStatic(std::make_unique<CloseBox>(world, posX, posY, textures));
                 break;
             case 'C':
                 map.addDynamic(std::make_unique<Coin>(posX + TILE_SIZE / 4.f, posY + TILE_SIZE / 4.f, textures));

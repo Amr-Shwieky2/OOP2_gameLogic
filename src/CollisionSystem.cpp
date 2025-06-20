@@ -84,21 +84,34 @@ void CollisionSystem::setupCollisionHandlers() {
             }
         }
     );
+    // ✅ إضافة جديدة: Player + MovableBox - دفع الصندوق
+    m_collisionHandler.registerHandler<Player, MovableBox>(
+        [](Player& player, MovableBox& box) {
+            // حساب اتجاه الدفع بناءً على موقع اللاعب والصندوق
+            sf::FloatRect playerBounds = player.getBounds();
+            sf::FloatRect boxBounds = box.getBounds();
 
-    // Player + CloseBox - فتح الصندوق
-    m_collisionHandler.registerHandler<Player, CloseBox>(
-        [this](Player& player, CloseBox& box) {
-            if (!box.isOpened()) {
-                box.open();
-                std::cout << "📦 Box opened!" << std::endl;
+            float playerCenterX = playerBounds.left + playerBounds.width / 2.0f;
+            float boxCenterX = boxBounds.left + boxBounds.width / 2.0f;
 
-                // إنشاء عملة نادرة من الصندوق
-                float x = box.getBounds().left;
-                float y = box.getBounds().top;
-                m_spawnCallback(std::make_unique<RareCoinGift>(x, y, player.getTextureManager()));
-            }
+            // تحديد اتجاه الدفع
+            float forceDirection = (playerCenterX < boxCenterX) ? 1.0f : -1.0f;
+
+            // قوة الدفع (يمكن تعديلها حسب سرعة اللاعب)
+            float pushForce = 150.0f; // قوة أساسية
+
+            // إذا كان اللاعب يتحرك، زيد القوة
+            sf::Vector2f playerVelocity = player.getVelocity(); // بحاجة لهذه الدالة في Player
+            float velocityMultiplier = std::abs(playerVelocity.x) / 100.0f; // تطبيع السرعة
+            pushForce *= (1.0f + velocityMultiplier);
+
+            // تطبيق القوة على الصندوق
+            box.applyForce(forceDirection * pushForce, 0.0f);
+
+            std::cout << "Pushing box with force: " << (forceDirection * pushForce) << std::endl;
         }
     );
+
 }
 
 void CollisionSystem::checkCollisions(std::vector<std::unique_ptr<GameObject>>& objects) {

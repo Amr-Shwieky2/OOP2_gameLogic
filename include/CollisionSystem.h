@@ -9,7 +9,7 @@
 #include "ProtectiveShieldGift.h"
 #include "HeadwindStormGift.h"
 #include "RareCoinGift.h"
-#include "CloseBox.h"
+#include "MovableBox.h"
 #include <vector>
 #include <memory>
 #include <functional>
