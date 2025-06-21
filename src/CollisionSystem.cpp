@@ -112,6 +112,22 @@ void CollisionSystem::setupCollisionHandlers() {
         }
     );
 
+    // عندما يلمس اللاعب الأرض
+    m_collisionHandler.registerHandler<Player, GroundTile>(
+        [](Player& player, GroundTile&) {
+            player.beginContact();
+            // std::cout << "Player touched ground\n";
+        }
+    );
+
+    // عندما يترك اللاعب الأرض - نفترض أن النظام ينفذ handler عند خروج التصادم أيضًا
+    m_collisionHandler.registerHandler<GroundTile, Player>(
+        [](GroundTile&, Player& player) {
+            player.endContact();
+            // std::cout << "Player left ground\n";
+        }
+    );
+
 }
 
 void CollisionSystem::checkCollisions(std::vector<std::unique_ptr<GameObject>>& objects) {

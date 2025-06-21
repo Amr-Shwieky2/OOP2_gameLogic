@@ -126,19 +126,41 @@ TextureManager& Player::getTextureManager() {
 void Player::updateVisuals() {
     if (hasEffect(PlayerEffect::Transparent)) {
         m_sprite.setTexture(m_textures.getResource("TransparentBall.png"));
-        m_sprite.setColor(sf::Color(255, 255, 255, 100));
     }
     else if (hasEffect(PlayerEffect::Magnetic)) {
         m_sprite.setTexture(m_textures.getResource("MagneticBall.png"));
-        m_sprite.setColor(sf::Color::White);
     }
     else {
         m_sprite.setTexture(m_textures.getResource("NormalBall.png"));
-        m_sprite.setColor(sf::Color::White);
     }
 }
 
 sf::Vector2f Player::getVelocity() const {
     b2Vec2 vel = m_body->GetLinearVelocity();
     return sf::Vector2f(vel.x * PPM, vel.y * PPM);
+}
+
+void Player::moveForward(float strength) {
+    b2Vec2 velocity = m_body->GetLinearVelocity();
+    velocity.x = strength * 5.0f; // Tune this value to fit your game speed
+    m_body->SetLinearVelocity(velocity);
+}
+
+void Player::jump() {
+    if (isOnGround()) { // You may already have this method
+        m_body->ApplyLinearImpulseToCenter(b2Vec2(0, -0.5f), true);
+    }
+}
+
+bool Player::isOnGround() const {
+    return m_groundContacts > 0;
+}
+
+void Player::beginContact() {
+    ++m_groundContacts;
+}
+
+void Player::endContact() {
+    if (m_groundContacts > 0)
+        --m_groundContacts;
 }

@@ -11,7 +11,8 @@
 #include "Constants.h"
 #include "CollisionSystem.h"
 #include "SurpriseBoxManager.h"
-//
+#include "VoiceInputService.h"
+
 class GameplayScreen : public IScreen {
 public:
     GameplayScreen();
@@ -30,6 +31,7 @@ private:
     sf::Sprite m_backgroundSprite;
     b2World m_world;
     InputService m_input;
+    VoiceInputService m_voiceInput;
 
     std::unique_ptr<Player> m_player;
     std::unique_ptr<Map> m_map;
@@ -37,7 +39,7 @@ private:
     std::unique_ptr<CollisionSystem> m_collisionSystem;
     std::unique_ptr<SurpriseBoxManager> m_surpriseBoxManager;
 
-    ResourceManager<sf::Texture> m_textures;  // ← أضف هذا السطر
+    ResourceManager<sf::Texture> m_textures;
     sf::RenderWindow* m_window = nullptr;
     LevelManager m_levelManager;
 };
