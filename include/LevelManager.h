@@ -16,5 +16,5 @@ public:
 
 private:
     std::vector<std::string> m_levels;
-    std::size_t m_currentIndex = 1;
+    std::size_t m_currentIndex = 0; // level 1 
 };
