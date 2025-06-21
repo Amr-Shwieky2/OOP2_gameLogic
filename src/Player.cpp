@@ -137,3 +137,8 @@ void Player::updateVisuals() {
         m_sprite.setColor(sf::Color::White);
     }
 }
+
+sf::Vector2f Player::getVelocity() const {
+    b2Vec2 vel = m_body->GetLinearVelocity();
+    return sf::Vector2f(vel.x * PPM, vel.y * PPM);
+}

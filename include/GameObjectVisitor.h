@@ -9,10 +9,10 @@ class SpeedGift;
 class ReverseMovementGift;
 class ProtectiveShieldGift;  // Assuming this is defined elsewhere
 class HeadwindStormGift;  // Assuming this is defined elsewhere
-class CloseBox;  // Assuming CloseBox is defined elsewhere
 class RareCoinGift;  // Assuming RareCoinGift is defined elsewhere
 class Flag;
 class GroundTile;
+class MovableBox;
 
 // Add others as needed
 
@@ -28,7 +28,7 @@ public:
     virtual void visit(ProtectiveShieldGift&) = 0;
     virtual void visit(HeadwindStormGift&) = 0;
     virtual void visit(RareCoinGift&) = 0;
-    virtual void visit(CloseBox&) = 0;
+    virtual void visit(MovableBox&) = 0;
 
     // ✅ Add these:
     virtual void visit(Flag&) = 0;

@@ -44,8 +44,7 @@ std::string GroundTile::getTextureName(TileType type) const {
     case TileType::Middle:      return "middle.png";
     case TileType::Left:        return "left.png";
     case TileType::Right:       return "right.png";
-    case TileType::LeftEdge:    return "leftEdge.png";
-    case TileType::RightEdge:   return "rightEdge.png";
+    case TileType::Edge:   return "Edge.png";
     case TileType::Sea:         return "sea.png";
     default:                    return "missing.png";
     }

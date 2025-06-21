@@ -9,7 +9,7 @@ GameplayScreen::GameplayScreen()
     : m_world(b2Vec2(0.f, 9.8f)) // Gravity
 {
     // Load background
-    if (!m_backgroundTexture.loadFromFile("backGroundGame.jpg")) {
+    if (!m_backgroundTexture.loadFromFile("backGroundGame.jpeg")) {
         throw std::runtime_error("Failed to load background image.");
     }
 

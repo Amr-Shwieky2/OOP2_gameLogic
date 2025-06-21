@@ -31,6 +31,7 @@ public:
     bool hasEffect(PlayerEffect effect) const;
 
     TextureManager& getTextureManager();
+    sf::Vector2f getVelocity() const;
 
 private:
     void updateVisuals();
