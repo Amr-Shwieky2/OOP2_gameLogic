@@ -1,14 +1,11 @@
 ﻿#include "GameplayScreen.h"
-#include "CollisionSystem.h"
-#include "SurpriseBoxManager.h"  
 #include "SurpriseBoxScreen.h"
 #include <iostream>
 #include "App.h"
 
 GameplayScreen::GameplayScreen()
-    : m_world(b2Vec2(0.f, 9.8f)) // Gravity
+    : m_world(b2Vec2(0.f, 9.8f))
 {
-    // Load background
     if (!m_backgroundTexture.loadFromFile("backGroundGame.jpeg")) {
         throw std::runtime_error("Failed to load background image.");
     }
@@ -17,11 +14,9 @@ GameplayScreen::GameplayScreen()
     float scaleY = WINDOW_HEIGHT / m_backgroundTexture.getSize().y;
     m_backgroundSprite.setScale(scaleY, scaleY);
 
-    // Load levels
     m_levelManager.addLevel("level1.txt");
     m_levelManager.addLevel("level2.txt");
 
-    // Create map and player
     m_map = std::make_unique<Map>(m_world, m_textures);
     loadLevel();
 
@@ -30,10 +25,17 @@ GameplayScreen::GameplayScreen()
 
     m_ui = std::make_unique<UIOverlay>(WINDOW_WIDTH);
 
+    if (m_levelManager.getCurrentIndex() == 1) {
+		m_world.SetGravity(b2Vec2(0.f, 18.0f)); // Disable gravity for level 2
+        m_voiceInput.start();
+    }
+
     std::cout << "GameplayScreen initialized with collision and surprise box systems!" << std::endl;
 }
 
-GameplayScreen::~GameplayScreen() = default;
+GameplayScreen::~GameplayScreen() {
+    m_voiceInput.stop();
+}
 
 void GameplayScreen::loadLevel() {
     const std::string& path = m_levelManager.getCurrentLevelPath();
@@ -41,7 +43,6 @@ void GameplayScreen::loadLevel() {
 
     m_player = std::make_unique<Player>(m_world, 128.f / PPM, 600.f / PPM, m_textures);
 
-    // ✅ إنشاء نظام التصادمات
     m_collisionSystem = std::make_unique<CollisionSystem>(
         *m_player,
         [this](std::unique_ptr<GameObject> obj) { spawnGameObject(std::move(obj)); }
@@ -51,16 +52,14 @@ void GameplayScreen::loadLevel() {
 }
 
 void GameplayScreen::handleEvents(sf::RenderWindow& window) {
-    // حفظ مرجع النافذة
     m_window = &window;
 
-    // ✅ إنشاء SurpriseBoxManager بعد تعيين النافذة
     if (!m_surpriseBoxManager && m_window) {
         m_surpriseBoxManager = std::make_unique<SurpriseBoxManager>(m_textures, *m_window);
         m_surpriseBoxManager->setSpawnCallback(
             [this](std::unique_ptr<GameObject> obj) { spawnGameObject(std::move(obj)); }
         );
-        std::cout << "✅ SurpriseBoxManager created after window assignment!" << std::endl;
+        std::cout << "SurpriseBoxManager created after window assignment!" << std::endl;
     }
 
     m_input.update();
@@ -80,26 +79,33 @@ void GameplayScreen::update(float deltaTime) {
     m_world.Step(deltaTime, 8, 3);
 
     if (m_player) {
-        m_player->handleInput(m_input);
+        if (m_levelManager.getCurrentIndex() == 1) {
+            float volume = m_voiceInput.getVolume();
+            if (volume > 0.7f) {
+                m_player->jump();
+            }
+            else if (volume > 0.2f) {
+                m_player->moveForward(volume);
+            }
+        }
+        else {
+            m_player->handleInput(m_input);
+        }
         m_player->update(deltaTime);
         m_ui->update(m_player->getScore(), m_player->getLives());
     }
 
     if (m_map) {
         m_map->update(deltaTime);
-
-        // ✅ فحص التصادمات
         if (m_collisionSystem) {
             m_collisionSystem->checkCollisions(m_map->getObjects());
         }
     }
 
-    // ✅ تحديث نظام الصندوق المفاجئ
     if (m_surpriseBoxManager) {
         static int lastScore = 0;
         int currentScore = m_player->getScore();
         if (currentScore > lastScore && (currentScore % 10) == 0) {
-            // كل 10 نقاط = عملة واحدة
             m_surpriseBoxManager->onCoinCollected();
         }
         lastScore = currentScore;
@@ -107,11 +113,10 @@ void GameplayScreen::update(float deltaTime) {
 
     updateCamera();
 
-    // Debug info
     static float debugTimer = 0.0f;
     debugTimer += deltaTime;
     if (debugTimer >= 2.0f) {
-        std::cout << "🎮 Player - Score: " << m_player->getScore()
+        std::cout << "Player - Score: " << m_player->getScore()
             << ", Lives: " << m_player->getLives() << std::endl;
         debugTimer = 0.0f;
     }
@@ -153,7 +158,7 @@ void GameplayScreen::updateCamera() {
 void GameplayScreen::spawnGameObject(std::unique_ptr<GameObject> obj) {
     if (!obj) return;
 
-    std::cout << "📦 Spawning new game object from box!" << std::endl;
+    std::cout << "Spawning new game object from box!" << std::endl;
 
     if (auto dynamicObj = dynamic_cast<DynamicGameObject*>(obj.get())) {
         auto ptr = std::unique_ptr<DynamicGameObject>(static_cast<DynamicGameObject*>(obj.release()));

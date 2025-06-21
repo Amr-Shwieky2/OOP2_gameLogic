@@ -33,6 +33,12 @@ public:
     TextureManager& getTextureManager();
     sf::Vector2f getVelocity() const;
 
+    void moveForward(float strength);
+    void jump();
+    bool isOnGround() const;
+    void beginContact();  // Called when player touches ground
+    void endContact();    // Called when player leaves ground
+
 private:
     void updateVisuals();
     void updatePhysics(float deltaTime);
@@ -43,6 +49,7 @@ private:
 
     PlayerEffectManager m_effects;
 
+    int m_groundContacts = 0;
     int m_score = 0;
     int m_lives = 3;
     bool m_onGround = false;

@@ -13,6 +13,7 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include "GroundTile.h"
 
 class CollisionSystem {
 public:
