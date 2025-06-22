@@ -1,5 +1,4 @@
 #include "GroundTile.h"
-#include "GameObjectVisitor.h"
 
 GroundTile::GroundTile(b2World& world, float x, float y, TileType type, TextureManager& textures)
     : m_type(type)
@@ -34,9 +33,7 @@ sf::FloatRect GroundTile::getBounds() const {
     return m_bounds;
 }
 
-void GroundTile::accept(GameObjectVisitor& visitor) {
-    visitor.visit(*this);
-}
+
 
 std::string GroundTile::getTextureName(TileType type) const {
     switch (type) {

@@ -3,7 +3,6 @@
 #include "StaticGameObject.h"
 #include "ResourceManager.h"
 #include "Player.h"
-#include "GameObjectVisitor.h"
 
 class LifeHeartGift : public StaticGameObject {
 public:
@@ -11,7 +10,6 @@ public:
 
     void render(sf::RenderTarget& target) const override;
     sf::FloatRect getBounds() const override;
-    void accept(GameObjectVisitor& visitor) override;
 
     void onCollect(Player& player);
     bool isCollected() const;

@@ -1,5 +1,4 @@
 #include "Flag.h"
-#include "GameObjectVisitor.h"
 
 Flag::Flag(float x, float y, TextureManager& textures) {
     sf::Texture& tex = textures.getResource("redflag.png");
@@ -16,6 +15,3 @@ sf::FloatRect Flag::getBounds() const {
     return m_bounds;
 }
 
-void Flag::accept(GameObjectVisitor& visitor) {
-    visitor.visit(*this);
-}

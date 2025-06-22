@@ -14,6 +14,5 @@ public:
     virtual sf::FloatRect getBounds() const = 0;
 
     virtual void update(float) {}
-    // Double-dispatch entry point
-    virtual void accept(GameObjectVisitor& visitor) = 0;
+    
 };

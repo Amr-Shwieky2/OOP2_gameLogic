@@ -3,7 +3,6 @@
 #include <box2d/box2d.h>
 #include "DynamicGameObject.h"
 #include "ResourceManager.h"
-#include "GameObjectVisitor.h"
 #include <TileType.h>
 
 class MovableBox : public DynamicGameObject {
@@ -17,7 +16,6 @@ public:
     // من GameObject
     void render(sf::RenderTarget& target) const override;
     sf::FloatRect getBounds() const override;
-    void accept(GameObjectVisitor& visitor) override;
 
     // دوال خاصة بالصندوق
     b2Body* getBody() const { return m_body; }

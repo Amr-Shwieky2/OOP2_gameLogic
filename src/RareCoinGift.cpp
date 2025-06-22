@@ -1,6 +1,5 @@
 #include "RareCoinGift.h"
 #include "Player.h"
-#include "GameObjectVisitor.h"
 
 RareCoinGift::RareCoinGift(float x, float y, TextureManager& textures) {
     sf::Texture& tex = textures.getResource("RareCoinGidt.png");
@@ -18,9 +17,7 @@ sf::FloatRect RareCoinGift::getBounds() const {
     return m_sprite.getGlobalBounds();
 }
 
-void RareCoinGift::accept(GameObjectVisitor& visitor) {
-    visitor.visit(*this);
-}
+
 
 void RareCoinGift::onCollect(Player& player) {
     if (!m_collected) {

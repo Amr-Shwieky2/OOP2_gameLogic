@@ -1,5 +1,4 @@
 #include "Coin.h"
-#include "GameObjectVisitor.h"
 
 Coin::Coin(float x, float y, TextureManager& textures)
     : m_textures(textures)
@@ -19,9 +18,7 @@ sf::FloatRect Coin::getBounds() const {
     return m_sprite.getGlobalBounds();
 }
 
-void Coin::accept(GameObjectVisitor& visitor) {
-    visitor.visit(*this);
-}
+
 //
 void Coin::update(float deltaTime) {
     if (m_collected) return;

@@ -16,9 +16,7 @@ sf::FloatRect SpeedGift::getBounds() const {
     return m_sprite.getGlobalBounds();
 }
 
-void SpeedGift::accept(GameObjectVisitor& visitor) {
-    visitor.visit(*this);
-}
+
 
 void SpeedGift::onCollect(Player& player) {
     if (!m_collected) {

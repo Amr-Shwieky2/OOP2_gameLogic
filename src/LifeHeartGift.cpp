@@ -16,9 +16,7 @@ sf::FloatRect LifeHeartGift::getBounds() const {
     return m_sprite.getGlobalBounds();
 }
 
-void LifeHeartGift::accept(GameObjectVisitor& visitor) {
-    visitor.visit(*this);
-}
+
 
 void LifeHeartGift::onCollect(Player& player) {
     if (!m_collected) {
