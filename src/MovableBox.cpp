@@ -99,10 +99,7 @@ sf::FloatRect MovableBox::getBounds() const {
     return m_sprite.getGlobalBounds();
 }
 
-void MovableBox::accept(GameObjectVisitor& visitor) {
-    // بدك تضيف visit(MovableBox&) للـ GameObjectVisitor
-    // visitor.visit(*this);
-}
+
 
 void MovableBox::applyForce(float forceX, float forceY) {
     if (m_body) {

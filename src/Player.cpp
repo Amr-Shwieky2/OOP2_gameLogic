@@ -1,5 +1,4 @@
 #include "Player.h"
-#include "GameObjectVisitor.h"
 
 Player::Player(b2World& world, float x, float y, TextureManager& textures)
     : m_textures(textures)
@@ -75,9 +74,7 @@ void Player::render(sf::RenderTarget& target) const {
     target.draw(m_sprite);
 }
 
-void Player::accept(GameObjectVisitor& visitor) {
-    visitor.visit(*this);
-}
+
 
 sf::FloatRect Player::getBounds() const {
     return m_sprite.getGlobalBounds();

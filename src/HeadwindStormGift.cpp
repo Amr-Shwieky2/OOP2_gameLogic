@@ -1,6 +1,5 @@
 #include "HeadwindStormGift.h"
 #include "Player.h"
-#include "GameObjectVisitor.h"
 
 HeadwindStormGift::HeadwindStormGift(float x, float y, TextureManager& textures) {
     sf::Texture& tex = textures.getResource("HeadwindStormGift.png");
@@ -18,9 +17,7 @@ sf::FloatRect HeadwindStormGift::getBounds() const {
     return m_sprite.getGlobalBounds();
 }
 
-void HeadwindStormGift::accept(GameObjectVisitor& visitor) {
-    visitor.visit(*this);
-}
+
 
 void HeadwindStormGift::onCollect(Player& player) {
     if (!m_collected) {

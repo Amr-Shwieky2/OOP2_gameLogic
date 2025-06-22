@@ -17,7 +17,6 @@ public:
     void update(float deltaTime) override;
     void render(sf::RenderTarget& target) const override;
 
-    void accept(GameObjectVisitor& visitor) override;
     sf::FloatRect getBounds() const override;
     sf::Vector2f getPosition() const;
 

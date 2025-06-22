@@ -1,6 +1,5 @@
 #include "ProtectiveShieldGift.h"
 #include "Player.h"
-#include "GameObjectVisitor.h"
 
 ProtectiveShieldGift::ProtectiveShieldGift(float x, float y, TextureManager& textures) {
     sf::Texture& tex = textures.getResource("ProtectiveShieldGift.png");
@@ -18,9 +17,7 @@ sf::FloatRect ProtectiveShieldGift::getBounds() const {
     return m_sprite.getGlobalBounds();
 }
 
-void ProtectiveShieldGift::accept(GameObjectVisitor& visitor) {
-    visitor.visit(*this);
-}
+
 
 void ProtectiveShieldGift::onCollect(Player& player) {
     if (!m_collected) {

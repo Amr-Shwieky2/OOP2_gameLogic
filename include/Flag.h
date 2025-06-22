@@ -10,7 +10,6 @@ public:
 
     void render(sf::RenderTarget& target) const override;
     sf::FloatRect getBounds() const override;
-    void accept(GameObjectVisitor& visitor) override;
 
 private:
     sf::Sprite m_sprite;

@@ -11,7 +11,6 @@ public:
 
     void render(sf::RenderTarget& target) const override;
     sf::FloatRect getBounds() const override;
-    void accept(GameObjectVisitor& visitor) override;
 
     void onCollect(Player& player);
     bool isCollected() const;

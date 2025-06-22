@@ -13,7 +13,6 @@ public:
 
     void render(sf::RenderTarget& target) const override;
     sf::FloatRect getBounds() const override;
-    void accept(GameObjectVisitor& visitor) override;
 
 private:
     std::string getTextureName(TileType type) const;
