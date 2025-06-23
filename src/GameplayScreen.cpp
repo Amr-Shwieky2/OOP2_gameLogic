@@ -1,10 +1,12 @@
-﻿#include "GameplayScreen.h"
+﻿// GameplayScreen.cpp - Cleaned Version (بدون الطباعات والتعليقات غير المهمة)
+
+#include "GameplayScreen.h"
 #include "SurpriseBoxScreen.h"
+#include "MultiMethodCollisionSystem.h"
 #include <iostream>
 #include "App.h"
 
 GameplayScreen::GameplayScreen() {
-    //  Initialize systems in logical order
     initializeWorld();
     initializeGameState();
     initializeBackground();
@@ -17,8 +19,6 @@ GameplayScreen::GameplayScreen() {
 GameplayScreen::~GameplayScreen() {
     m_voiceInput.stop();
 }
-
-// ===== INITIALIZATION METHODS =====
 
 void GameplayScreen::initializeWorld() {
     m_world = std::make_unique<b2World>(b2Vec2(0.f, 9.8f));
@@ -51,39 +51,23 @@ void GameplayScreen::initializePlayer() {
 }
 
 void GameplayScreen::initializeSystems() {
-    // Camera system
     m_camera = std::make_unique<CameraController>(WINDOW_WIDTH, WINDOW_HEIGHT);
-
-    // Collision system with GameState
-    m_collisionSystem = std::make_unique<CollisionSystem>(
-        *m_player,
-        *m_gameState,  //  Pass GameState instead of accessing Player's score/lives
-        [this](std::unique_ptr<GameObject> obj) { spawnGameObject(std::move(obj)); }
-    );
-
-    // Adjust world settings based on level
-    if (m_levelManager.getCurrentIndex() == 1) {
-        m_world->SetGravity(b2Vec2(0.f, 18.0f)); // Higher gravity for level 2
-        m_voiceInput.start();
-    }
+    m_multiMethodCollisions = std::make_unique<MultiMethodCollisionSystem>(*m_player, *m_gameState);
+    updateLevelSettings();
 }
 
 void GameplayScreen::initializeUI() {
     m_ui = std::make_unique<UIOverlay>(WINDOW_WIDTH);
 }
 
-// ===== EVENT HANDLING =====
-
 void GameplayScreen::handleEvents(sf::RenderWindow& window) {
     m_window = &window;
 
-    // Initialize surprise box manager after window is available
     if (!m_surpriseBoxManager && m_window) {
         m_surpriseBoxManager = std::make_unique<SurpriseBoxManager>(m_textures, *m_window);
         m_surpriseBoxManager->setSpawnCallback(
             [this](std::unique_ptr<GameObject> obj) { spawnGameObject(std::move(obj)); }
         );
-        std::cout << "🎁 SurpriseBoxManager created after window assignment!" << std::endl;
     }
 
     m_input.update();
@@ -97,15 +81,14 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
     }
 }
 
-// ===== UPDATE METHODS =====
-
 void GameplayScreen::update(float deltaTime) {
     if (m_ui->isPaused()) return;
 
     if (m_gameState) {
         m_gameState->updateTime(deltaTime);
     }
-    //  Update in logical order with separated methods
+
+    handleMenuInput();
     updateInput(deltaTime);
     updatePhysics(deltaTime);
     updateGameLogic(deltaTime);
@@ -113,12 +96,25 @@ void GameplayScreen::update(float deltaTime) {
     checkGameEvents();
 }
 
+void GameplayScreen::handleMenuInput() {
+    if (m_gameState->isLevelComplete()) {
+        if (m_input.isKeyPressed(sf::Keyboard::Space)) {
+            proceedToNextLevel();
+        }
+    }
+
+    if (m_gameState->isGameOver()) {
+        if (m_input.isKeyPressed(sf::Keyboard::R)) {
+            restartGame();
+        }
+    }
+}
+
 void GameplayScreen::updateInput(float deltaTime) {
     if (!m_player) return;
+    if (m_gameState->isGameOver()) return;
 
-    // Handle different input methods based on level
     if (m_levelManager.getCurrentIndex() == 1) {
-        // Voice input for level 2
         float volume = m_voiceInput.getVolume();
         if (volume > 0.7f) {
             m_player->jump();
@@ -128,7 +124,6 @@ void GameplayScreen::updateInput(float deltaTime) {
         }
     }
     else {
-        // Keyboard input for level 1
         m_player->handleInput(m_input);
     }
 }
@@ -138,17 +133,11 @@ void GameplayScreen::updatePhysics(float deltaTime) {
 }
 
 void GameplayScreen::updateGameLogic(float deltaTime) {
-    if (m_player) {
-        m_player->update(deltaTime);
-    }
-
-    if (m_map) {
-        m_map->update(deltaTime);
-    }
+    if (m_player) m_player->update(deltaTime);
+    if (m_map) m_map->update(deltaTime);
 }
 
 void GameplayScreen::updateSystems(float deltaTime) {
-    // Update camera to follow player
     if (m_player && m_camera) {
         sf::Vector2f playerPos = m_player->getPosition();
         sf::Vector2f playerVel = m_player->getVelocity();
@@ -156,43 +145,35 @@ void GameplayScreen::updateSystems(float deltaTime) {
         m_camera->update(deltaTime);
     }
 
-    //  Check collisions
-    if (m_collisionSystem && m_map) {
-        m_collisionSystem->checkCollisions(m_map->getObjects());
+    if (m_multiMethodCollisions && m_map) {
+        m_multiMethodCollisions->checkAllCollisions(m_map->getObjects());
     }
 
-    //  Handle surprise boxes - now using GameState
     if (m_surpriseBoxManager) {
         static int lastScore = 0;
-        int currentScore = m_gameState->getScore();  
+        int currentScore = m_gameState->getScore();
         if (currentScore > lastScore && (currentScore % 10) == 0) {
             m_surpriseBoxManager->onCoinCollected();
         }
         lastScore = currentScore;
     }
 
-    //  Update UI with GameState
     if (m_ui && m_gameState) {
-        m_ui->update(*m_gameState);  // استخدم GameState كاملاً
+        m_ui->update(*m_gameState);
     }
 }
 
 void GameplayScreen::checkGameEvents() {
-    //  Check for game over using GameState
     if (m_gameState->getLives() <= 0 && !m_gameState->isGameOver()) {
         handleGameOver();
     }
 
-    //  Check for level completion
     if (m_gameState->getScore() >= 1000 && !m_gameState->isLevelComplete()) {
         handleLevelComplete();
     }
 }
 
-// ===== RENDER METHODS =====
-
 void GameplayScreen::render(sf::RenderWindow& window) {
-    //  Set camera view
     if (m_camera) {
         window.setView(m_camera->getView());
     }
@@ -220,22 +201,13 @@ void GameplayScreen::renderBackground(sf::RenderWindow& window) {
 }
 
 void GameplayScreen::renderGameWorld(sf::RenderWindow& window) {
-    if (m_map) {
-        m_map->render(window);
-    }
-
-    if (m_player) {
-        m_player->render(window);
-    }
+    if (m_map) m_map->render(window);
+    if (m_player) m_player->render(window);
 }
 
 void GameplayScreen::renderUI(sf::RenderWindow& window) {
-    if (m_ui && m_gameState) {
-        m_ui->draw(window, *m_gameState);  
-    }
+    if (m_ui && m_gameState) m_ui->draw(window, *m_gameState);
 }
-
-// ===== HELPER METHODS =====
 
 void GameplayScreen::loadCurrentLevel() {
     const std::string& path = m_levelManager.getCurrentLevelPath();
@@ -254,34 +226,69 @@ void GameplayScreen::spawnGameObject(std::unique_ptr<GameObject> obj) {
     }
 }
 
-void GameplayScreen::onCoinCollected() {
-    // ✅ هذه الدالة تستدعى عند جمع العملات
-    // يمكن إضافة تأثيرات صوتية أو بصرية هنا
-    std::cout << " Coin collection event triggered!" << std::endl;
-
-    // يمكن إضافة المزيد من المنطق هنا:
-    // - تشغيل صوت
-    // - إضافة تأثيرات بصرية  
-    // - التحقق من إنجازات
-    // - إلخ...
-}
+void GameplayScreen::onCoinCollected() {}
 
 void GameplayScreen::handleLevelComplete() {
-    m_gameState->setLevelComplete(true);
-    std::cout << " Level Complete! Score: " << m_gameState->getScore() << std::endl;
-
-    // يمكن إضافة:
-    // - الانتقال للمرحلة التالية
-    // - عرض شاشة الإنجاز
-    // - حفظ التقدم
+    if (!m_gameState->isLevelComplete()) {
+        m_gameState->setLevelComplete(true);
+    }
 }
 
 void GameplayScreen::handleGameOver() {
-    m_gameState->setGameOver(true);
-    std::cout << " Game Over! Final Score: " << m_gameState->getScore() << std::endl;
+    if (!m_gameState->isGameOver()) {
+        m_gameState->setGameOver(true);
+    }
+}
 
-    // يمكن إضافة:
-    // - عرض شاشة Game Over
-    // - خيار إعادة اللعب
-    // - حفظ أفضل النتائج
+void GameplayScreen::proceedToNextLevel() {
+    if (m_levelManager.loadNextLevel()) {
+        m_gameState->resetLevel();
+        loadCurrentLevel();
+        resetPlayerPosition();
+        updateLevelSettings();
+    }
+    else {
+        handleGameComplete();
+    }
+}
+
+void GameplayScreen::resetPlayerPosition() {
+    if (m_player && m_world) {
+        m_player.reset();
+        m_player = std::make_unique<Player>(*m_world, 128.f / PPM, 600.f / PPM, m_textures);
+
+        if (m_multiMethodCollisions) {
+            m_multiMethodCollisions.reset();
+            m_multiMethodCollisions = std::make_unique<MultiMethodCollisionSystem>(*m_player, *m_gameState);
+        }
+
+        if (m_camera) {
+            m_camera->setPosition(sf::Vector2f(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f));
+        }
+    }
+}
+
+void GameplayScreen::updateLevelSettings() {
+    int currentLevel = m_levelManager.getCurrentIndex();
+
+    if (currentLevel == 1) {
+        m_world->SetGravity(b2Vec2(0.f, 18.0f));
+        m_voiceInput.start();
+    }
+    else {
+        m_world->SetGravity(b2Vec2(0.f, 9.8f));
+        m_voiceInput.stop();
+    }
+}
+
+void GameplayScreen::handleGameComplete() {
+    restartGame();
+}
+
+void GameplayScreen::restartGame() {
+    m_gameState->resetGame();
+    m_levelManager.loadLevel(0);
+    loadCurrentLevel();
+    resetPlayerPosition();
+    updateLevelSettings();
 }

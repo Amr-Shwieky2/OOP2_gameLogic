@@ -10,7 +10,7 @@
 #include "ResourceManager.h"
 #include "LevelManager.h"
 #include "UIOverlay.h"
-#include "CollisionSystem.h"
+#include "MultiMethodCollisionSystem.h"  
 #include "SurpriseBoxManager.h"
 #include "CameraController.h"
 #include "GameState.h"
@@ -24,7 +24,10 @@ private:
     std::unique_ptr<Player> m_player;
     std::unique_ptr<Map> m_map;
     std::unique_ptr<CameraController> m_camera;
-    std::unique_ptr<CollisionSystem> m_collisionSystem;
+
+    // Collision systems - New MultiMethod system
+    std::unique_ptr<MultiMethodCollisionSystem> m_multiMethodCollisions;  
+
     std::unique_ptr<UIOverlay> m_ui;
     std::unique_ptr<SurpriseBoxManager> m_surpriseBoxManager;
 
@@ -60,6 +63,8 @@ private:
     void initializeSystems();
     void initializeUI();
 
+    void handleMenuInput();
+
     // Update methods - separated concerns
     void updateInput(float deltaTime);
     void updatePhysics(float deltaTime);
@@ -78,4 +83,11 @@ private:
     void onCoinCollected();
     void handleLevelComplete();
     void handleGameOver();
+
+    // Level progression functions  
+    void proceedToNextLevel();
+    void resetPlayerPosition();
+    void updateLevelSettings();
+    void handleGameComplete();
+    void restartGame();
 };
