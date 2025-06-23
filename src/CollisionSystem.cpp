@@ -1,151 +1,92 @@
 ﻿#include "CollisionSystem.h"
+#include "GameObject.h"
 #include <iostream>
+#include <cmath>
 
-CollisionSystem::CollisionSystem(Player& player, std::function<void(std::unique_ptr<GameObject>)> spawnCallback)
-    : m_player(player), m_spawnCallback(spawnCallback) {
-    setupCollisionHandlers();
-    std::cout << "CollisionSystem created with multimethods!" << std::endl;
-}
-
-void CollisionSystem::setupCollisionHandlers() {
-    // Player + Coin - جمع العملات
-    m_collisionHandler.registerHandler<Player, Coin>(
-        [](Player& player, Coin& coin) {
-            if (!coin.isCollected()) {
-                coin.collect();
-                player.increaseScore(10);
-                std::cout << "Coin collected! Score: " << player.getScore() << std::endl;
-            }
-        }
-    );
-
-    // Player + LifeHeartGift - زيادة الأرواح
-    m_collisionHandler.registerHandler<Player, LifeHeartGift>(
-        [](Player& player, LifeHeartGift& gift) {
-            if (!gift.isCollected()) {
-                gift.onCollect(player);
-                player.addLife();
-                std::cout << "Life gained! Lives: " << player.getLives() << std::endl;
-            }
-        }
-    );
-
-    // Player + SpeedGift - زيادة السرعة
-    m_collisionHandler.registerHandler<Player, SpeedGift>(
-        [](Player& player, SpeedGift& gift) {
-            if (!gift.isCollected()) {
-                gift.onCollect(player);
-                player.applyEffect(PlayerEffect::SpeedBoost, 6.0f);
-                std::cout << "Speed boost activated!" << std::endl;
-            }
-        }
-    );
-
-    // Player + ReverseMovementGift - عكس الحركة
-    m_collisionHandler.registerHandler<Player, ReverseMovementGift>(
-        [](Player& player, ReverseMovementGift& gift) {
-            if (!gift.isCollected()) {
-                gift.onCollect(player);
-                player.applyEffect(PlayerEffect::ReverseControl, 5.0f);
-                std::cout << "Controls reversed!" << std::endl;
-            }
-        }
-    );
-
-    // Player + ProtectiveShieldGift - الحماية
-    m_collisionHandler.registerHandler<Player, ProtectiveShieldGift>(
-        [](Player& player, ProtectiveShieldGift& gift) {
-            if (!gift.isCollected()) {
-                gift.onCollect(player);
-                player.applyEffect(PlayerEffect::Shield, 8.0f);
-                std::cout << "Shield activated!" << std::endl;
-            }
-        }
-    );
-
-    // Player + HeadwindStormGift - مقاومة الرياح
-    m_collisionHandler.registerHandler<Player, HeadwindStormGift>(
-        [](Player& player, HeadwindStormGift& gift) {
-            if (!gift.isCollected()) {
-                gift.onCollect(player);
-                player.applyEffect(PlayerEffect::Headwind, 5.0f);
-                std::cout << "Headwind resistance!" << std::endl;
-            }
-        }
-    );
-
-    // Player + RareCoinGift - العملة النادرة
-    m_collisionHandler.registerHandler<Player, RareCoinGift>(
-        [](Player& player, RareCoinGift& gift) {
-            if (!gift.isCollected()) {
-                gift.onCollect(player);
-                player.increaseScore(50); // عملة نادرة = 50 نقطة
-                std::cout << "Rare coin collected! +50 points!" << std::endl;
-            }
-        }
-    );
-    // ✅ إضافة جديدة: Player + MovableBox - دفع الصندوق
-    m_collisionHandler.registerHandler<Player, MovableBox>(
-        [](Player& player, MovableBox& box) {
-            // حساب اتجاه الدفع بناءً على موقع اللاعب والصندوق
-            sf::FloatRect playerBounds = player.getBounds();
-            sf::FloatRect boxBounds = box.getBounds();
-
-            float playerCenterX = playerBounds.left + playerBounds.width / 2.0f;
-            float boxCenterX = boxBounds.left + boxBounds.width / 2.0f;
-
-            // تحديد اتجاه الدفع
-            float forceDirection = (playerCenterX < boxCenterX) ? 1.0f : -1.0f;
-
-            // قوة الدفع (يمكن تعديلها حسب سرعة اللاعب)
-            float pushForce = 150.0f; // قوة أساسية
-
-            // إذا كان اللاعب يتحرك، زيد القوة
-            sf::Vector2f playerVelocity = player.getVelocity(); // بحاجة لهذه الدالة في Player
-            float velocityMultiplier = std::abs(playerVelocity.x) / 100.0f; // تطبيع السرعة
-            pushForce *= (1.0f + velocityMultiplier);
-
-            // تطبيق القوة على الصندوق
-            box.applyForce(forceDirection * pushForce, 0.0f);
-
-            std::cout << "Pushing box with force: " << (forceDirection * pushForce) << std::endl;
-        }
-    );
-
-    // عندما يلمس اللاعب الأرض
-    m_collisionHandler.registerHandler<Player, GroundTile>(
-        [](Player& player, GroundTile&) {
-            player.beginContact();
-            // std::cout << "Player touched ground\n";
-        }
-    );
-
-    // عندما يترك اللاعب الأرض - نفترض أن النظام ينفذ handler عند خروج التصادم أيضًا
-    m_collisionHandler.registerHandler<GroundTile, Player>(
-        [](GroundTile&, Player& player) {
-            player.endContact();
-            // std::cout << "Player left ground\n";
-        }
-    );
-
-}
+CollisionSystem::CollisionSystem(Player& player, GameState& gameState,
+    std::function<void(std::unique_ptr<GameObject>)> spawnCallback)
+    : m_player(player), m_gameState(gameState), m_spawnCallback(spawnCallback){}
 
 void CollisionSystem::checkCollisions(std::vector<std::unique_ptr<GameObject>>& objects) {
     for (auto& obj : objects) {
-        if (areColliding(m_player, *obj)) {
-            // استخدام multimethods لمعالجة التصادم
-            bool handled = m_collisionHandler.handleCollision(m_player, *obj);
-
-            if (!handled) {
-                // لا يوجد handler لهذا النوع من التصادم
-                // std::cout << "No collision handler for this object type" << std::endl;
+        if (!areColliding(m_player, *obj)) {
+            continue;
+        }
+        // Check for collectable items
+        if (auto* collectable = dynamic_cast<ICollectable*>(obj.get())) {
+            if (!collectable->isCollected()) {
+                handlePlayerCollectableCollision(*collectable);
             }
         }
+
+        // Check for movable boxes
+        else if (auto* box = dynamic_cast<MovableBox*>(obj.get())) {
+            handlePlayerBoxCollision(*box);
+        }
+
+        // Check for ground tiles
+        else if (auto* ground = dynamic_cast<GroundTile*>(obj.get())) {
+            handlePlayerGroundCollision(*ground);
+        }
     }
+}
+
+void CollisionSystem::handlePlayerCollectableCollision(ICollectable& collectable) {
+    // Let the collectable handle its own collection logic
+    collectable.onCollect(m_gameState);
+
+    // Apply any effects to the player
+    PlayerEffect effect = collectable.getEffect();
+    if (effect != PlayerEffect::None) {
+        float duration = collectable.getEffectDuration();
+        m_player.applyEffect(effect, duration);
+    }
+}
+
+void CollisionSystem::handlePlayerBoxCollision(MovableBox& box) {
+    // Calculate push direction and force
+    sf::Vector2f pushDirection = calculatePushDirection(m_player, box);
+
+    // Base push force
+    float pushForce = 150.0f;
+
+    // Increase force based on player velocity
+    sf::Vector2f playerVelocity = m_player.getVelocity();
+    float velocityMultiplier = std::abs(playerVelocity.x) / 100.0f;
+    pushForce *= (1.0f + velocityMultiplier);
+
+    // Apply speed boost effect to push force
+    if (m_player.hasEffect(PlayerEffect::SpeedBoost)) {
+        pushForce *= 1.5f;
+    }
+
+    // Apply the force to the box
+    box.applyForce(pushDirection.x * pushForce, pushDirection.y * pushForce);
+}
+
+void CollisionSystem::handlePlayerGroundCollision(GroundTile& ground) {
+    // Handle ground contact for jumping mechanics
+    m_player.beginContact();
 }
 
 bool CollisionSystem::areColliding(const GameObject& obj1, const GameObject& obj2) const {
     sf::FloatRect bounds1 = obj1.getBounds();
     sf::FloatRect bounds2 = obj2.getBounds();
     return bounds1.intersects(bounds2);
+}
+
+sf::Vector2f CollisionSystem::calculatePushDirection(const GameObject& pusher, const GameObject& target) const {
+    sf::FloatRect pusherBounds = pusher.getBounds();
+    sf::FloatRect targetBounds = target.getBounds();
+
+    float pusherCenterX = pusherBounds.left + pusherBounds.width / 2.0f;
+    float targetCenterX = targetBounds.left + targetBounds.width / 2.0f;
+
+    // Determine horizontal push direction
+    float directionX = (pusherCenterX < targetCenterX) ? 1.0f : -1.0f;
+
+    // No vertical push for ground-based objects
+    float directionY = 0.0f;
+
+    return sf::Vector2f(directionX, directionY);
 }

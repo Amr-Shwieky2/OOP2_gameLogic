@@ -1,9 +1,9 @@
-#include "Player.h"
+﻿#include "Player.h"
 
 Player::Player(b2World& world, float x, float y, TextureManager& textures)
     : m_textures(textures)
 {
-    // Box2D body
+    // Box2D body setup
     b2BodyDef bodyDef;
     bodyDef.type = b2_dynamicBody;
     bodyDef.position.Set(x, y);
@@ -45,6 +45,11 @@ void Player::handleInput(const InputService& input) {
         desiredVel = hasEffect(PlayerEffect::ReverseControl) ? -PLAYER_MOVE_SPEED : PLAYER_MOVE_SPEED;
     }
 
+    // Apply speed boost effect
+    if (hasEffect(PlayerEffect::SpeedBoost)) {
+        desiredVel *= 1.5f;  // 50% speed increase
+    }
+
     b2Vec2 vel = m_body->GetLinearVelocity();
     float velChange = desiredVel - vel.x;
     float impulse = m_body->GetMass() * velChange;
@@ -62,7 +67,7 @@ void Player::update(float deltaTime) {
     updatePhysics(deltaTime);
 }
 
-void Player::updatePhysics(float) {
+void Player::updatePhysics(float deltaTime) {
     b2Vec2 pos = m_body->GetPosition();
     m_sprite.setPosition(pos.x * PPM, pos.y * PPM);
     m_sprite.setRotation(m_body->GetAngle() * 180.f / b2_pi);
@@ -74,8 +79,6 @@ void Player::render(sf::RenderTarget& target) const {
     target.draw(m_sprite);
 }
 
-
-
 sf::FloatRect Player::getBounds() const {
     return m_sprite.getGlobalBounds();
 }
@@ -85,53 +88,6 @@ sf::Vector2f Player::getPosition() const {
     return sf::Vector2f(pos.x * PPM, pos.y * PPM);
 }
 
-void Player::addLife()
-{
-    if (m_lives < 3) {
-        ++m_lives;
-    }
-}
-
-void Player::increaseScore(int amount) {
-    m_score += amount;
-}
-
-void Player::loseLife() {
-    if (m_lives > 0) --m_lives;
-}
-
-int Player::getScore() const {
-    return m_score;
-}
-
-int Player::getLives() const {
-    return m_lives;
-}
-
-void Player::applyEffect(PlayerEffect effect, float duration) {
-    m_effects.applyEffect(effect, duration);
-}
-
-bool Player::hasEffect(PlayerEffect effect) const {
-    return m_effects.hasEffect(effect);
-}
-
-TextureManager& Player::getTextureManager() {
-    return m_textures;
-}
-
-void Player::updateVisuals() {
-    if (hasEffect(PlayerEffect::Transparent)) {
-        m_sprite.setTexture(m_textures.getResource("TransparentBall.png"));
-    }
-    else if (hasEffect(PlayerEffect::Magnetic)) {
-        m_sprite.setTexture(m_textures.getResource("MagneticBall.png"));
-    }
-    else {
-        m_sprite.setTexture(m_textures.getResource("NormalBall.png"));
-    }
-}
-
 sf::Vector2f Player::getVelocity() const {
     b2Vec2 vel = m_body->GetLinearVelocity();
     return sf::Vector2f(vel.x * PPM, vel.y * PPM);
@@ -139,12 +95,12 @@ sf::Vector2f Player::getVelocity() const {
 
 void Player::moveForward(float strength) {
     b2Vec2 velocity = m_body->GetLinearVelocity();
-    velocity.x = strength * 5.0f; // Tune this value to fit your game speed
+    velocity.x = strength * 5.0f;
     m_body->SetLinearVelocity(velocity);
 }
 
 void Player::jump() {
-    if (isOnGround()) { // You may already have this method
+    if (isOnGround()) {
         m_body->ApplyLinearImpulseToCenter(b2Vec2(0, -0.5f), true);
     }
 }
@@ -160,4 +116,29 @@ void Player::beginContact() {
 void Player::endContact() {
     if (m_groundContacts > 0)
         --m_groundContacts;
+}
+
+void Player::applyEffect(PlayerEffect effect, float duration) {
+    m_effects.applyEffect(effect, duration);
+}
+
+bool Player::hasEffect(PlayerEffect effect) const {
+    return m_effects.hasEffect(effect);
+}
+
+void Player::updateVisuals() {
+    // Change sprite based on active effects
+    if (hasEffect(PlayerEffect::Transparent)) {
+        m_sprite.setTexture(m_textures.getResource("TransparentBall.png"));
+    }
+    else if (hasEffect(PlayerEffect::Magnetic)) {
+        m_sprite.setTexture(m_textures.getResource("MagneticBall.png"));
+    }
+    else if (hasEffect(PlayerEffect::Shield)) {
+        // Could add shield visual effect here
+        m_sprite.setTexture(m_textures.getResource("NormalBall.png"));
+    }
+    else {
+        m_sprite.setTexture(m_textures.getResource("NormalBall.png"));
+    }
 }

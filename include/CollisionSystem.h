@@ -1,31 +1,36 @@
-#pragma once
+﻿#pragma once
 
-#include "MultiMethodCollisionHandler.h"
 #include "Player.h"
-#include "Coin.h"
-#include "LifeHeartGift.h"
-#include "SpeedGift.h"
-#include "ReverseMovementGift.h"
-#include "ProtectiveShieldGift.h"
-#include "HeadwindStormGift.h"
-#include "RareCoinGift.h"
+#include "GameState.h"
+#include "ICollectable.h"
 #include "MovableBox.h"
+#include "GroundTile.h"
 #include <vector>
 #include <memory>
 #include <functional>
-#include "GroundTile.h"
+
+class GameObject;
 
 class CollisionSystem {
-public:
-    CollisionSystem(Player& player, std::function<void(std::unique_ptr<GameObject>)> spawnCallback);
+private:
+    Player& m_player;
+    GameState& m_gameState;  
+    std::function<void(std::unique_ptr<GameObject>)> m_spawnCallback;
 
+public:
+    CollisionSystem(Player& player, GameState& gameState,
+        std::function<void(std::unique_ptr<GameObject>)> spawnCallback);
+
+    // Main collision checking
     void checkCollisions(std::vector<std::unique_ptr<GameObject>>& objects);
 
 private:
-    void setupCollisionHandlers();
-    bool areColliding(const GameObject& obj1, const GameObject& obj2) const;
+    // Collision handlers
+    void handlePlayerCollectableCollision(ICollectable& collectable);
+    void handlePlayerBoxCollision(MovableBox& box);
+    void handlePlayerGroundCollision(GroundTile& ground);
 
-    Player& m_player;
-    std::function<void(std::unique_ptr<GameObject>)> m_spawnCallback;
-    MultiMethodCollisionHandler m_collisionHandler;
+    // Utility functions
+    bool areColliding(const GameObject& obj1, const GameObject& obj2) const;
+    sf::Vector2f calculatePushDirection(const GameObject& pusher, const GameObject& target) const;
 };

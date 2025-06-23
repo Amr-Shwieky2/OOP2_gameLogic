@@ -6,15 +6,10 @@
 MovableBox::MovableBox(b2World& world, float x, float y, TileType type, TextureManager& textures)
     : m_world(world), m_body(nullptr) {
 
-    // تحميل texture الصندوق الخشبي
-    sf::Texture& tex = textures.getResource("wooden_box.jpeg");
+    sf::Texture& tex = textures.getResource("wooden_box.png");
     m_sprite.setTexture(tex);
     m_sprite.setOrigin(BOX_SIZE / 2.0f, BOX_SIZE / 2.0f);
-
-    // إنشاء الجسم الفيزيائي
     createPhysicsBody(x, y);
-
-    // تحديث موقع الـ sprite
     updateSpritePosition();
 }
 
@@ -25,13 +20,20 @@ MovableBox::~MovableBox() {
 }
 
 void MovableBox::createPhysicsBody(float x, float y) {
-    // تعريف الجسم
     b2BodyDef bodyDef;
-    bodyDef.type = b2_dynamicBody; // جسم متحرك
-    bodyDef.position.Set(x / PPM, (y - BOX_SIZE / 4) / PPM); // رفع الصندوق شوي عن الأرض
-    bodyDef.fixedRotation = false; // يقدر يدور
-    bodyDef.linearDamping = 0.1f;  // كانت 0.3f - قلل المقاومة
-    bodyDef.angularDamping = 0.1f; // إضافة مقاومة دوران قليلة
+    bodyDef.type = b2_dynamicBody;
+
+    bodyDef.position.Set(
+        (x + BOX_SIZE / 2.0f) / PPM,    // وسط العرض
+        (y - BOX_SIZE / 2.0f) / PPM     // رفع الصندوق ليجلس على الأرض
+    );
+
+    // منع الدوران لحل مشكلة الحركة الدائرية
+    bodyDef.fixedRotation = true;       // لا دوران
+
+    //  تحسين المقاومة
+    bodyDef.linearDamping = 0.2f;       // مقاومة أكثر للحركة الأفقية
+    bodyDef.angularDamping = 0.9f;      // مقاومة قوية للدوران
 
     m_body = m_world.CreateBody(&bodyDef);
 
@@ -40,54 +42,52 @@ void MovableBox::createPhysicsBody(float x, float y) {
     float halfSize = (BOX_SIZE / 2.0f) / PPM;
     boxShape.SetAsBox(halfSize, halfSize);
 
-    // تعريف الخصائص الفيزيائية
+    //  تحسين الخصائص الفيزيائية
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &boxShape;
-    fixtureDef.density = BOX_DENSITY;
-    fixtureDef.friction = BOX_FRICTION;
-    fixtureDef.restitution = BOX_RESTITUTION;
+    fixtureDef.density = BOX_DENSITY;        
+    fixtureDef.friction = BOX_FRICTION;      
+    fixtureDef.restitution = BOX_RESTITUTION; 
 
-    // إنشاء الـ fixture
     m_body->CreateFixture(&fixtureDef);
-
-    // ربط المؤشر للكائن الحالي (للـ collision detection)
     m_body->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
-
-    // تأكد إن الجسم مستيقظ
     m_body->SetAwake(true);
 }
 
 void MovableBox::update(float deltaTime) {
-    // Debug: تأكد إن الدالة بتتنادى
-    static int updateCount = 0;
-    if (updateCount % 60 == 0) { // كل 60 frame
-        std::cout << "MovableBox::update() called - count: " << updateCount << std::endl;
-    }
-    updateCount++;
-
-    // تحديث موقع الـ sprite بناءً على موقع الجسم الفيزيائي
     updateSpritePosition();
 
-    // إيقاف الحركة إذا كانت بطيئة جداً (عشان نوفر أداء)
+    //  تحديد الحركة - يمين/يسار فقط
     b2Vec2 velocity = m_body->GetLinearVelocity();
+
+    // تحديد السرعة الأفقية القصوى
+    const float MAX_HORIZONTAL_SPEED = 5.0f;
+    if (std::abs(velocity.x) > MAX_HORIZONTAL_SPEED) {
+        velocity.x = (velocity.x > 0) ? MAX_HORIZONTAL_SPEED : -MAX_HORIZONTAL_SPEED;
+    }
+
+    // منع الحركة العمودية المفرطة (إلا الجاذبية)
+    if (velocity.y > 2.0f) {
+        velocity.y = 2.0f;
+    }
+    // إيقاف الحركة البطيئة
     if (std::abs(velocity.x) < 0.1f && std::abs(velocity.y) < 0.1f) {
         m_body->SetLinearVelocity(b2Vec2(0, 0));
+    }
+    else {
+        m_body->SetLinearVelocity(velocity);
     }
 }
 
 void MovableBox::updateSpritePosition() {
     if (m_body) {
         b2Vec2 position = m_body->GetPosition();
-        float angle = m_body->GetAngle();
 
         float spriteX = position.x * PPM;
         float spriteY = position.y * PPM;
 
         m_sprite.setPosition(spriteX, spriteY);
-        m_sprite.setRotation(angle * 180.0f / b2_pi);
-
-        // Debug: طباعة موقع الـ sprite
-        std::cout << "Sprite position updated: " << spriteX << ", " << spriteY << std::endl;
+        m_sprite.setRotation(0.0f);  
     }
 }
 
@@ -103,16 +103,8 @@ sf::FloatRect MovableBox::getBounds() const {
 
 void MovableBox::applyForce(float forceX, float forceY) {
     if (m_body) {
-        // إيقاظ الجسم إذا كان نايم
         m_body->SetAwake(true);
-
-        // تطبيق القوة
         m_body->ApplyForceToCenter(b2Vec2(forceX / PPM, forceY / PPM), true);
-
-        // إضافة معلومات debug
-        std::cout << "Force applied: " << forceX << ", Body position: "
-            << m_body->GetPosition().x * PPM << ", "
-            << m_body->GetPosition().y * PPM << std::endl;
     }
 }
 
