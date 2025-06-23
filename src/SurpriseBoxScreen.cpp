@@ -23,7 +23,7 @@ SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerTyp
         }
     }
     catch (...) {
-        std::cout << "❌ Failed to load CloseBox" << std::endl;
+        std::cout << " Failed to load CloseBox" << std::endl;
     }
 
     // إعداد الخلفية
