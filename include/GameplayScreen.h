@@ -13,7 +13,10 @@
 #include "CollisionSystem.h"
 #include "SurpriseBoxManager.h"
 #include "VoiceInputService.h"
+
+#include "Projectile.h"
 #include "SquareEnemy.h"
+
 
 class GameplayScreen : public IScreen {
 public:
@@ -47,4 +50,6 @@ private:
     ResourceManager<sf::Texture> m_textures;
     sf::RenderWindow* m_window = nullptr;
     LevelManager m_levelManager;
+
+    std::vector<std::unique_ptr<Projectile>> m_projectiles;
 };

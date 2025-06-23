@@ -40,26 +40,35 @@ void Player::handleInput(const InputService& input) {
 
     if (input.isKeyDown(sf::Keyboard::Left)) {
         desiredVel = hasEffect(PlayerEffect::ReverseControl) ? PLAYER_MOVE_SPEED : -PLAYER_MOVE_SPEED;
+        m_facingRight = false;
     }
     if (input.isKeyDown(sf::Keyboard::Right)) {
         desiredVel = hasEffect(PlayerEffect::ReverseControl) ? -PLAYER_MOVE_SPEED : PLAYER_MOVE_SPEED;
+        m_facingRight = true;
     }
+    
 
     b2Vec2 vel = m_body->GetLinearVelocity();
     float velChange = desiredVel - vel.x;
     float impulse = m_body->GetMass() * velChange;
     m_body->ApplyLinearImpulseToCenter(b2Vec2(impulse, 0.f), true);
 
-    if (input.isKeyPressed(sf::Keyboard::Space) && m_onGround) {
+    if (input.isKeyPressed(sf::Keyboard::Up) && m_onGround) {
         m_body->ApplyLinearImpulseToCenter(b2Vec2(0.f, -PLAYER_JUMP_IMPULSE), true);
         m_onGround = false;
     }
 }
 
+
 void Player::update(float deltaTime) {
     m_effects.update(deltaTime);
     updateVisuals();
     updatePhysics(deltaTime);
+
+    if (m_shootCooldown > 0.f)
+        m_shootCooldown -= deltaTime;
+
+    updateProjectiles(deltaTime);
 }
 
 void Player::updatePhysics(float) {
@@ -139,9 +148,12 @@ sf::Vector2f Player::getVelocity() const {
 
 void Player::moveForward(float strength) {
     b2Vec2 velocity = m_body->GetLinearVelocity();
-    velocity.x = strength * 5.0f; // Tune this value to fit your game speed
+    velocity.x = strength * 5.0f;
+
+    m_facingRight = velocity.x >= 0.f;
     m_body->SetLinearVelocity(velocity);
 }
+
 
 void Player::jump() {
     if (isOnGround()) { // You may already have this method
@@ -166,4 +178,50 @@ void Player::applyJumpImpulse() {
         b2Vec2 impulse(0.f, -PLAYER_JUMP_IMPULSE / 1.5f); // Use weaker impulse than a normal jump
         m_body->ApplyLinearImpulseToCenter(impulse, true);
     }
+}
+
+bool Player::isFacingRight() const
+{
+    return m_facingRight;
+}
+
+void Player::shoot(TextureManager& textures) {
+    if (m_shootCooldown > 0.f) return;
+
+    float dir = isFacingRight() ? 1.f : -1.f;
+
+    auto proj = std::make_unique<Projectile>(
+        *m_body->GetWorld(),
+        getPosition().x / PPM,
+        getPosition().y / PPM,
+        dir,
+        textures,
+        false
+    );
+
+    m_projectiles.push_back(std::move(proj));
+    m_shootCooldown = m_fireInterval;
+}
+
+void Player::updateProjectiles(float deltaTime) {
+    for (auto& p : m_projectiles)
+        p->update(deltaTime);
+
+    // Remove dead projectiles
+    m_projectiles.erase(
+        std::remove_if(m_projectiles.begin(), m_projectiles.end(),
+            [](const std::unique_ptr<Projectile>& p) {
+                return !p->isAlive();
+            }),
+        m_projectiles.end()
+    );
+}
+
+void Player::renderProjectiles(sf::RenderTarget& target) const {
+    for (const auto& p : m_projectiles)
+        p->render(target);
+}
+
+const std::vector<std::unique_ptr<Projectile>>& Player::getProjectiles() const {
+    return m_projectiles;
 }

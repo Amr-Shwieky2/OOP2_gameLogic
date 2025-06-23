@@ -57,7 +57,7 @@ void MovableBox::createPhysicsBody(float x, float y) {
     m_body->SetAwake(true);
 }
 
-void MovableBox::update(float deltaTime) {
+void MovableBox::update(float) {
     // Debug: تأكد إن الدالة بتتنادى
     static int updateCount = 0;
     if (updateCount % 60 == 0) { // كل 60 frame

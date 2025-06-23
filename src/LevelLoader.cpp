@@ -9,13 +9,15 @@
 #include "ProtectiveShieldGift.h"
 #include "HeadwindStormGift.h"
 #include "RareCoinGift.h"
+#include "MovableBox.h"
+#include "SquareEnemy.h"
 
 #include <fstream>
 #include <iostream>
-#include <GameplayScreen.h>
-#include <SquareEnemy.h>
 
-bool LevelLoader::loadFromFile(const std::string& path, Map& map, b2World& world, TextureManager& textures) {
+
+bool LevelLoader::loadFromFile(const std::string& path, Map& map, b2World& world, ResourceManager<sf::Texture>& textures)
+{
     std::ifstream file(path);
     if (!file.is_open()) {
         std::cerr << "Error: Cannot open level file: " << path << "\n";
@@ -59,10 +61,12 @@ bool LevelLoader::loadFromFile(const std::string& path, Map& map, b2World& world
             case 'B':
                 map.addDynamic(std::make_unique<MovableBox>(world, posX, posY, TileType::Box, textures));
                 break;
-            case 'z':
+            case 'z': // SquareEnemy
                 map.addDynamic(std::make_unique<SquareEnemy>(world, posX / PPM, posY / PPM, textures));
                 break;
-
+            case 'Z': // ShootEnemy
+                //map.addDynamic(std::make_unique<ShootEnemy>(world, posX / PPM, posY / PPM, textures, player));
+                break;
             case 'X':
                 map.addStatic(std::make_unique<Flag>(posX + TILE_SIZE / 2.f, posY - TILE_SIZE, textures));
                 break;

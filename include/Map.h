@@ -9,8 +9,11 @@
 #include "GameObject.h"
 #include "DynamicGameObject.h"
 
+class Player;
+
 class Map {
 public:
+
     Map(b2World& world, TextureManager& textures);
 
     void loadFromFile(const std::string& path);

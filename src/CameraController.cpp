@@ -49,7 +49,7 @@ void CameraController::setBounds(float minX, float maxX, float minY, float maxY)
     m_hasBounds = true;
 }
 
-void CameraController::update(float deltaTime) {
+void CameraController::update(float) {
     sf::Vector2f currentPos = m_camera.getCenter();
 
     // ✅ تحسين smoothing - أقل اهتزاز

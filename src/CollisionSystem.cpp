@@ -20,71 +20,7 @@ void CollisionSystem::setupCollisionHandlers() {
         }
     );
 
-    // Player + LifeHeartGift - زيادة الأرواح
-    m_collisionHandler.registerHandler<Player, LifeHeartGift>(
-        [](Player& player, LifeHeartGift& gift) {
-            if (!gift.isCollected()) {
-                gift.onCollect(player);
-                player.addLife();
-                std::cout << "Life gained! Lives: " << player.getLives() << std::endl;
-            }
-        }
-    );
-
-    // Player + SpeedGift - زيادة السرعة
-    m_collisionHandler.registerHandler<Player, SpeedGift>(
-        [](Player& player, SpeedGift& gift) {
-            if (!gift.isCollected()) {
-                gift.onCollect(player);
-                player.applyEffect(PlayerEffect::SpeedBoost, 6.0f);
-                std::cout << "Speed boost activated!" << std::endl;
-            }
-        }
-    );
-
-    // Player + ReverseMovementGift - عكس الحركة
-    m_collisionHandler.registerHandler<Player, ReverseMovementGift>(
-        [](Player& player, ReverseMovementGift& gift) {
-            if (!gift.isCollected()) {
-                gift.onCollect(player);
-                player.applyEffect(PlayerEffect::ReverseControl, 5.0f);
-                std::cout << "Controls reversed!" << std::endl;
-            }
-        }
-    );
-
-    // Player + ProtectiveShieldGift - الحماية
-    m_collisionHandler.registerHandler<Player, ProtectiveShieldGift>(
-        [](Player& player, ProtectiveShieldGift& gift) {
-            if (!gift.isCollected()) {
-                gift.onCollect(player);
-                player.applyEffect(PlayerEffect::Shield, 8.0f);
-                std::cout << "Shield activated!" << std::endl;
-            }
-        }
-    );
-
-    // Player + HeadwindStormGift - مقاومة الرياح
-    m_collisionHandler.registerHandler<Player, HeadwindStormGift>(
-        [](Player& player, HeadwindStormGift& gift) {
-            if (!gift.isCollected()) {
-                gift.onCollect(player);
-                player.applyEffect(PlayerEffect::Headwind, 5.0f);
-                std::cout << "Headwind resistance!" << std::endl;
-            }
-        }
-    );
-
-    // Player + RareCoinGift - العملة النادرة
-    m_collisionHandler.registerHandler<Player, RareCoinGift>(
-        [](Player& player, RareCoinGift& gift) {
-            if (!gift.isCollected()) {
-                gift.onCollect(player);
-                player.increaseScore(50); // عملة نادرة = 50 نقطة
-                std::cout << "Rare coin collected! +50 points!" << std::endl;
-            }
-        }
-    );
+    
     // ✅ إضافة جديدة: Player + MovableBox - دفع الصندوق
     m_collisionHandler.registerHandler<Player, MovableBox>(
         [](Player& player, MovableBox& box) {

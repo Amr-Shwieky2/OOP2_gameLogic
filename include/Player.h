@@ -7,6 +7,7 @@
 #include "ResourceManager.h"
 #include "PlayerEffectManager.h"
 #include "Constants.h"
+#include <Projectile.h>
 
 
 class Player : public DynamicGameObject {
@@ -38,6 +39,12 @@ public:
     void beginContact();  // Called when player touches ground
     void endContact();    // Called when player leaves ground
     void applyJumpImpulse();
+    bool isFacingRight() const;
+   
+    void shoot(TextureManager& textures);  // player triggers shoot
+    void updateProjectiles(float deltaTime);
+    void renderProjectiles(sf::RenderTarget& target) const;
+    const std::vector<std::unique_ptr<Projectile>>& getProjectiles() const;
 
 private:
     void updateVisuals();
@@ -53,4 +60,9 @@ private:
     int m_score = 0;
     int m_lives = 3;
     bool m_onGround = false;
+    bool m_facingRight = true;
+
+    std::vector<std::unique_ptr<Projectile>> m_projectiles;
+    float m_shootCooldown = 0.f;
+    const float m_fireInterval = 0.5f; // Cooldown time in seconds
 };

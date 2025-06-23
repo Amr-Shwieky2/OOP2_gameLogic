@@ -2,7 +2,7 @@
 #include "LevelLoader.h"
 
 Map::Map(b2World& world, TextureManager& textures)
-    : m_world(world), m_textures(textures) {
+    : m_world(world), m_textures(textures){
 }
 
 void Map::loadFromFile(const std::string& path) {

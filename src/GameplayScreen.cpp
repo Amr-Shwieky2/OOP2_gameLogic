@@ -2,7 +2,7 @@
 #include <iostream>
 #include "App.h"
 #include "SurpriseBoxScreen.h"
-
+#include "Projectile.h"
 
 GameplayScreen::GameplayScreen()
     : m_world(b2Vec2(0.f, 9.8f))
@@ -30,6 +30,8 @@ GameplayScreen::GameplayScreen()
         m_world.SetGravity(b2Vec2(0.f, 18.0f));
         m_voiceInput.start();
     }
+
+    //m_shootEnemyManager = std::make_unique<ShootEnemyManager>(m_world, m_textures, m_projectiles);
 }
 
 GameplayScreen::~GameplayScreen() {
@@ -63,7 +65,9 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
     while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed)
             window.close();
-
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::C)) {
+            m_player->shoot(m_textures);
+        }
         m_ui->handleEvent(event, window);
     }
 }
@@ -88,14 +92,19 @@ void GameplayScreen::update(float deltaTime) {
         }
         m_player->update(deltaTime);
         m_ui->update(m_player->getScore(), m_player->getLives());
+
     }
 
     if (m_map) {
         m_map->update(deltaTime);
         updateEnemies(deltaTime);
-        if (m_collisionSystem) {
+        //m_shootEnemyManager->update(deltaTime);
+
+        for (auto& proj : m_projectiles)
+            proj->update(deltaTime);
+
+        if (m_collisionSystem)
             m_collisionSystem->checkCollisions(m_map->getObjects());
-        }
     }
 
     if (m_surpriseBoxManager) {
@@ -110,7 +119,7 @@ void GameplayScreen::update(float deltaTime) {
     updateCamera();
 }
 
-void GameplayScreen::updateEnemies(float deltaTime) {
+void GameplayScreen::updateEnemies(float) {
     for (auto& obj : m_map->getObjects()) {
         if (auto* enemy = dynamic_cast<SquareEnemy*>(obj.get())) {
             enemy->followPlayer(m_player->getPosition());
@@ -137,8 +146,15 @@ void GameplayScreen::render(sf::RenderWindow& window) {
     if (m_map)
         m_map->render(window);
 
-    if (m_player)
+    if (m_player) {
         m_player->render(window);
+        m_player->renderProjectiles(window);
+    }
+    /*if (m_shootEnemyManager)
+        m_shootEnemyManager->render(window);*/
+
+    for (auto& proj : m_projectiles)
+        proj->render(window);
 
     m_ui->draw(window);
 }

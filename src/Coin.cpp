@@ -20,7 +20,7 @@ sf::FloatRect Coin::getBounds() const {
 
 
 //
-void Coin::update(float deltaTime) {
+void Coin::update(float) {
     if (m_collected) return;
 
     // Optional magnetic logic can be re-added if needed
