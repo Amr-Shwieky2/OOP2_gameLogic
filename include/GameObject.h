@@ -4,7 +4,6 @@
 #include <SFML/Graphics.hpp>
 #include "Constants.h"
 
-class GameObjectVisitor;
 
 class GameObject {
 public:

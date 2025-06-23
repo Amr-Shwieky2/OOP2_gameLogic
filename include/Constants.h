@@ -10,3 +10,6 @@ constexpr float TILE_SIZE = 192.f;
 
 constexpr float WINDOW_WIDTH = 1400.f;
 constexpr float WINDOW_HEIGHT = 900.f;
+
+constexpr float ENEMY_WIDTH = 1.0f;
+constexpr float ENEMY_HEIGHT = 1.0f;

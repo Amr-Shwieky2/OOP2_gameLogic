@@ -13,6 +13,10 @@ configure_file ("./images/AboutButton.png" ${CMAKE_BINARY_DIR} COPYONLY)
 
 configure_file ("./icons/backGroundGame.jpeg" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./icons/redFlag.png" ${CMAKE_BINARY_DIR} COPYONLY)
+configure_file ("./icons/Bullet.png" ${CMAKE_BINARY_DIR} COPYONLY)
+
+configure_file ("./icons/shootEnemy1.png" ${CMAKE_BINARY_DIR} COPYONLY)
+configure_file ("./icons/shootEnemy2.png" ${CMAKE_BINARY_DIR} COPYONLY)
 
 configure_file ("./icons/Cactus.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./icons/CloseBox.png" ${CMAKE_BINARY_DIR} COPYONLY)

@@ -4,90 +4,47 @@
 #include <Box2D/Box2D.h>
 #include "IScreen.h"
 #include "InputService.h"
-#include "VoiceInputService.h"
 #include "Player.h"
 #include "Map.h"
 #include "ResourceManager.h"
 #include "LevelManager.h"
 #include "UIOverlay.h"
-#include "MultiMethodCollisionSystem.h"  
-#include "SurpriseBoxManager.h"
-#include "CameraController.h"
-#include "GameState.h"
 #include "Constants.h"
+#include "CollisionSystem.h"
+#include "SurpriseBoxManager.h"
+#include "VoiceInputService.h"
+#include "SquareEnemy.h"
 
 class GameplayScreen : public IScreen {
-private:
-    // Core game systems - each with single responsibility
-    std::unique_ptr<b2World> m_world;
-    std::unique_ptr<GameState> m_gameState;
-    std::unique_ptr<Player> m_player;
-    std::unique_ptr<Map> m_map;
-    std::unique_ptr<CameraController> m_camera;
-
-    // Collision systems - New MultiMethod system
-    std::unique_ptr<MultiMethodCollisionSystem> m_multiMethodCollisions;  
-
-    std::unique_ptr<UIOverlay> m_ui;
-    std::unique_ptr<SurpriseBoxManager> m_surpriseBoxManager;
-
-    // Managers and services
-    LevelManager m_levelManager;
-    InputService m_input;
-    VoiceInputService m_voiceInput;
-    ResourceManager<sf::Texture> m_textures;
-
-    // Rendering components
-    sf::Texture m_backgroundTexture;
-    sf::Sprite m_backgroundSprite;
-
-    // Window reference
-    sf::RenderWindow* m_window = nullptr;
-
 public:
     GameplayScreen();
     ~GameplayScreen();
 
-    // IScreen interface
     void handleEvents(sf::RenderWindow& window) override;
     void update(float deltaTime) override;
     void render(sf::RenderWindow& window) override;
 
 private:
-    // Initialization methods - clear single responsibilities
-    void initializeWorld();
-    void initializeGameState();
-    void initializeBackground();
-    void initializeLevels();
-    void initializePlayer();
-    void initializeSystems();
-    void initializeUI();
-
-    void handleMenuInput();
-
-    // Update methods - separated concerns
-    void updateInput(float deltaTime);
-    void updatePhysics(float deltaTime);
-    void updateGameLogic(float deltaTime);
-    void updateSystems(float deltaTime);
-    void checkGameEvents();
-
-    // Render methods - clean separation
-    void renderBackground(sf::RenderWindow& window);
-    void renderGameWorld(sf::RenderWindow& window);
-    void renderUI(sf::RenderWindow& window);
-
-    // Helper methods
-    void loadCurrentLevel();
+    void loadLevel();
+    void updateCamera();
     void spawnGameObject(std::unique_ptr<GameObject> obj);
-    void onCoinCollected();
-    void handleLevelComplete();
-    void handleGameOver();
+    void updateEnemies(float deltaTime);
 
-    // Level progression functions  
-    void proceedToNextLevel();
-    void resetPlayerPosition();
-    void updateLevelSettings();
-    void handleGameComplete();
-    void restartGame();
+    sf::View m_camera;
+    sf::Texture m_backgroundTexture;
+    sf::Sprite m_backgroundSprite;
+
+    b2World m_world;
+    InputService m_input;
+    VoiceInputService m_voiceInput;
+
+    std::unique_ptr<Player> m_player;
+    std::unique_ptr<Map> m_map;
+    std::unique_ptr<UIOverlay> m_ui;
+    std::unique_ptr<CollisionSystem> m_collisionSystem;
+    std::unique_ptr<SurpriseBoxManager> m_surpriseBoxManager;
+
+    ResourceManager<sf::Texture> m_textures;
+    sf::RenderWindow* m_window = nullptr;
+    LevelManager m_levelManager;
 };

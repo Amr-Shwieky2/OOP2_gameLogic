@@ -4,7 +4,7 @@
 App::App() {
     m_window = std::make_unique<sf::RenderWindow>(
         sf::VideoMode(1400, 800),
-        "Desert Ball",
+        "Red Ball Clone",
         sf::Style::Default  // Enables minimize, maximize, and close buttons
     );
 

@@ -17,5 +17,8 @@ private:
 
     std::unique_ptr<sf::RenderWindow> m_window;
     std::unique_ptr<IScreen> m_screen;
+
+
+
     bool m_isFullscreen = false;
 };

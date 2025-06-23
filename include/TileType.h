@@ -5,7 +5,7 @@ enum class TileType {
     Right,       // R - right.png
     Edge,        // E - Edge.png
     Left,        // L - left.png
-    Sea,         // S - Sea.png
+    Sea,         // W - Sea.png
     Empty,       // - or space - no tile
     Ground,      // G - ground.png
     Box,
