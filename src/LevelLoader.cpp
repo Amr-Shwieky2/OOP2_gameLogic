@@ -13,6 +13,7 @@
 #include <fstream>
 #include <iostream>
 #include <GameplayScreen.h>
+#include <SquareEnemy.h>
 
 bool LevelLoader::loadFromFile(const std::string& path, Map& map, b2World& world, TextureManager& textures) {
     std::ifstream file(path);
@@ -57,6 +58,9 @@ bool LevelLoader::loadFromFile(const std::string& path, Map& map, b2World& world
                 break;
             case 'B':
                 map.addDynamic(std::make_unique<MovableBox>(world, posX, posY, TileType::Box, textures));
+                break;
+            case 'z':
+                map.addDynamic(std::make_unique<SquareEnemy>(world, posX / PPM, posY / PPM, textures));
                 break;
 
             case 'X':

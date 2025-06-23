@@ -12,6 +12,7 @@ configure_file ("./images/About_usScreen.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./images/AboutButton.png" ${CMAKE_BINARY_DIR} COPYONLY)
 
 configure_file ("./icons/backGroundGame.jpeg" ${CMAKE_BINARY_DIR} COPYONLY)
+configure_file ("./icons/Bullet.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./icons/redFlag.png" ${CMAKE_BINARY_DIR} COPYONLY)
 
 configure_file ("./icons/Cactus.png" ${CMAKE_BINARY_DIR} COPYONLY)

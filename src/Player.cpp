@@ -161,3 +161,9 @@ void Player::endContact() {
     if (m_groundContacts > 0)
         --m_groundContacts;
 }
+void Player::applyJumpImpulse() {
+    if (m_body) {
+        b2Vec2 impulse(0.f, -PLAYER_JUMP_IMPULSE / 1.5f); // Use weaker impulse than a normal jump
+        m_body->ApplyLinearImpulseToCenter(impulse, true);
+    }
+}

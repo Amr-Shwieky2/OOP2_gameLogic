@@ -1,5 +1,6 @@
 ﻿#include "CollisionSystem.h"
 #include <iostream>
+#include <SquareEnemy.h>
 
 CollisionSystem::CollisionSystem(Player& player, std::function<void(std::unique_ptr<GameObject>)> spawnCallback)
     : m_player(player), m_spawnCallback(spawnCallback) {
@@ -127,6 +128,33 @@ void CollisionSystem::setupCollisionHandlers() {
             // std::cout << "Player left ground\n";
         }
     );
+
+    m_collisionHandler.registerHandler<Player, SquareEnemy>(
+        [](Player& player, SquareEnemy& enemy) {
+            if (!enemy.isAlive()) return;
+
+            auto playerBounds = player.getBounds();
+            auto enemyBounds = enemy.getBounds();
+
+            float playerBottom = playerBounds.top + playerBounds.height;
+            float enemyTop = enemyBounds.top;
+
+            if (playerBottom < enemyTop + 10.f) {
+                enemy.kill();
+                player.applyJumpImpulse(); // Bounce effect
+                std::cout << "Enemy defeated!\n";
+            }
+            else {
+                // Side hit logic with cooldown
+                if (!player.hasEffect(PlayerEffect::Shield) && enemy.canDamage()) {
+                    player.loseLife();
+                    enemy.startDamageCooldown();
+                    std::cout << "⚠ Player hit by enemy (delayed damage)\n";
+                }
+            }
+        }
+    );
+
 
 }
 

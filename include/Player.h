@@ -37,6 +37,7 @@ public:
     bool isOnGround() const;
     void beginContact();  // Called when player touches ground
     void endContact();    // Called when player leaves ground
+    void applyJumpImpulse();
 
 private:
     void updateVisuals();

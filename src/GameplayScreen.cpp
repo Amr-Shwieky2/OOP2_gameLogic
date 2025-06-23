@@ -1,7 +1,8 @@
 ﻿#include "GameplayScreen.h"
-#include "SurpriseBoxScreen.h"
 #include <iostream>
 #include "App.h"
+#include "SurpriseBoxScreen.h"
+
 
 GameplayScreen::GameplayScreen()
     : m_world(b2Vec2(0.f, 9.8f))
@@ -26,11 +27,9 @@ GameplayScreen::GameplayScreen()
     m_ui = std::make_unique<UIOverlay>(WINDOW_WIDTH);
 
     if (m_levelManager.getCurrentIndex() == 1) {
-		m_world.SetGravity(b2Vec2(0.f, 18.0f)); // Disable gravity for level 2
+        m_world.SetGravity(b2Vec2(0.f, 18.0f));
         m_voiceInput.start();
     }
-
-    std::cout << "GameplayScreen initialized with collision and surprise box systems!" << std::endl;
 }
 
 GameplayScreen::~GameplayScreen() {
@@ -47,23 +46,19 @@ void GameplayScreen::loadLevel() {
         *m_player,
         [this](std::unique_ptr<GameObject> obj) { spawnGameObject(std::move(obj)); }
     );
-
-    std::cout << "Level loaded with collision and surprise box systems!" << std::endl;
 }
 
 void GameplayScreen::handleEvents(sf::RenderWindow& window) {
     m_window = &window;
 
-    if (!m_surpriseBoxManager && m_window) {
-        m_surpriseBoxManager = std::make_unique<SurpriseBoxManager>(m_textures, *m_window);
+    if (!m_surpriseBoxManager) {
+        m_surpriseBoxManager = std::make_unique<SurpriseBoxManager>(m_textures, window);
         m_surpriseBoxManager->setSpawnCallback(
             [this](std::unique_ptr<GameObject> obj) { spawnGameObject(std::move(obj)); }
         );
-        std::cout << "SurpriseBoxManager created after window assignment!" << std::endl;
     }
 
     m_input.update();
-
     sf::Event event;
     while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed)
@@ -97,6 +92,7 @@ void GameplayScreen::update(float deltaTime) {
 
     if (m_map) {
         m_map->update(deltaTime);
+        updateEnemies(deltaTime);
         if (m_collisionSystem) {
             m_collisionSystem->checkCollisions(m_map->getObjects());
         }
@@ -112,13 +108,13 @@ void GameplayScreen::update(float deltaTime) {
     }
 
     updateCamera();
+}
 
-    static float debugTimer = 0.0f;
-    debugTimer += deltaTime;
-    if (debugTimer >= 2.0f) {
-        std::cout << "Player - Score: " << m_player->getScore()
-            << ", Lives: " << m_player->getLives() << std::endl;
-        debugTimer = 0.0f;
+void GameplayScreen::updateEnemies(float deltaTime) {
+    for (auto& obj : m_map->getObjects()) {
+        if (auto* enemy = dynamic_cast<SquareEnemy*>(obj.get())) {
+            enemy->followPlayer(m_player->getPosition());
+        }
     }
 }
 
@@ -157,8 +153,6 @@ void GameplayScreen::updateCamera() {
 
 void GameplayScreen::spawnGameObject(std::unique_ptr<GameObject> obj) {
     if (!obj) return;
-
-    std::cout << "Spawning new game object from box!" << std::endl;
 
     if (auto dynamicObj = dynamic_cast<DynamicGameObject*>(obj.get())) {
         auto ptr = std::unique_ptr<DynamicGameObject>(static_cast<DynamicGameObject*>(obj.release()));

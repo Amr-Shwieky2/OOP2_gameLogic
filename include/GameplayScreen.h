@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
 #include "IScreen.h"
@@ -12,11 +13,13 @@
 #include "CollisionSystem.h"
 #include "SurpriseBoxManager.h"
 #include "VoiceInputService.h"
+#include "SquareEnemy.h"
 
 class GameplayScreen : public IScreen {
 public:
     GameplayScreen();
     ~GameplayScreen();
+
     void handleEvents(sf::RenderWindow& window) override;
     void update(float deltaTime) override;
     void render(sf::RenderWindow& window) override;
@@ -25,10 +28,12 @@ private:
     void loadLevel();
     void updateCamera();
     void spawnGameObject(std::unique_ptr<GameObject> obj);
+    void updateEnemies(float deltaTime);
 
     sf::View m_camera;
     sf::Texture m_backgroundTexture;
     sf::Sprite m_backgroundSprite;
+
     b2World m_world;
     InputService m_input;
     VoiceInputService m_voiceInput;

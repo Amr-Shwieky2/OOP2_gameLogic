@@ -61,7 +61,7 @@ void MovableBox::update(float deltaTime) {
     // Debug: تأكد إن الدالة بتتنادى
     static int updateCount = 0;
     if (updateCount % 60 == 0) { // كل 60 frame
-        std::cout << "MovableBox::update() called - count: " << updateCount << std::endl;
+       // std::cout << "MovableBox::update() called - count: " << updateCount << std::endl;
     }
     updateCount++;
 
@@ -87,7 +87,7 @@ void MovableBox::updateSpritePosition() {
         m_sprite.setRotation(angle * 180.0f / b2_pi);
 
         // Debug: طباعة موقع الـ sprite
-        std::cout << "Sprite position updated: " << spriteX << ", " << spriteY << std::endl;
+        //std::cout << "Sprite position updated: " << spriteX << ", " << spriteY << std::endl;
     }
 }
 
