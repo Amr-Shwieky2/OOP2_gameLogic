@@ -1,12 +1,16 @@
-#include "RareCoinGift.h"
+﻿#include "RareCoinGift.h"
 #include "Player.h"
 
 RareCoinGift::RareCoinGift(float x, float y, TextureManager& textures) {
-    sf::Texture& tex = textures.getResource("RareCoinGidt.png");
+    sf::Texture& tex = textures.getResource("RareCoinGift.png");
     m_sprite.setTexture(tex);
-    m_sprite.setScale(0.5f, 0.5f);
+
+    m_sprite.setScale(0.2f, 0.2f);
+    sf::FloatRect bounds = m_sprite.getLocalBounds();
+    m_sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
     m_sprite.setPosition(x, y);
 }
+
 
 void RareCoinGift::render(sf::RenderTarget& target) const {
     if (!m_collected)
@@ -22,7 +26,7 @@ sf::FloatRect RareCoinGift::getBounds() const {
 void RareCoinGift::onCollect(Player& player) {
     if (!m_collected) {
         m_collected = true;
-        player.applyEffect(PlayerEffect::Magnetic, 5);
+        player.increaseScore(30);  
     }
 }
 

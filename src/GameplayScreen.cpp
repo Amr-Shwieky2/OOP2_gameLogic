@@ -55,6 +55,7 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
 
     if (!m_surpriseBoxManager) {
         m_surpriseBoxManager = std::make_unique<SurpriseBoxManager>(m_textures, window);
+        m_surpriseBoxManager->setPlayer(m_player.get());
         m_surpriseBoxManager->setSpawnCallback(
             [this](std::unique_ptr<GameObject> obj) { spawnGameObject(std::move(obj)); }
         );
@@ -115,7 +116,27 @@ void GameplayScreen::update(float deltaTime) {
         }
         lastScore = currentScore;
     }
+    if (m_player && m_player->hasEffect(PlayerEffect::Magnetic)) {
+        sf::Vector2f playerPos = m_player->getPosition();
 
+        for (auto& obj : m_map->getObjects()) {
+            if (auto* coin = dynamic_cast<Coin*>(obj.get())) {
+                if (!coin->isCollected()) {
+                    sf::Vector2f coinPos = coin->getPosition();
+                    float dist = std::hypot(playerPos.x - coinPos.x, playerPos.y - coinPos.y);
+
+                    if (dist < 350.f) { // نصف قطر الجذب
+                        sf::Vector2f dir = playerPos - coinPos;
+                        float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+                        if (len != 0.f) dir /= len;
+
+                        float speed = 300.f * deltaTime;
+                        coin->moveTowards(playerPos, speed);
+                    }
+                }
+            }
+        }
+    }
     updateCamera();
 }
 

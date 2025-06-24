@@ -1,12 +1,16 @@
-#include "ProtectiveShieldGift.h"
+﻿#include "ProtectiveShieldGift.h"
 #include "Player.h"
 
 ProtectiveShieldGift::ProtectiveShieldGift(float x, float y, TextureManager& textures) {
     sf::Texture& tex = textures.getResource("ProtectiveShieldGift.png");
     m_sprite.setTexture(tex);
-    m_sprite.setScale(0.5f, 0.5f);
+
+    m_sprite.setScale(0.2f, 0.2f);
+    sf::FloatRect bounds = m_sprite.getLocalBounds();
+    m_sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
     m_sprite.setPosition(x, y);
 }
+
 
 void ProtectiveShieldGift::render(sf::RenderTarget& target) const {
     if (!m_collected)
@@ -22,7 +26,8 @@ sf::FloatRect ProtectiveShieldGift::getBounds() const {
 void ProtectiveShieldGift::onCollect(Player& player) {
     if (!m_collected) {
         m_collected = true;
-        player.applyEffect(PlayerEffect::Shield, 2.f);
+        player.applyEffect(PlayerEffect::Shield, 7.f);
+        player.applyEffect(PlayerEffect::Transparent, 7.f);
     }
 }
 

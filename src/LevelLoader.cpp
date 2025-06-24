@@ -11,6 +11,7 @@
 #include "RareCoinGift.h"
 #include "MovableBox.h"
 #include "SquareEnemy.h"
+#include "Sea.h"
 
 #include <fstream>
 #include <iostream>
@@ -56,7 +57,7 @@ bool LevelLoader::loadFromFile(const std::string& path, Map& map, b2World& world
                 map.addStatic(std::make_unique<GroundTile>(world, posX, posY, TileType::Middle, textures));
                 break;
             case 'S':
-                map.addStatic(std::make_unique<GroundTile>(world, posX, posY, TileType::Sea, textures));
+                map.addStatic(std::make_unique<Sea>(posX, posY, textures));
                 break;
             case 'B':
                 map.addDynamic(std::make_unique<MovableBox>(world, posX, posY, TileType::Box, textures));

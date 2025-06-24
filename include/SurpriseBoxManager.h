@@ -4,6 +4,7 @@
 #include <memory>  
 #include <random>  
 #include "ResourceManager.h"  
+#include "Player.h"
 
 // Forward declarations  
 class GameObject;  
@@ -17,7 +18,7 @@ enum class SurpriseGiftType {
    RareCoin,  
    ReverseMovement,  
    HeadwindStorm,  
-   MultipleCoins  
+   Magnetic
 };  
 
 class SurpriseBoxManager {  
@@ -32,6 +33,7 @@ public:
 
    // استدعاء عند جمع عملة  
    void onCoinCollected();  
+   void setPlayer(Player* player);
 
 private:  
    void triggerSurprise();  
@@ -53,4 +55,6 @@ private:
    // مولد عشوائي  
    std::mt19937 m_gen;  
    bool m_boxActive = false;  // للتتبع فقط  
+
+   Player* m_player = nullptr;
 };

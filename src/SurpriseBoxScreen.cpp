@@ -23,7 +23,7 @@ SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerTyp
         }
     }
     catch (...) {
-        std::cout << "❌ Failed to load CloseBox" << std::endl;
+        std::cout << "Failed to load CloseBox" << std::endl;
     }
 
     // إعداد الخلفية
@@ -91,14 +91,13 @@ void SurpriseBoxScreen::handleEvents() {
                 "Rare Coin!",
                 "Reverse Controls!",
                 "Headwind Storm!",
+                "Megnatic"
             };
 
             m_giftText.setString(giftNames[static_cast<int>(m_selectedGift)]);
             sf::FloatRect giftBounds = m_giftText.getLocalBounds();
             m_giftText.setOrigin(giftBounds.width / 2.0f, giftBounds.height / 2.0f);
             m_giftText.setPosition(m_boxPosition.x, m_boxPosition.y + 200.0f);
-            
-            // لا تحمل الصورة هنا - ستظهر لاحقاً!
         }
     }
 }
@@ -138,17 +137,17 @@ void SurpriseBoxScreen::updateBoxAnimation(float deltaTime) {
                 m_fallbackBox.setScale(m_boxScale, m_boxScale);
             }
         }
-        // ← أضف هذا الجزء الجديد:
-        else if (m_animationTimer >= 1.5f && !m_giftImageLoaded) {
-            // بعد ثانية ونصف، اعرض صورة الهدية
+        else if (m_animationTimer >= 1.3f && !m_giftImageLoaded) {
             std::string giftImages[] = {
-                "LifeHeartGift.png",
-                "SpeedGift.png",
-                "ProtectiveShieldGift.png",
-                "RareCoinGift.png",
-                "HeadwindStormGift.png",
+                "LifeHeartGift.png",         // 0
+                "SpeedGift.png",             // 1
+                "ProtectiveShieldGift.png",  // 2
+                "RareCoinGift.png",          // 3
+                "ReverseMovementGift.png",   // 4
+                "HeadwindStormGift.png",     // 5
+                "MagneticGift.png"           // 6
             };
-            
+
             try {
                 m_giftSprite.setTexture(m_textures.getResource(giftImages[static_cast<int>(m_selectedGift)]));
                 sf::Vector2u giftSize = m_giftSprite.getTexture()->getSize();
@@ -186,7 +185,6 @@ void SurpriseBoxScreen::updateBoxAnimation(float deltaTime) {
         m_boxSprite.setPosition(m_boxPosition);
         m_boxSprite.setScale(m_boxScale, m_boxScale);
     }
-
     m_animationTimer += deltaTime;
 }
 
@@ -298,7 +296,7 @@ void SurpriseBoxScreen::render() {
 }
 
 SurpriseGiftType SurpriseBoxScreen::getRandomGiftType() {
-    std::uniform_int_distribution<int> dist(0, 4);
+    std::uniform_int_distribution<int> dist(0, 6);
     return static_cast<SurpriseGiftType>(dist(m_gen));
 }
 

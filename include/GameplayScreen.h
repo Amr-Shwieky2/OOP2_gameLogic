@@ -13,6 +13,7 @@
 #include "CollisionSystem.h"
 #include "SurpriseBoxManager.h"
 #include "VoiceInputService.h"
+#include "Sea.h" 
 
 #include "Projectile.h"
 #include "SquareEnemy.h"

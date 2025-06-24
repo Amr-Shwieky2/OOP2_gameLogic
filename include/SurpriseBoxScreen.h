@@ -5,11 +5,11 @@
 #include <memory>
 #include <random>
 #include "SurpriseBoxManager.h"
-#include "ResourceManager.h"  // أضف هذا
+#include "ResourceManager.h"
 
 // Forward declarations
 class GameObject;
-using TextureManagerType = ResourceManager<sf::Texture>;  // ← استخدم هذا
+using TextureManagerType = ResourceManager<sf::Texture>; 
 
 // جسيم الانفجار
 struct ExplosionParticle {
