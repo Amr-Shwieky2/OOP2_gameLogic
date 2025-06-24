@@ -4,12 +4,22 @@
 #include <functional>
 #include <memory>
 #include <random>
-#include "SurpriseBoxManager.h"
 #include "ResourceManager.h"
 
 // Forward declarations
 class GameObject;
-using TextureManagerType = ResourceManager<sf::Texture>; 
+using TextureManagerType = ResourceManager<sf::Texture>;
+
+// تعريف SurpriseGiftType هنا بدلاً من الاستيراد
+enum class SurpriseGiftType {
+    LifeHeart,
+    SpeedBoost,
+    Shield,
+    RareCoin,
+    ReverseMovement,
+    HeadwindStorm,
+    Magnetic
+};
 
 // جسيم الانفجار
 struct ExplosionParticle {
@@ -23,7 +33,7 @@ struct ExplosionParticle {
 
 class SurpriseBoxScreen {
 public:
-    SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerType& textures);  // ← استخدم هذا
+    SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerType& textures);
     ~SurpriseBoxScreen() = default;
 
     // عرض شاشة الصندوق
@@ -47,7 +57,7 @@ private:
 
     // الأعضاء
     sf::RenderWindow& m_window;
-    TextureManagerType& m_textures;  // ← استخدم هذا
+    TextureManagerType& m_textures;
 
     // حالة الشاشة
     bool m_isRunning = false;
@@ -67,12 +77,6 @@ private:
 
     // الجسيمات
     std::vector<ExplosionParticle> m_particles;
-
-    // النصوص
-    sf::Font m_font;
-    sf::Text m_titleText;
-    sf::Text m_instructionText;
-    sf::Text m_giftText;
 
     // خلفية
     sf::RectangleShape m_background;
