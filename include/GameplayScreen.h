@@ -1,56 +1,44 @@
 ﻿#pragma once
-
 #include <SFML/Graphics.hpp>
-#include <Box2D/Box2D.h>
+#include <memory>
 #include "IScreen.h"
-#include "InputService.h"
-#include "Player.h"
-#include "Map.h"
-#include "ResourceManager.h"
-#include "LevelManager.h"
+#include "GameWorld.h"
+#include "CameraManager.h"
+#include "EnemyManager.h"
+#include "ProjectileManager.h"
+#include "BackgroundRenderer.h"
+#include "InputManager.h"
+#include "GameStateManager.h"
 #include "UIOverlay.h"
-#include "Constants.h"
-#include "CollisionSystem.h"
-#include "SurpriseBoxManager.h"
-#include "VoiceInputService.h"
-#include "Sea.h" 
-
-#include "Projectile.h"
-#include "SquareEnemy.h"
-
+#include "ResourceManager.h"
 
 class GameplayScreen : public IScreen {
 public:
     GameplayScreen();
     ~GameplayScreen();
 
+    // IScreen interface
     void handleEvents(sf::RenderWindow& window) override;
     void update(float deltaTime) override;
     void render(sf::RenderWindow& window) override;
 
 private:
-    void loadLevel();
-    void updateCamera();
-    void spawnGameObject(std::unique_ptr<GameObject> obj);
-    void updateEnemies(float deltaTime);
+    void initializeComponents();
+    void setupGameCallbacks();
 
-    sf::View m_camera;
-    sf::Texture m_backgroundTexture;
-    sf::Sprite m_backgroundSprite;
+    void handleMagneticEffect(float deltaTime, Player& player);
 
-    b2World m_world;
-    InputService m_input;
-    VoiceInputService m_voiceInput;
-
-    std::unique_ptr<Player> m_player;
-    std::unique_ptr<Map> m_map;
+    // Core components
+    std::unique_ptr<GameWorld> m_gameWorld;
+    std::unique_ptr<CameraManager> m_cameraManager;
+    std::unique_ptr<EnemyManager> m_enemyManager;
+    std::unique_ptr<ProjectileManager> m_projectileManager;
+    std::unique_ptr<BackgroundRenderer> m_backgroundRenderer;
+    std::unique_ptr<InputManager> m_inputManager;
+    std::unique_ptr<GameStateManager> m_gameStateManager;
     std::unique_ptr<UIOverlay> m_ui;
-    std::unique_ptr<CollisionSystem> m_collisionSystem;
-    std::unique_ptr<SurpriseBoxManager> m_surpriseBoxManager;
 
+    // Resources
     ResourceManager<sf::Texture> m_textures;
     sf::RenderWindow* m_window = nullptr;
-    LevelManager m_levelManager;
-
-    std::vector<std::unique_ptr<Projectile>> m_projectiles;
 };

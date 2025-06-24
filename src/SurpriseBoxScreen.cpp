@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cmath>
 
-SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerType& textures)  
+SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerType& textures)
     : m_window(window)
     , m_textures(textures)
     , m_gen(std::random_device{}())
@@ -28,26 +28,17 @@ SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerTyp
 
     // إعداد الخلفية
     m_background.setSize(sf::Vector2f(m_window.getSize()));
-    m_background.setTexture(&m_textures.getResource("BoxBackground.png"));
+    try {
+        m_background.setTexture(&m_textures.getResource("BoxBackground.png"));
+    }
+    catch (...) {
+        m_background.setFillColor(sf::Color(50, 50, 100, 200)); // لون افتراضي
+    }
 
-    // إعداد النصوص
-    m_titleText.setCharacterSize(48);
-    m_titleText.setFillColor(sf::Color::Yellow);
-
-    m_instructionText.setCharacterSize(24);
-    m_instructionText.setFillColor(sf::Color::White);
-
-    m_giftText.setCharacterSize(36);
-    m_giftText.setFillColor(sf::Color::Green);
-
-    // توسيط النصوص
-    sf::FloatRect titleBounds = m_titleText.getLocalBounds();
-    m_titleText.setOrigin(titleBounds.width / 2.0f, titleBounds.height / 2.0f);
-    m_titleText.setPosition(m_boxPosition.x, m_boxPosition.y - 200.0f);
-
-    sf::FloatRect instrBounds = m_instructionText.getLocalBounds();
-    m_instructionText.setOrigin(instrBounds.width / 2.0f, instrBounds.height / 2.0f);
-    m_instructionText.setPosition(m_boxPosition.x, m_boxPosition.y + 150.0f);
+    // إعداد fallback box
+    m_fallbackBox.setSize(sf::Vector2f(100.0f, 100.0f));
+    m_fallbackBox.setOrigin(50.0f, 50.0f);
+    m_fallbackBox.setFillColor(sf::Color(139, 69, 19)); // بني
 }
 
 SurpriseGiftType SurpriseBoxScreen::showSurpriseBox() {
@@ -56,7 +47,7 @@ SurpriseGiftType SurpriseBoxScreen::showSurpriseBox() {
     m_animationTimer = 0.0f;
     m_boxScale = 0.0f;
     m_particles.clear();
-    m_giftImageLoaded = false;  // ← إعادة تعيين حالة الصورة
+    m_giftImageLoaded = false;
 
     sf::Clock clock;
 
@@ -77,27 +68,16 @@ void SurpriseBoxScreen::handleEvents() {
             m_window.close();
             m_isRunning = false;
         }
-        if (event.key.code == sf::Keyboard::Space && !m_boxOpened) {
-            m_boxOpened = true;
-            m_animationTimer = 0.0f;
-            createParticles();
-            m_selectedGift = getRandomGiftType();
-
-            // تحديث نص الهدية فقط - لا تحمل الصورة بعد!
-            std::string giftNames[] = {
-                "Extra Life!",
-                "Speed Boost!",
-                "Shield Protection!",
-                "Rare Coin!",
-                "Reverse Controls!",
-                "Headwind Storm!",
-                "Megnatic"
-            };
-
-            m_giftText.setString(giftNames[static_cast<int>(m_selectedGift)]);
-            sf::FloatRect giftBounds = m_giftText.getLocalBounds();
-            m_giftText.setOrigin(giftBounds.width / 2.0f, giftBounds.height / 2.0f);
-            m_giftText.setPosition(m_boxPosition.x, m_boxPosition.y + 200.0f);
+        if (event.type == sf::Event::KeyPressed) {
+            if (event.key.code == sf::Keyboard::Space && !m_boxOpened) {
+                m_boxOpened = true;
+                m_animationTimer = 0.0f;
+                createParticles();
+                m_selectedGift = getRandomGiftType();
+            }
+            else if (event.key.code == sf::Keyboard::Enter && m_boxOpened) {
+                m_isRunning = false;
+            }
         }
     }
 }
@@ -138,6 +118,7 @@ void SurpriseBoxScreen::updateBoxAnimation(float deltaTime) {
             }
         }
         else if (m_animationTimer >= 1.3f && !m_giftImageLoaded) {
+            // تحميل صورة الهدية - الكود الأصلي
             std::string giftImages[] = {
                 "LifeHeartGift.png",         // 0
                 "SpeedGift.png",             // 1
@@ -153,7 +134,7 @@ void SurpriseBoxScreen::updateBoxAnimation(float deltaTime) {
                 sf::Vector2u giftSize = m_giftSprite.getTexture()->getSize();
                 m_giftSprite.setOrigin(giftSize.x / 2.0f, giftSize.y / 2.0f);
                 m_giftSprite.setPosition(m_boxPosition.x, m_boxPosition.y - 200.0f);
-                m_giftSprite.setScale(0.5f, 0.5f);  // حجم أصغر
+                m_giftSprite.setScale(0.5f, 0.5f);
                 m_giftImageLoaded = true;
             }
             catch (...) {
@@ -208,7 +189,7 @@ void SurpriseBoxScreen::updateParticles(float deltaTime) {
         m_particles.end()
     );
 }
- 
+
 void SurpriseBoxScreen::createParticles() {
     std::uniform_real_distribution<float> angleDist(0.0f, 2.0f * 3.14159f);
     std::uniform_real_distribution<float> speedDist(100.0f, 400.0f);
@@ -247,9 +228,6 @@ void SurpriseBoxScreen::render() {
     // رسم الخلفية
     m_window.draw(m_background);
 
-    // رسم العنوان
-    m_window.draw(m_titleText);
-
     // رسم الجسيمات
     for (const auto& particle : m_particles) {
         sf::CircleShape circle(particle.size);
@@ -257,8 +235,12 @@ void SurpriseBoxScreen::render() {
         circle.setPosition(particle.position);
         circle.setFillColor(particle.color);
         m_window.draw(circle);
-    }
 
+        // رسم صورة الهدية إذا تم تحميلها (بعد الانفجار)
+        if (m_giftImageLoaded) {
+            m_window.draw(m_giftSprite);
+        }
+    }
     // رسم الصندوق
     if (m_boxScale > 0.1f) {
         if (m_useSprite) {
@@ -268,30 +250,7 @@ void SurpriseBoxScreen::render() {
             m_window.draw(m_fallbackBox);
         }
     }
-
-    // رسم النصوص
-    if (!m_boxOpened) {
-        m_window.draw(m_instructionText);
-    }
-    else {
-        // رسم صورة الهدية فقط إذا تم تحميلها (بعد الانفجار)
-        if (m_giftImageLoaded) {
-            m_window.draw(m_giftSprite);
-        }
-
-        m_window.draw(m_giftText);
-
-        // نص إضافي
-        sf::Text continueText;
-        continueText.setCharacterSize(20);
-        continueText.setFillColor(sf::Color::Cyan);
-        continueText.setString("Press ENTER to continue");
-        sf::FloatRect bounds = continueText.getLocalBounds();
-        continueText.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
-        continueText.setPosition(m_boxPosition.x, m_boxPosition.y + 250.0f);
-        m_window.draw(continueText);
-    }
-
+    
     m_window.display();
 }
 
