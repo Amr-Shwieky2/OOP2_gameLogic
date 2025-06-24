@@ -1,11 +1,15 @@
-﻿// SpeedGift.cpp
-#include "SpeedGift.h"
+﻿#include "SpeedGift.h"
 
 SpeedGift::SpeedGift(float x, float y, TextureManager& textures) {
-    m_sprite.setTexture(textures.getResource("SpeedGift.png"));
+    sf::Texture& tex = textures.getResource("SpeedGift.png");
+    m_sprite.setTexture(tex);
+
+    m_sprite.setScale(0.2f, 0.2f);
+    sf::FloatRect bounds = m_sprite.getLocalBounds();
+    m_sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
     m_sprite.setPosition(x, y);
-    m_sprite.setScale(0.5f, 0.5f);
 }
+
 
 void SpeedGift::render(sf::RenderTarget& target) const {
     if (!m_collected)
@@ -16,12 +20,10 @@ sf::FloatRect SpeedGift::getBounds() const {
     return m_sprite.getGlobalBounds();
 }
 
-
-
 void SpeedGift::onCollect(Player& player) {
     if (!m_collected) {
         m_collected = true;
-        player.applyEffect(PlayerEffect::SpeedBoost, 1);
+        player.applyEffect(PlayerEffect::SpeedBoost, 8.f);  
     }
 }
 

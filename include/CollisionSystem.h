@@ -15,6 +15,7 @@
 #include <functional>
 #include "GroundTile.h"
 
+
 class CollisionSystem {
 public:
     CollisionSystem(Player& player, std::function<void(std::unique_ptr<GameObject>)> spawnCallback);

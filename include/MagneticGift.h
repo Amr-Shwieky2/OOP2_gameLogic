@@ -4,9 +4,9 @@
 #include "ResourceManager.h"
 #include "Player.h"
 
-class SpeedGift : public StaticGameObject {
+class MagneticGift : public StaticGameObject {
 public:
-    SpeedGift(float x, float y, TextureManager& textures);
+    MagneticGift(float x, float y, TextureManager& textures);
 
     void render(sf::RenderTarget& target) const override;
     sf::FloatRect getBounds() const override;

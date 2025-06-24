@@ -46,6 +46,8 @@ public:
     void renderProjectiles(sf::RenderTarget& target) const;
     const std::vector<std::unique_ptr<Projectile>>& getProjectiles() const;
 
+    sf::Vector2f getSpriteCenter() const;
+
 private:
     void updateVisuals();
     void updatePhysics(float deltaTime);

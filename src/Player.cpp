@@ -1,4 +1,4 @@
-#include "Player.h"
+﻿#include "Player.h"
 
 Player::Player(b2World& world, float x, float y, TextureManager& textures)
     : m_textures(textures)
@@ -38,27 +38,38 @@ Player::Player(b2World& world, float x, float y, TextureManager& textures)
 void Player::handleInput(const InputService& input) {
     float desiredVel = 0.f;
 
+    float moveSpeed = PLAYER_MOVE_SPEED;
+
+    if (hasEffect(PlayerEffect::SpeedBoost))
+        moveSpeed *= 1.3f;
+
+    if (hasEffect(PlayerEffect::Headwind))
+        moveSpeed *= 0.5f;
+
     if (input.isKeyDown(sf::Keyboard::Left)) {
-        desiredVel = hasEffect(PlayerEffect::ReverseControl) ? PLAYER_MOVE_SPEED : -PLAYER_MOVE_SPEED;
+        desiredVel = hasEffect(PlayerEffect::ReverseControl) ? moveSpeed : -moveSpeed;
         m_facingRight = false;
     }
     if (input.isKeyDown(sf::Keyboard::Right)) {
-        desiredVel = hasEffect(PlayerEffect::ReverseControl) ? -PLAYER_MOVE_SPEED : PLAYER_MOVE_SPEED;
+        desiredVel = hasEffect(PlayerEffect::ReverseControl) ? -moveSpeed : moveSpeed;
         m_facingRight = true;
     }
-    
 
     b2Vec2 vel = m_body->GetLinearVelocity();
     float velChange = desiredVel - vel.x;
     float impulse = m_body->GetMass() * velChange;
     m_body->ApplyLinearImpulseToCenter(b2Vec2(impulse, 0.f), true);
 
-    if (input.isKeyPressed(sf::Keyboard::Up) && m_onGround) {
-        m_body->ApplyLinearImpulseToCenter(b2Vec2(0.f, -PLAYER_JUMP_IMPULSE), true);
-        m_onGround = false;
+    // نطة واحدة فقط: الزر يتغير لكن القوة تبقى سالبة
+    bool reverse = hasEffect(PlayerEffect::ReverseControl);
+    if ((reverse && input.isKeyPressed(sf::Keyboard::Down)) ||
+        (!reverse && input.isKeyPressed(sf::Keyboard::Up))) {
+        if (m_onGround) {
+            m_body->ApplyLinearImpulseToCenter(b2Vec2(0.f, -PLAYER_JUMP_IMPULSE), true);
+            m_onGround = false;
+        }
     }
 }
-
 
 void Player::update(float deltaTime) {
     m_effects.update(deltaTime);
@@ -96,7 +107,7 @@ sf::Vector2f Player::getPosition() const {
 
 void Player::addLife()
 {
-    if (m_lives < 3) {
+    if (m_lives < 5) {
         ++m_lives;
     }
 }
@@ -224,4 +235,8 @@ void Player::renderProjectiles(sf::RenderTarget& target) const {
 
 const std::vector<std::unique_ptr<Projectile>>& Player::getProjectiles() const {
     return m_projectiles;
+}
+
+sf::Vector2f Player::getSpriteCenter() const {
+    return m_sprite.getPosition();  // أو استخدم getGlobalBounds لحساب المركز بدقة
 }
