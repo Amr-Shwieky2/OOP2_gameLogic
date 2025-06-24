@@ -3,11 +3,11 @@
 #include <cmath>
 #include <iostream> 
 
-CameraController::CameraController(float width, float height)  
-   : m_minX(0.0f), m_maxX(0.0f), m_minY(0.0f), m_maxY(0.0f) {  
-   m_camera.setSize(width, height);  
-   m_camera.setCenter(width / 2.0f, height / 2.0f);  
-   m_targetPosition = m_camera.getCenter();  
+CameraController::CameraController(float width, float height)
+    : m_minX(0.0f), m_maxX(0.0f), m_minY(0.0f), m_maxY(0.0f) {
+    m_camera.setSize(width, height);
+    m_camera.setCenter(width / 2.0f, height / 2.0f);
+    m_targetPosition = m_camera.getCenter();
 }
 
 void CameraController::followTarget(const sf::Vector2f& position, const sf::Vector2f& velocity) {
@@ -56,7 +56,7 @@ void CameraController::update(float) {
     float distance = std::hypot(m_targetPosition.x - currentPos.x, m_targetPosition.y - currentPos.y);
 
     if (distance < 1.0f) {
-        m_camera.setCenter(m_targetPosition);  
+        m_camera.setCenter(m_targetPosition);
         return;
     }
 

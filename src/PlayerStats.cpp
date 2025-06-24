@@ -28,3 +28,7 @@ int PlayerStats::getScore() const {
 void PlayerStats::resetScore() {
     m_score = 0;
 }
+
+void PlayerStats::kill() {
+    m_lives = 0;
+}

@@ -121,3 +121,6 @@ TextureManager& Player::getTextureManager() {
 sf::Vector2f Player::getSpriteCenter() const {
     return m_renderer->getSpriteCenter();
 }
+void Player::kill() {
+    m_stats->kill();
+}

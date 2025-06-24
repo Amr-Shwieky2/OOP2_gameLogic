@@ -56,6 +56,8 @@ public:
     TextureManager& getTextureManager();
     sf::Vector2f getSpriteCenter() const;
 
+    void kill();
+
 private:
     // Components
     std::unique_ptr<PlayerMovement> m_movement;

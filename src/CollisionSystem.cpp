@@ -7,7 +7,6 @@
 CollisionSystem::CollisionSystem(Player& player, std::function<void(std::unique_ptr<GameObject>)> spawnCallback)
     : m_player(player), m_spawnCallback(spawnCallback) {
     setupCollisionHandlers();
-    std::cout << "CollisionSystem created with multimethods!" << std::endl;
 }
 
 void CollisionSystem::setupCollisionHandlers() {
@@ -64,7 +63,7 @@ void CollisionSystem::setupCollisionHandlers() {
 
             if (playerBottom < enemyTop + 10.f) {
                 enemy.kill();
-                player.applyJumpImpulse(); 
+                player.applyJumpImpulse();
             }
             else {
                 // Side hit logic with cooldown
@@ -77,13 +76,7 @@ void CollisionSystem::setupCollisionHandlers() {
     );
     m_collisionHandler.registerHandler<Player, Sea>(
         [](Player& player, Sea& sea) {
-            if (!sea.isConsumed() && !sea.isRespawning()) {
-                // خسران حياة
-                player.loseLife();
-                // ابدأ تأثير الموت والإختفاء
-                sea.consume();
-                sea.setDeathEffect();
-            }
+            sea.onPlayerContact(player);
         }
     );
 

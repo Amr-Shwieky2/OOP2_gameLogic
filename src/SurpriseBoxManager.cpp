@@ -91,10 +91,4 @@ void SurpriseBoxManager::spawnGiftByType(SurpriseGiftType giftType) {
 
 void SurpriseBoxManager::setPlayer(Player* player) {
     m_player = player;
-    if (player) {
-        std::cout << "✅ Player set successfully in SurpriseBoxManager" << std::endl;
-    }
-    else {
-        std::cout << "⚠️ Player set to null in SurpriseBoxManager" << std::endl;
-    }
 }

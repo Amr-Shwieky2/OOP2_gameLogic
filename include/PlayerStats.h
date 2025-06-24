@@ -14,6 +14,8 @@ public:
     int getScore() const;
     void resetScore();
 
+    void kill();
+
 private:
     int m_lives;
     int m_score = 0;
