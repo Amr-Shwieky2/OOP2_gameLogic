@@ -37,6 +37,7 @@ configure_file ("./icons/BoxBackground.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./icons/heart.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./icons/wooden_box.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./icons/MagneticGift.png" ${CMAKE_BINARY_DIR} COPYONLY)
+configure_file ("./icons/FalconEnemy2.png" ${CMAKE_BINARY_DIR} COPYONLY)
 
 configure_file ("./tile/Edge.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./tile/middle.png" ${CMAKE_BINARY_DIR} COPYONLY)

@@ -28,7 +28,7 @@ Projectile::Projectile(b2World& world, float x, float y, float direction, Textur
     m_sprite.setTexture(m_textures.getResource("Bullet.png")); // add a small bullet image
     auto size = m_sprite.getTexture()->getSize();
     m_sprite.setOrigin(size.x / 2.f, size.y / 2.f);
-    m_sprite.setScale(0.2f, 0.2f); // adjust as needed
+    m_sprite.setScale(0.05f, 0.05f); // adjust as needed
 }
 
 void Projectile::update(float) {
