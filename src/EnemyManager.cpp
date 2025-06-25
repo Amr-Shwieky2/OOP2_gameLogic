@@ -37,6 +37,30 @@ void EnemyManager::removeDeadEnemies() {
     );
 }
 
+void EnemyManager::spawnFalconIfNeeded(float deltaTime, const Player& player, float cameraRightEdgeX) {
+    m_falconSpawnTimer += deltaTime;
+
+    if (!m_falcon && m_falconSpawnTimer >= 5.f) {
+        m_falconSpawnTimer = 0.f;
+
+        float spawnX = cameraRightEdgeX + 100.f; // Off-screen right
+        float spawnY = 200.f; // Sky height
+        b2World& world = *player.getBody()->GetWorld();
+
+        m_falcon = std::make_unique<FalconEnemy>(world, spawnX, spawnY, player.getTextureManager(), 1);
+    }
+
+    if (m_falcon) {
+        m_falcon->update(deltaTime);
+        m_falcon->shoot(player.getTextureManager());
+
+        if (m_falcon->getPosition().x < player.getPosition().x - 800.f) {
+            m_falcon.reset();
+        }
+    }
+}
+
+
 void EnemyManager::addEnemy(std::unique_ptr<SquareEnemy> enemy) {
     if (enemy) {
         m_enemies.push_back(enemy.get());
@@ -50,5 +74,8 @@ void EnemyManager::render(sf::RenderTarget& target) const {
         if (enemy && enemy->isAlive()) {
             enemy->render(target);
         }
+    }
+    if (m_falcon) {
+        m_falcon->render(target);
     }
 }

@@ -4,6 +4,7 @@
 #include <Sea.h>
 #include <MagneticGift.h>
 #include <Cactus.h>
+#include <FalconEnemy.h>
 
 CollisionSystem::CollisionSystem(Player& player, std::function<void(std::unique_ptr<GameObject>)> spawnCallback)
     : m_player(player), m_spawnCallback(spawnCallback) {
@@ -51,6 +52,13 @@ void CollisionSystem::setupCollisionHandlers() {
             player.endContact();
         }
     );
+    m_collisionHandler.registerHandler<GroundTile, Projectile>(
+        [](GroundTile&, Projectile& proj) {
+            if (proj.isAlive() ) {
+                proj.destroy();
+            }
+        });
+
 
     m_collisionHandler.registerHandler<Player, SquareEnemy>(
         [](Player& player, SquareEnemy& enemy) {
@@ -87,8 +95,30 @@ void CollisionSystem::setupCollisionHandlers() {
             
         }
     );
+    m_collisionHandler.registerHandler<Player, Projectile>(
+        [](Player& player, Projectile& proj) {
+            if (proj.isEnemyShot() && proj.isAlive()) {
+                player.loseLife();
+                proj.destroy();
+            }
+        }
+    );
+	m_collisionHandler.registerHandler<SquareEnemy, Projectile>(
+        [](SquareEnemy& enemy, Projectile& proj) {
+		if (proj.isAlive() && !proj.isEnemyShot()) {
+			enemy.kill();
+			proj.destroy();
+		}
+		});
 
-    
+    m_collisionHandler.registerHandler<FalconEnemy, Projectile>(
+        [](FalconEnemy& enemy, Projectile& proj) {
+            if (proj.isAlive() && !proj.isEnemyShot()) {
+                enemy.kill();
+                proj.destroy();
+            }
+        });
+
 
     m_collisionHandler.registerHandler<Player, Sea>(
         [](Player& player, Sea& sea) {

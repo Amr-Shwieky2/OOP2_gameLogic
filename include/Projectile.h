@@ -16,6 +16,8 @@ public:
     void destroy() { m_alive = false; }
 
     bool isEnemyShot() const { return m_fromEnemy; }
+    b2Body* getBody() const { return m_body; }
+
 
 private:
     b2Body* m_body;
