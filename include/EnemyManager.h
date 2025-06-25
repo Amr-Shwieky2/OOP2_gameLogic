@@ -20,12 +20,18 @@ public:
     void removeDeadEnemies();
     void spawnFalconIfNeeded(float deltaTime, const Player& player, float cameraRightEdgeX);
 
+    void loadWarningTexture(TextureManager& textures);
+
     size_t getEnemyCount() const { return m_enemies.size(); }
 
 private:
     std::vector<SquareEnemy*> m_enemies; // References to enemies in main object list
     std::unique_ptr<FalconEnemy> m_falcon;
     float m_falconSpawnTimer = 0.f;
+    sf::Sprite m_warningSprite;
+    bool m_showWarning = false;
+    float m_warningTimer = 0.f;
+    bool m_hasSpawnedFirstFalcon = false;
 
     void updateEnemyAI(float deltaTime, const Player& player);
     void extractEnemiesFromObjects(std::vector<std::unique_ptr<GameObject>>& allObjects);

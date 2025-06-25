@@ -10,6 +10,8 @@ configure_file ("./images/SettingsScreen.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./images/HelpScreen.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./images/About_usScreen.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./images/AboutButton.png" ${CMAKE_BINARY_DIR} COPYONLY)
+configure_file ("./images/warningScreen.png" ${CMAKE_BINARY_DIR} COPYONLY)
+
 
 configure_file ("./icons/backGroundGame.jpeg" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./icons/redFlag.png" ${CMAKE_BINARY_DIR} COPYONLY)

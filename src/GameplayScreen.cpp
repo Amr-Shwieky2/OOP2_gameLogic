@@ -25,6 +25,8 @@ void GameplayScreen::initializeComponents() {
 
     // Initialize game world
     m_gameWorld->initialize(m_textures);
+    m_enemyManager->loadWarningTexture(m_textures);
+
 }
 
 void GameplayScreen::handleEvents(sf::RenderWindow& window) {
