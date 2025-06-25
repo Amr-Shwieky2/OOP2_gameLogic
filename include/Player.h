@@ -32,6 +32,8 @@ public:
     void jump();
     bool isOnGround() const;
     bool isFacingRight() const;
+    b2Body* getBody() const;
+
 
     // Combat
     void shoot(TextureManager& textures);
@@ -55,7 +57,7 @@ public:
     void applyJumpImpulse();
 
     // Utility
-    TextureManager& getTextureManager();
+    TextureManager& getTextureManager()const;
     sf::Vector2f getSpriteCenter() const;
 
     void kill();

@@ -37,6 +37,7 @@ private:
     std::unique_ptr<InputManager> m_inputManager;
     std::unique_ptr<GameStateManager> m_gameStateManager;
     std::unique_ptr<UIOverlay> m_ui;
+    
 
     // Resources
     ResourceManager<sf::Texture> m_textures;

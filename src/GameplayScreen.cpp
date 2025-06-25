@@ -67,6 +67,10 @@ void GameplayScreen::update(float deltaTime) {
     // Update enemies
     if (Map* map = m_gameWorld->getMap()) {
         m_enemyManager->update(deltaTime, *player, map->getObjects());
+        float cameraRightEdge = m_cameraManager->getCamera().getCenter().x +
+            m_cameraManager->getCamera().getSize().x / 2.f;
+
+        m_enemyManager->spawnFalconIfNeeded(deltaTime, *player, cameraRightEdge);
     }
 
     // Update projectiles
@@ -96,6 +100,11 @@ void GameplayScreen::render(sf::RenderWindow& window) {
 
     // Render game world
     m_gameWorld->render(window);
+
+	// Render enemies
+	if (Map* map = m_gameWorld->getMap()) {
+		m_enemyManager->render(window);
+	}
 
     // Render projectiles
     m_projectileManager->render(window);

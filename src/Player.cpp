@@ -73,6 +73,11 @@ bool Player::isFacingRight() const {
     return m_movement->isFacingRight();
 }
 
+b2Body* Player::getBody() const
+{
+	return m_movement->getBody();
+}
+
 void Player::shoot(TextureManager& textures) {
     m_weapon->shoot(getPosition(), isFacingRight(), textures);
 }
@@ -125,7 +130,7 @@ void Player::applyJumpImpulse() {
     m_movement->applyJumpImpulse();
 }
 
-TextureManager& Player::getTextureManager() {
+TextureManager& Player::getTextureManager()const {
     return m_textures;
 }
 
