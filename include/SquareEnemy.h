@@ -20,6 +20,8 @@ public:
 
     bool canDamage() const;
     void startDamageCooldown();
+    void blockMovement();
+
 
 private:
     void updateVisuals();

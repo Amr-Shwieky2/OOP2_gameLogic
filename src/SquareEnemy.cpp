@@ -121,3 +121,11 @@ void SquareEnemy::startDamageCooldown()
 {
     m_damageCooldown = m_damageInterval;
 }
+
+void SquareEnemy::blockMovement() {
+    if (m_body && m_alive) {
+        b2Vec2 velocity = m_body->GetLinearVelocity();
+        velocity.x = 0.f;
+        m_body->SetLinearVelocity(velocity);
+    }
+}
