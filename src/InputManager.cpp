@@ -35,6 +35,9 @@ void InputManager::updatePlayer(Player& player) {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::C)) {
         player.shoot(player.getTextureManager());
     }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::F)) {
+        player.shootCurved(player.getTextureManager());
+    }
 }
 
 void InputManager::handleKeyboardInput(Player& player) {

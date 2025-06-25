@@ -14,6 +14,8 @@ void Player::update(float deltaTime) {
     m_effects.update(deltaTime);
     m_movement->updatePhysics(deltaTime);
     m_weapon->updateProjectiles(deltaTime);
+    updateCactusCooldown(deltaTime);
+
 
     // Update renderer with current state
     m_renderer->updateVisuals(
@@ -46,6 +48,11 @@ sf::Vector2f Player::getPosition() const {
     return m_movement->getPosition();
 }
 
+void Player::setPosition(const sf::Vector2f& position)
+{
+    m_movement->setPosition(position);
+}
+
 sf::Vector2f Player::getVelocity() const {
     return m_movement->getVelocity();
 }
@@ -68,6 +75,10 @@ bool Player::isFacingRight() const {
 
 void Player::shoot(TextureManager& textures) {
     m_weapon->shoot(getPosition(), isFacingRight(), textures);
+}
+
+void Player::shootCurved(TextureManager& textures) {
+    m_weapon->shootCurved(getPosition(), isFacingRight(), textures);
 }
 
 const std::vector<std::unique_ptr<Projectile>>& Player::getProjectiles() const {
@@ -124,3 +135,30 @@ sf::Vector2f Player::getSpriteCenter() const {
 void Player::kill() {
     m_stats->kill();
 }
+
+void Player::pushBackFrom(const sf::Vector2f& sourcePosition) {
+    sf::Vector2f playerPos = getPosition();
+    float direction = (playerPos.x < sourcePosition.x) ? -1.f : 1.f;
+
+    // Small horizontal push, no vertical bounce
+    sf::Vector2f knockbackImpulse(direction * 0.5f, -0.2f); // tweak value
+    m_movement->applyImpulse(knockbackImpulse);
+}
+
+
+void Player::updateCactusCooldown(float deltaTime) {
+    if (m_cactusDamageCooldown > 0.f)
+        m_cactusDamageCooldown -= deltaTime;
+}
+
+bool Player::canTakeCactusDamage() const {
+    return m_cactusDamageCooldown <= 0.f;
+}
+
+void Player::resetCactusCooldown() {
+    m_cactusDamageCooldown = 1.0f; // 1 second cooldown between cactus damage
+}
+
+
+
+

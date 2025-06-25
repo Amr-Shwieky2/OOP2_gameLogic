@@ -3,6 +3,7 @@
 #include <SquareEnemy.h>
 #include <Sea.h>
 #include <MagneticGift.h>
+#include <Cactus.h>
 
 CollisionSystem::CollisionSystem(Player& player, std::function<void(std::unique_ptr<GameObject>)> spawnCallback)
     : m_player(player), m_spawnCallback(spawnCallback) {
@@ -74,6 +75,21 @@ void CollisionSystem::setupCollisionHandlers() {
             }
         }
     );
+
+    m_collisionHandler.registerHandler<Player, Cactus>(
+        [](Player& player, Cactus& cactus) {
+            if (player.canTakeCactusDamage() && !player.hasEffect(PlayerEffect::Shield)) {
+                player.loseLife();
+                player.resetCactusCooldown();
+            }
+
+            player.pushBackFrom(cactus.getBounds().getPosition());
+            
+        }
+    );
+
+    
+
     m_collisionHandler.registerHandler<Player, Sea>(
         [](Player& player, Sea& sea) {
             sea.onPlayerContact(player);

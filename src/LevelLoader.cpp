@@ -15,6 +15,7 @@
 #include "Constants.h"
 #include <fstream>
 #include <iostream>
+#include <Cactus.h>
 
 bool LevelLoader::loadFromFile(const std::string& path,
     GameObjectManager& objectManager,
@@ -84,6 +85,7 @@ std::unique_ptr<GameObject> LevelLoader::createTileObject(char tileChar, float x
     case 'M':
         return std::make_unique<GroundTile>(world, x, y, TileType::Middle, textures);
 
+
         // Special objects
     case 'S':
         return std::make_unique<Sea>(x, y, textures);
@@ -91,6 +93,9 @@ std::unique_ptr<GameObject> LevelLoader::createTileObject(char tileChar, float x
         return std::make_unique<MovableBox>(world, x, y, TileType::Box, textures);
     case 'X':
         return std::make_unique<Flag>(x + TILE_SIZE / 2.f, y - TILE_SIZE, textures);
+    case 'c':
+        return std::make_unique<Cactus>(x , y - TILE_SIZE  / 4.f, textures);
+
 
         // Collectibles
     case 'C':

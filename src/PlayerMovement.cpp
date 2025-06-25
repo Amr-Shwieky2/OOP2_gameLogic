@@ -84,9 +84,19 @@ void PlayerMovement::applyJumpImpulse() {
     }
 }
 
+void PlayerMovement::applyImpulse(const sf::Vector2f& impulse)
+{
+    m_body->ApplyLinearImpulseToCenter(b2Vec2(impulse.x, impulse.y), true);
+}
+
 sf::Vector2f PlayerMovement::getPosition() const {
     b2Vec2 pos = m_body->GetPosition();
     return sf::Vector2f(pos.x * PPM, pos.y * PPM);
+}
+
+void PlayerMovement::setPosition(const sf::Vector2f& position)
+{
+    m_body->SetTransform(b2Vec2(position.x, position.y), m_body->GetAngle());
 }
 
 sf::Vector2f PlayerMovement::getVelocity() const {

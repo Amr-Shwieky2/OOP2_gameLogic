@@ -3,6 +3,7 @@
 #include <box2d/box2d.h>
 #include "DynamicGameObject.h"
 #include "ResourceManager.h"
+#include "Constants.h"
 #include <TileType.h>
 
 class MovableBox : public DynamicGameObject {
@@ -21,10 +22,7 @@ private:
     b2Body* m_body;
     b2World& m_world;
 
-    static constexpr float BOX_DENSITY = 0.2f;      // كثافة 
-    static constexpr float BOX_FRICTION = 0.4f;     // احتكاك 
-    static constexpr float BOX_RESTITUTION = 0.05f; // ارتداد 
-    static constexpr float BOX_SIZE = 180.0f;
+    
 
     void createPhysicsBody(float x, float y);
     void updateSpritePosition();

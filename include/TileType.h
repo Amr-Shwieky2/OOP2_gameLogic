@@ -9,5 +9,6 @@ enum class TileType {
     Empty,       // - or space - no tile
     Ground,      // G - ground.png
     Box,
-    Flag         // X - red_flag.png
+    Flag,         // X - red_flag.png
+	Cactus,      // C - cactus.png
 };

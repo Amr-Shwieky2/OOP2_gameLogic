@@ -17,9 +17,12 @@ public:
     void moveForward(float strength);
     void jump();
     void applyJumpImpulse();
+    void applyImpulse(const sf::Vector2f& impulse);
+
 
     // Getters
     sf::Vector2f getPosition() const;
+    void setPosition(const sf::Vector2f& position);
     sf::Vector2f getVelocity() const;
     float getRotation() const;
     bool isFacingRight() const;

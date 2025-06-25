@@ -26,6 +26,7 @@ public:
 
     // Position and movement
     sf::Vector2f getPosition() const;
+    void setPosition(const sf::Vector2f& position);
     sf::Vector2f getVelocity() const;
     void moveForward(float strength);
     void jump();
@@ -34,6 +35,7 @@ public:
 
     // Combat
     void shoot(TextureManager& textures);
+    void shootCurved(TextureManager& textures);
     const std::vector<std::unique_ptr<Projectile>>& getProjectiles() const;
 
     // Stats
@@ -57,6 +59,12 @@ public:
     sf::Vector2f getSpriteCenter() const;
 
     void kill();
+    void pushBackFrom(const sf::Vector2f& sourcePosition);
+
+    void updateCactusCooldown(float deltaTime);
+    bool canTakeCactusDamage() const;
+    void resetCactusCooldown();
+
 
 private:
     // Components
@@ -67,4 +75,6 @@ private:
     PlayerEffectManager m_effects;
 
     TextureManager& m_textures;
+
+    float m_cactusDamageCooldown = 0.f;
 };

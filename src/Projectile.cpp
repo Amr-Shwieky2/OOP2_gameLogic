@@ -2,14 +2,17 @@
 #include "Projectile.h"
 #include "Constants.h"
 
-Projectile::Projectile(b2World& world, float x, float y, float direction, TextureManager& textures, bool isEnemyShot)
-    : m_textures(textures), m_fromEnemy(isEnemyShot)
+Projectile::Projectile(b2World& world, float x, float y, float direction, TextureManager& textures, bool isEnemyShot, bool isCurved)
+    : m_textures(textures), m_fromEnemy(isEnemyShot), m_isCurved(isCurved)
 {
     b2BodyDef bodyDef;
     bodyDef.type = b2_dynamicBody;
     bodyDef.position.Set(x, y);
-    bodyDef.bullet = true; // precise collision
-    bodyDef.gravityScale = 0;
+    bodyDef.bullet = true; // Precise collisions
+
+    // Allow gravity for curved projectiles
+    bodyDef.gravityScale = isCurved ? 1.0f : 0.0f;
+
     m_body = world.CreateBody(&bodyDef);
 
     b2CircleShape shape;
@@ -20,15 +23,23 @@ Projectile::Projectile(b2World& world, float x, float y, float direction, Textur
     fixtureDef.density = 1.f;
     fixtureDef.friction = 0.f;
     fixtureDef.restitution = 0.f;
-    fixtureDef.isSensor = true; // doesn't bounce or affect physics
+    fixtureDef.isSensor = true;
     m_body->CreateFixture(&fixtureDef);
 
-    m_body->SetLinearVelocity(b2Vec2(direction * 10.f, 0.f)); // Fast shot
+    if (isCurved) {
+        // Apply initial upward and forward velocity
+        m_body->SetLinearVelocity(b2Vec2(direction * 6.f, -10.f)); // adjust for arc
+    }
+    else {
+        // Straight shot
+        m_body->SetLinearVelocity(b2Vec2(direction * 10.f, 0.f));
+    }
 
-    m_sprite.setTexture(m_textures.getResource("Bullet.png")); // add a small bullet image
+    // Sprite setup
+    m_sprite.setTexture(m_textures.getResource("Bullet.png"));
     auto size = m_sprite.getTexture()->getSize();
     m_sprite.setOrigin(size.x / 2.f, size.y / 2.f);
-    m_sprite.setScale(0.05f, 0.05f); // adjust as needed
+    m_sprite.setScale(0.05f, 0.05f);
 }
 
 void Projectile::update(float) {
