@@ -79,7 +79,7 @@ void EnemyManager::loadWarningTexture(TextureManager& textures) {
 
     sf::Vector2u size = m_warningSprite.getTexture()->getSize();
     m_warningSprite.setOrigin(size.x / 2.f, size.y / 2.f);
-    m_warningSprite.setScale(1.6f, 1.6f);
+    m_warningSprite.setScale(1.f, 1.f);
 }
 
 void EnemyManager::addEnemy(std::unique_ptr<SquareEnemy> enemy) {
