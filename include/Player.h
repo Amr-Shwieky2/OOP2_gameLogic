@@ -35,6 +35,7 @@ public:
 
     // Combat
     void shoot(TextureManager& textures);
+    void shootCurved(TextureManager& textures);
     const std::vector<std::unique_ptr<Projectile>>& getProjectiles() const;
 
     // Stats

@@ -22,6 +22,26 @@ void PlayerWeapon::shoot(sf::Vector2f playerPos, bool facingRight, TextureManage
     m_shootCooldown = m_fireInterval;
 }
 
+void PlayerWeapon::shootCurved(sf::Vector2f playerPos, bool facingRight, TextureManager& textures) {
+    if (m_shootCooldown > 0.f) return;
+
+    float dir = facingRight ? 1.f : -1.f;
+
+    auto proj = std::make_unique<Projectile>(
+        m_world,
+        playerPos.x / PPM,
+        playerPos.y / PPM,
+        dir,
+        textures,
+        false,     // not from enemy
+        true       // is curved
+    );
+
+    m_projectiles.push_back(std::move(proj));
+    m_shootCooldown = m_fireInterval;
+}
+
+
 void PlayerWeapon::updateProjectiles(float deltaTime) {
     if (m_shootCooldown > 0.f)
         m_shootCooldown -= deltaTime;

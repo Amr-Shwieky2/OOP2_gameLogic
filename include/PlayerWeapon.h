@@ -11,6 +11,8 @@ public:
     PlayerWeapon(b2World& world);
 
     void shoot(sf::Vector2f playerPos, bool facingRight, TextureManager& textures);
+    void shootCurved(sf::Vector2f playerPos, bool facingRight, TextureManager& textures);
+
     void updateProjectiles(float deltaTime);
     void renderProjectiles(sf::RenderTarget& target) const;
 

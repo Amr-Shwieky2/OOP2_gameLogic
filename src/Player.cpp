@@ -77,6 +77,10 @@ void Player::shoot(TextureManager& textures) {
     m_weapon->shoot(getPosition(), isFacingRight(), textures);
 }
 
+void Player::shootCurved(TextureManager& textures) {
+    m_weapon->shootCurved(getPosition(), isFacingRight(), textures);
+}
+
 const std::vector<std::unique_ptr<Projectile>>& Player::getProjectiles() const {
     return m_weapon->getProjectiles();
 }

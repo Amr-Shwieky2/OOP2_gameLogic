@@ -6,7 +6,7 @@
 
 class Projectile : public DynamicGameObject {
 public:
-    Projectile(b2World& world, float x, float y, float direction, TextureManager& textures, bool isEnemyShot);
+    Projectile(b2World& world, float x, float y, float direction, TextureManager& textures, bool isEnemyShot, bool isCurved = false);
 
     void update(float deltaTime) override;
     void render(sf::RenderTarget& target) const override;
@@ -23,4 +23,6 @@ private:
     TextureManager& m_textures;
     bool m_alive = true;
     bool m_fromEnemy;
+    bool m_isCurved = false;
+
 };
