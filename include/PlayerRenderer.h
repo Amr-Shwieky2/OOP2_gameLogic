@@ -1,7 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "ResourceManager.h"
-#include "PlayerEffect.h"
 #include "Constants.h" 
 
 class PlayerRenderer {
