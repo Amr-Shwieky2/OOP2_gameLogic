@@ -2,7 +2,6 @@
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
 #include "InputService.h"
-#include "PlayerEffect.h"
 #include "Constants.h" 
 
 class PlayerMovement {

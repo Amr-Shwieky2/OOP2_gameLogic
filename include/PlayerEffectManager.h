@@ -2,8 +2,15 @@
 
 #include <unordered_map>
 #include <chrono>
-#include "PlayerEffect.h"
-
+enum class PlayerEffect {
+    None,
+    SpeedBoost,
+    Shield,
+    ReverseControl,
+    Headwind,
+    Magnetic,
+    Transparent
+};
 class PlayerEffectManager {
 public:
     void applyEffect(PlayerEffect effect, float durationSeconds);
