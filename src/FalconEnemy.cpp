@@ -1,6 +1,7 @@
 ﻿#include "FalconEnemy.h"
 #include "Projectile.h"
 #include "Constants.h"
+#include "Player.h"
 
 FalconEnemy::FalconEnemy(b2World& world, float x, float y, TextureManager& textures, int direction)
     : m_direction(direction)
@@ -38,20 +39,39 @@ FalconEnemy::FalconEnemy(b2World& world, float x, float y, TextureManager& textu
 }
 
 void FalconEnemy::update(float deltaTime) {
+    updateWithPlayer(deltaTime, nullptr);
+}
+
+void FalconEnemy::updateWithPlayer(float deltaTime, Player* player) {
     m_animationTimer += deltaTime;
     m_shootCooldown -= deltaTime;
 
     // Move horizontally in the sky
-    b2Vec2 velocity(-1.5f, 0.f); // horizontal speed
+    b2Vec2 velocity(-1.5f, 0.f);
     m_body->SetLinearVelocity(velocity);
 
     // Sprite switching every 0.2s
     switchSprite(deltaTime);
 
-    // Update projectiles
-    for (auto& proj : m_projectiles)
+    // Update projectiles and check collision with player
+    for (auto& proj : m_projectiles) {
         proj->update(deltaTime);
 
+        // Check collision with player (only if player is provided)
+        if (player && proj->isAlive()) {
+            sf::FloatRect playerBounds = player->getBounds();
+            sf::FloatRect projBounds = proj->getBounds();
+
+            if (playerBounds.intersects(projBounds)) {
+                if (!player->hasEffect(PlayerEffect::Shield)) {
+                    player->loseLife();
+                }
+                proj->destroy();
+            }
+        }
+    }
+
+    // Remove dead projectiles
     m_projectiles.erase(std::remove_if(m_projectiles.begin(), m_projectiles.end(),
         [](const std::unique_ptr<Projectile>& p) { return !p->isAlive(); }),
         m_projectiles.end()
@@ -70,7 +90,7 @@ void FalconEnemy::render(sf::RenderTarget& target) const {
     sf::Vector2f drawPos(pos.x * PPM, pos.y * PPM);
 
     sf::Sprite spriteToDraw = m_useFirstSprite ? m_sprite1 : m_sprite2;
-    spriteToDraw.setPosition(drawPos); // ✅ no problem with copy
+    spriteToDraw.setPosition(drawPos); 
     target.draw(spriteToDraw);
 
     for (const auto& p : m_projectiles)
@@ -103,7 +123,7 @@ void FalconEnemy::shoot(TextureManager& textures) {
 
     proj->getBody()->SetLinearVelocity(b2Vec2(0.f, 6.f)); // downward shot
     m_projectiles.push_back(std::move(proj));
-    m_shootCooldown = 2.f; // shoot every 2 seconds
+    m_shootCooldown = 1.f; // shoot every 1 seconds
 }
 
 bool FalconEnemy::isTimeToAppear(float elapsedTime) {

@@ -8,12 +8,14 @@ Player::Player(b2World& world, float x, float y, TextureManager& textures)
     m_renderer = std::make_unique<PlayerRenderer>(textures);
     m_weapon = std::make_unique<PlayerWeapon>(world);
     m_stats = std::make_unique<PlayerStats>(3);
+    m_windEffect = std::make_unique<WindEffect>();
 }
 
 void Player::update(float deltaTime) {
     m_effects.update(deltaTime);
     m_movement->updatePhysics(deltaTime);
     m_weapon->updateProjectiles(deltaTime);
+    updateWindEffect(deltaTime);
     updateCactusCooldown(deltaTime);
 
 
@@ -164,6 +166,22 @@ void Player::resetCactusCooldown() {
     m_cactusDamageCooldown = 1.0f; // 1 second cooldown between cactus damage
 }
 
+void Player::updateWindEffect(float deltaTime) {
+    bool hasHeadwind = hasEffect(PlayerEffect::Headwind);
 
+    if (hasHeadwind && !m_windEffect->isActive()) {
+        // Start wind effect
+        m_windEffect->startEffect(getPosition());
+    }
+    else if (!hasHeadwind && m_windEffect->isActive()) {
+        // Stop wind effect
+        m_windEffect->stopEffect();
+    }
 
+    // Always update to handle particle cleanup
+    m_windEffect->update(deltaTime, getPosition());
+}
 
+void Player::renderWindEffect(sf::RenderTarget& target, const sf::View& camera) const {
+    m_windEffect->render(target, camera);
+}

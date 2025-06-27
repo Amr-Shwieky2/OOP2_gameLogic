@@ -5,11 +5,15 @@
 #include "ResourceManager.h"
 #include "Projectile.h"
 
+class Player;
+
 class FalconEnemy : public DynamicGameObject {
 public:
     FalconEnemy(b2World& world, float x, float y, TextureManager& textures, int direction = -1);
 
     void update(float deltaTime) override;
+    void updateWithPlayer(float deltaTime, Player* player);
+
     void render(sf::RenderTarget& target) const override;
     sf::FloatRect getBounds() const override;
 
@@ -28,8 +32,8 @@ private:
     bool m_alive = true;
     float m_animationTimer = 0.f;
     float m_shootCooldown = 0.f;
-	static constexpr float m_fireInterval = 1.0f; // Time between shots
-	int m_direction; // -1 for left, 1 for right
+    static constexpr float m_fireInterval = 0.4f; // Time between shots
+    int m_direction; // -1 for left, 1 for right
 
     std::vector<std::unique_ptr<Projectile>> m_projectiles;
 
