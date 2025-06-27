@@ -11,6 +11,7 @@
 #include "PlayerWeapon.h"
 #include "PlayerStats.h"
 #include "Constants.h"
+#include "WindEffect.h"
 
 class Player : public DynamicGameObject {
 public:
@@ -67,6 +68,9 @@ public:
     bool canTakeCactusDamage() const;
     void resetCactusCooldown();
 
+    void updateWindEffect(float deltaTime);
+
+    void renderWindEffect(sf::RenderTarget& target, const sf::View& camera) const;
 
 private:
     // Components
@@ -79,4 +83,6 @@ private:
     TextureManager& m_textures;
 
     float m_cactusDamageCooldown = 0.f;
+
+    std::unique_ptr<WindEffect> m_windEffect;
 };

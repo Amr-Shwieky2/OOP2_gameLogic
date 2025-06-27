@@ -103,10 +103,16 @@ void GameplayScreen::render(sf::RenderWindow& window) {
     // Render game world
     m_gameWorld->render(window);
 
-	// Render enemies
-	if (Map* map = m_gameWorld->getMap()) {
-		m_enemyManager->render(window);
-	}
+    // Render enemies
+    if (Map* map = m_gameWorld->getMap()) {
+        m_enemyManager->render(window);
+    }
+
+    // Render wind effects (before projectiles for layering)
+    Player* player = m_gameWorld->getPlayer();
+    if (player) {
+        player->renderWindEffect(window, m_cameraManager->getCamera());
+    }
 
     // Render projectiles
     m_projectileManager->render(window);

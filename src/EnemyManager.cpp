@@ -58,7 +58,7 @@ void EnemyManager::spawnFalconIfNeeded(float deltaTime, const Player& player, fl
     }
 
     if (m_falcon) {
-        m_falcon->update(deltaTime);
+        m_falcon->updateWithPlayer(deltaTime, const_cast<Player*>(&player));  
         m_falcon->shoot(player.getTextureManager());
 
         if (m_falcon->getPosition().x < player.getPosition().x - 800.f) {
