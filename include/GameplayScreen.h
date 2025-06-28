@@ -1,15 +1,14 @@
-﻿#pragma once
+﻿// GameplayScreen.h - Updated Header
+#pragma once
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include "IScreen.h"
-#include "GameSession.h"
+#include "GameSession.h"  // CHANGED: Use GameSession instead of GameWorld
 #include "CameraManager.h"
-#include "ProjectileManager.h"
 #include "BackgroundRenderer.h"
 #include "InputManager.h"
 #include "UIOverlay.h"
 #include "ResourceManager.h"
-#include "PlayerEntity.h"
 
 class GameplayScreen : public IScreen {
 public:
@@ -24,19 +23,22 @@ public:
 private:
     void initializeComponents();
     void setupGameCallbacks();
+    void handlePlayerInput(PlayerEntity& player);
+    void updateCameraForPlayer(PlayerEntity& player);
+    void updateUI(PlayerEntity& player);
 
-    void handleMagneticEffect(float deltaTime, PlayerEntity& player);
-
-    // Core components
+    // Core components - CHANGED: GameSession instead of GameWorld
     std::unique_ptr<GameSession> m_gameSession;
     std::unique_ptr<CameraManager> m_cameraManager;
-    std::unique_ptr<ProjectileManager> m_projectileManager;
     std::unique_ptr<BackgroundRenderer> m_backgroundRenderer;
     std::unique_ptr<InputManager> m_inputManager;
     std::unique_ptr<UIOverlay> m_ui;
-    
 
     // Resources
     ResourceManager<sf::Texture> m_textures;
     sf::RenderWindow* m_window = nullptr;
+
+    // Level management
+    std::string m_currentLevel = "level1.txt";
+    bool m_initialized = false;
 };

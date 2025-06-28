@@ -1,6 +1,7 @@
+// CameraManager.h - Updated for component system
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "Player.h"
+#include "PlayerEntity.h"  // Changed from Player.h
 #include "Constants.h"
 
 class CameraManager {
@@ -8,8 +9,9 @@ public:
     CameraManager();
 
     void initialize(float windowWidth, float windowHeight);
-    void update(const Player& player);
+    void update(const PlayerEntity& player);  // Changed parameter type
     void setView(sf::RenderWindow& window);
+    void setCenterPosition(const sf::Vector2f& center);  // Added method
 
     const sf::View& getCamera() const { return m_camera; }
 
