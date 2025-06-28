@@ -11,7 +11,7 @@ void GameStateManager::initialize() {
     // Setup initial state
 }
 
-void GameStateManager::update(float deltaTime, Player& player) {
+void GameStateManager::update(float, Player& player) {
     // Handle surprise box triggering
     handleCoinCollection(player.getScore());
 }

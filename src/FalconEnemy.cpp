@@ -30,8 +30,8 @@ FalconEnemy::FalconEnemy(b2World& world, float x, float y, TextureManager& textu
     m_sprite1.setTexture(tex1);
     m_sprite2.setTexture(tex2);
 
-    m_sprite1.setOrigin(tex1.getSize().x / 2, tex1.getSize().y / 2);
-    m_sprite2.setOrigin(tex2.getSize().x / 2, tex2.getSize().y / 2);
+    m_sprite1.setOrigin(tex1.getSize().x / static_cast<float>(2), tex1.getSize().y / static_cast<float>(2));
+    m_sprite2.setOrigin(tex2.getSize().x / static_cast<float>(2), tex2.getSize().y / static_cast<float>(2));
 
     float scale = 0.2f;
     m_sprite1.setScale(scale * direction, scale);  // Flip for left-facing
@@ -78,7 +78,7 @@ void FalconEnemy::updateWithPlayer(float deltaTime, Player* player) {
     );
 }
 
-void FalconEnemy::switchSprite(float deltaTime) {
+void FalconEnemy::switchSprite(float) {
     if (m_animationTimer > 0.2f) {
         m_useFirstSprite = !m_useFirstSprite;
         m_animationTimer = 0.f;

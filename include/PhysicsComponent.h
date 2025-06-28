@@ -13,7 +13,7 @@ public:
     ~PhysicsComponent();
 
     // Component interface
-    void update(float dt) override;
+    void update(float) override;
     void onDestroy() override;
 
     // Physics operations

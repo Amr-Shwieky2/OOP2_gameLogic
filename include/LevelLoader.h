@@ -4,16 +4,19 @@
 #include <memory>
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
+#include "Entity.h"
 #include "ResourceManager.h"
-#include "GameObjectManager.h"
+
+class EntityManager;
+class EntityFactory;
 
 class LevelLoader {
 public:
     LevelLoader() = default;
 
-    // Load level from file
+    // Updated load method to use EntityManager instead of GameObjectManager
     bool loadFromFile(const std::string& path,
-        GameObjectManager& objectManager,
+        EntityManager& entityManager,
         b2World& world,
         TextureManager& textures);
 
@@ -28,12 +31,8 @@ public:
     LevelInfo getLevelInfo(const std::string& path) const;
 
 private:
-    // Object creation helpers
-    std::unique_ptr<GameObject> createTileObject(char tileChar, float x, float y,
-        b2World& world, TextureManager& textures);
-    std::unique_ptr<GameObject> createSpecialObject(char specialChar, float x, float y,
-        TextureManager& textures);
-    std::unique_ptr<GameObject> createEnemyObject(char enemyChar, float x, float y,
+    // Create entity based on character
+    std::unique_ptr<Entity> createEntityForChar(char tileChar, float x, float y,
         b2World& world, TextureManager& textures);
 
     // Parsing helpers
