@@ -1,32 +1,35 @@
 #pragma once
-
-#include "MultiMethodCollisionHandler.h"
-#include "Player.h"
-#include "Coin.h"
-#include "LifeHeartGift.h"
-#include "SpeedGift.h"
-#include "ReverseMovementGift.h"
-#include "ProtectiveShieldGift.h"
-#include "HeadwindStormGift.h"
-#include "RareCoinGift.h"
-#include "MovableBox.h"
-#include <vector>
-#include <memory>
+#include <typeindex>
+#include <map>
+#include <utility>
 #include <functional>
-#include "GroundTile.h"
-
+#include "Entity.h"
 
 class CollisionSystem {
 public:
-    CollisionSystem(Player& player, std::function<void(std::unique_ptr<GameObject>)> spawnCallback);
+    using CollisionFunc = void(*)(Entity&, Entity&);
+    using CollisionKey = std::pair<std::type_index, std::type_index>;
+    using CollisionMap = std::map<CollisionKey, CollisionFunc>;
 
-    void checkCollisions(std::vector<std::unique_ptr<GameObject>>& objects);
+    // Registers a collision handler for a pair of types
+    template<typename A, typename B>
+    void registerHandler(CollisionFunc func);
+
+    // Processes a collision between two entities
+    void processCollision(Entity& a, Entity& b);
+
+    // Singleton pattern (optional, for global access)
+    static CollisionSystem& instance();
 
 private:
-    void setupCollisionHandlers();
-    bool areColliding(const GameObject& obj1, const GameObject& obj2) const;
+    CollisionMap m_handlers;
 
-    Player& m_player;
-    std::function<void(std::unique_ptr<GameObject>)> m_spawnCallback;
-    MultiMethodCollisionHandler m_collisionHandler;
+    // Helper to look up the handler
+    CollisionFunc lookup(const std::type_index& a, const std::type_index& b) const;
 };
+
+// Template implementation
+template<typename A, typename B>
+void CollisionSystem::registerHandler(CollisionFunc func) {
+    m_handlers[{typeid(A), typeid(B)}] = func;
+}

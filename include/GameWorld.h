@@ -29,6 +29,6 @@ private:
     b2World m_world;
     std::unique_ptr<Player> m_player;
     std::unique_ptr<Map> m_map;
-    std::unique_ptr<CollisionSystem> m_collisionSystem;
+    //std::unique_ptr<CollisionSystem> m_collisionSystem;
     TextureManager* m_textures = nullptr;
 };
