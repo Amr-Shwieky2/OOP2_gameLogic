@@ -10,10 +10,10 @@ void GameWorld::initialize(TextureManager& textures) {
     m_map = std::make_unique<Map>(m_world, textures);
 
     // Create collision system with spawn callback
-    m_collisionSystem = std::make_unique<CollisionSystem>(
+    /*m_collisionSystem = std::make_unique<CollisionSystem>(
         *m_player,
         [this](std::unique_ptr<GameObject> obj) { spawnGameObject(std::move(obj)); }
-    );
+    );*/
 }
 
 void GameWorld::loadLevel(const std::string& levelPath) {
@@ -23,10 +23,10 @@ void GameWorld::loadLevel(const std::string& levelPath) {
     m_player = std::make_unique<Player>(m_world, 128.f / PPM, 600.f / PPM, *m_textures);
 
     // Recreate collision system with new player
-    m_collisionSystem = std::make_unique<CollisionSystem>(
+    /*m_collisionSystem = std::make_unique<CollisionSystem>(
         *m_player,
         [this](std::unique_ptr<GameObject> obj) { spawnGameObject(std::move(obj)); }
-    );
+    );*/
 }
 
 void GameWorld::update(float deltaTime) {
@@ -43,8 +43,8 @@ void GameWorld::update(float deltaTime) {
     }
 
     // Handle collisions
-    if (m_collisionSystem && m_map) {
-        m_collisionSystem->checkCollisions(m_map->getObjects());
+    if (  m_map) {
+        //m_collisionSystem->checkCollisions(m_map->getObjects());m_collisionSystem&&
     }
 }
 
