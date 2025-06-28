@@ -7,8 +7,8 @@
 #include "EntityFactory.h"
 #include "HealthComponent.h"
 #include "PhysicsComponent.h"
-#include "RenderComponent.h"       // Add this
-#include "CollisionComponent.h"    // Add this
+#include "RenderComponent.h"
+#include "CollisionComponent.h"
 #include <iostream>
 
 // For entity ID generation
@@ -108,16 +108,17 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
     // TODO: Add more collision handlers as needed
 }
 
+// FIXED: All lambdas now have explicit return types and proper return statements
 void registerGameEntities(b2World& world, TextureManager& textures) {
     EntityFactory& factory = EntityFactory::instance();
 
     // Register Player
-    factory.registerCreator("Player", [&](float x, float y) {
+    factory.registerCreator("Player", [&](float x, float y) -> std::unique_ptr<Entity> {
         return std::make_unique<PlayerEntity>(g_nextEntityId++, world, x, y, textures);
         });
 
-    // Register Coin  
-    factory.registerCreator("C", [&](float x, float y) {
+    // Register Coin - FIXED: Always returns an entity
+    factory.registerCreator("C", [&](float x, float y) -> std::unique_ptr<Entity> {
         auto entity = std::make_unique<CoinEntity>(g_nextEntityId++);
         entity->addComponent<Transform>(sf::Vector2f(x, y));
 
@@ -128,21 +129,20 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
             sprite.setScale(0.08f, 0.08f);
             auto bounds = sprite.getLocalBounds();
             sprite.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
-
-            entity->addComponent<CollisionComponent>(CollisionComponent::CollisionType::Collectible);
-
-            return entity;
         }
+
+        entity->addComponent<CollisionComponent>(CollisionComponent::CollisionType::Collectible);
+        return entity;  // Always return, regardless of render component
         });
 
     // Register Square Enemy
-    factory.registerCreator("z", [&](float x, float y) {
+    factory.registerCreator("z", [&](float x, float y) -> std::unique_ptr<Entity> {
         return std::make_unique<SquareEnemyEntity>(g_nextEntityId++, world, x, y, textures);
         });
 
-    // Register Gifts with level file characters
+    // Register Gifts with level file characters - FIXED: Explicit return type
     auto registerGift = [&](const std::string& levelChar, GiftEntity::GiftType type) {
-        factory.registerCreator(levelChar, [&, type](float x, float y) {
+        factory.registerCreator(levelChar, [&, type](float x, float y) -> std::unique_ptr<Entity> {
             return std::make_unique<GiftEntity>(g_nextEntityId++, type, x, y, textures);
             });
         };
@@ -154,4 +154,4 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
     registerGift("r", GiftEntity::GiftType::ReverseMovement);
     registerGift("w", GiftEntity::GiftType::HeadwindStorm);
     registerGift("m", GiftEntity::GiftType::Magnetic);
-};
+}
