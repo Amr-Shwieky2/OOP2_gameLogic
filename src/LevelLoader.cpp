@@ -1,24 +1,16 @@
 #include "LevelLoader.h"
-#include "GroundTile.h"
-#include "Flag.h"
-#include "Coin.h"
-#include "SpeedGift.h"
-#include "LifeHeartGift.h"
-#include "ReverseMovementGift.h"
-#include "ProtectiveShieldGift.h"
-#include "HeadwindStormGift.h"
-#include "RareCoinGift.h"
-#include "MovableBox.h"
-#include "SquareEnemy.h"
-#include "Sea.h"
-#include "MagneticGift.h"
+#include "EntityManager.h"
+#include "EntityFactory.h"
 #include "Constants.h"
 #include <fstream>
 #include <iostream>
-#include <Cactus.h>
+
+// For ground tiles that aren't entities yet, we'll need a temporary solution
+#include "GroundTile.h"
+#include "GameCollisionSetup.h"
 
 bool LevelLoader::loadFromFile(const std::string& path,
-    GameObjectManager& objectManager,
+    EntityManager& entityManager,
     b2World& world,
     TextureManager& textures) {
 
@@ -28,7 +20,10 @@ bool LevelLoader::loadFromFile(const std::string& path,
         return false;
     }
 
-    objectManager.clear();
+    // Make sure entities are registered
+    registerGameEntities(world, textures);
+
+    entityManager.clear();
 
     int mapHeight = static_cast<int>(lines.size());
 
@@ -38,14 +33,67 @@ bool LevelLoader::loadFromFile(const std::string& path,
             char tileChar = row[x];
             sf::Vector2f pos = calculatePosition(x, y);
 
-            auto obj = createTileObject(tileChar, pos.x, pos.y, world, textures);
-            if (obj) {
-                objectManager.addGeneric(std::move(obj));
+            auto entity = createEntityForChar(tileChar, pos.x, pos.y, world, textures);
+            if (entity) {
+                entityManager.addEntity(std::move(entity));
             }
         }
     }
 
     return true;
+}
+
+std::unique_ptr<Entity> LevelLoader::createEntityForChar(char tileChar, float x, float y,
+    b2World& world, TextureManager& textures) {
+
+    EntityFactory& factory = EntityFactory::instance();
+
+    switch (tileChar) {
+        // Collectibles and entities
+    case 'C': // Coin
+        return factory.create("C", x + TILE_SIZE / 4.f, y + TILE_SIZE / 4.f);
+
+    case 'z': // Square Enemy
+        return factory.create("z", x / PPM, y / PPM);
+
+    case 's': // Speed Gift
+        return factory.create("s", x, y);
+
+    case 'h': // Life Heart Gift
+        return factory.create("h", x, y);
+
+    case 'r': // Reverse Movement Gift
+        return factory.create("r", x, y);
+
+    case 'p': // Protective Shield Gift
+        return factory.create("p", x, y);
+
+    case 'w': // Headwind Storm Gift
+        return factory.create("w", x, y);
+
+    case '*': // Rare Coin Gift
+        return factory.create("*", x, y);
+
+    case 'm': // Magnetic Gift
+        return factory.create("m", x, y);
+
+        // TODO: Handle ground tiles, obstacles, etc.
+        // For now, return nullptr for non-entity tiles
+    case 'G': // Ground
+    case 'L': // Left ground
+    case 'R': // Right ground
+    case 'M': // Middle ground
+    case 'E': // Edge
+    case 'B': // Box
+    case 'S': // Sea
+    case 'X': // Flag
+    case 'c': // Cactus
+        // These need to be converted to entities or handled differently
+        return nullptr;
+
+    default:
+        return nullptr;
+    }
 }
 
 std::vector<std::string> LevelLoader::readLevelFile(const std::string& path) const {
@@ -70,99 +118,8 @@ sf::Vector2f LevelLoader::calculatePosition(int x, int y) const {
     return sf::Vector2f(posX, posY);
 }
 
-std::unique_ptr<GameObject> LevelLoader::createTileObject(char tileChar, float x, float y,
-    b2World& world, TextureManager& textures) {
-    switch (tileChar) {
-        // Ground tiles
-    case 'G':
-        return std::make_unique<GroundTile>(world, x, y, TileType::Ground, textures);
-    case 'L':
-        return std::make_unique<GroundTile>(world, x, y, TileType::Left, textures);
-    case 'E':
-        return std::make_unique<GroundTile>(world, x, y - TILE_SIZE, TileType::Edge, textures);
-    case 'R':
-        return std::make_unique<GroundTile>(world, x, y, TileType::Right, textures);
-    case 'M':
-        return std::make_unique<GroundTile>(world, x, y, TileType::Middle, textures);
-
-
-        // Special objects
-    case 'S':
-        return std::make_unique<Sea>(x, y, textures);
-    case 'B':
-        return std::make_unique<MovableBox>(world, x, y, TileType::Box, textures);
-    case 'X':
-        return std::make_unique<Flag>(x + TILE_SIZE / 2.f, y - TILE_SIZE, textures);
-    case 'c':
-        return std::make_unique<Cactus>(x , y - TILE_SIZE  / 4.f, textures);
-
-
-        // Collectibles
-    case 'C':
-        return std::make_unique<Coin>(x + TILE_SIZE / 4.f, y + TILE_SIZE / 4.f, textures);
-    case 's':
-        return std::make_unique<SpeedGift>(x, y, textures);
-    case 'h':
-        return std::make_unique<LifeHeartGift>(x, y, textures);
-    case 'r':
-        return std::make_unique<ReverseMovementGift>(x, y, textures);
-    case 'p':
-        return std::make_unique<ProtectiveShieldGift>(x, y, textures);
-    case 'w':
-        return std::make_unique<HeadwindStormGift>(x, y, textures);
-    case '*':
-        return std::make_unique<RareCoinGift>(x, y, textures);
-    case 'm':
-        return std::make_unique<MagneticGift>(x, y, textures);
-
-        // Enemies
-    case 'z':
-        return std::make_unique<SquareEnemy>(world, x / PPM, y / PPM, textures);
-
-    default:
-        return nullptr;
-    }
-}
-
-std::unique_ptr<GameObject> LevelLoader::createSpecialObject(char specialChar, float x, float y,
-    TextureManager& textures) {
-    switch (specialChar) {
-    case 'C':
-        return std::make_unique<Coin>(x + TILE_SIZE / 4.f, y + TILE_SIZE / 4.f, textures);
-    case 's':
-        return std::make_unique<SpeedGift>(x, y, textures);
-    case 'h':
-        return std::make_unique<LifeHeartGift>(x, y, textures);
-    case 'r':
-        return std::make_unique<ReverseMovementGift>(x, y, textures);
-    case 'p':
-        return std::make_unique<ProtectiveShieldGift>(x, y, textures);
-    case 'w':
-        return std::make_unique<HeadwindStormGift>(x, y, textures);
-    case '*':
-        return std::make_unique<RareCoinGift>(x, y, textures);
-    case 'm':
-        return std::make_unique<MagneticGift>(x, y, textures);
-    default:
-        return nullptr;
-    }
-}
-
-std::unique_ptr<GameObject> LevelLoader::createEnemyObject(char enemyChar, float x, float y,
-    b2World& world, TextureManager& textures) {
-    switch (enemyChar) {
-    case 'z':
-        return std::make_unique<SquareEnemy>(world, x / PPM, y / PPM, textures);
-    case 'Z':
-        // ShootEnemy can be added here when implemented
-        return nullptr;
-    default:
-        return nullptr;
-    }
-}
-
 bool LevelLoader::isValidTileChar(char c) const {
-    const std::string validChars = "GLERMSBX Cshpw*mzZ-";
+    const std::string validChars = "GLERMSBXc Cshprw*mzZ-";
     return validChars.find(c) != std::string::npos;
 }
 
@@ -172,7 +129,5 @@ LevelLoader::LevelInfo LevelLoader::getLevelInfo(const std::string& path) const 
     info.description = "Level loaded from " + path;
     info.difficulty = 1;
     info.size = sf::Vector2i(0, 0);
-
-    // Could be extended to read metadata from file header
     return info;
 }

@@ -16,7 +16,7 @@ public:
     Entity* getOwner() const;
 
     // Called once per frame (if needed)
-    virtual void update(float dt) {}
+    virtual void update(float) {}
 
     // Called when entity is destroyed (optional override)
     virtual void onDestroy() {}

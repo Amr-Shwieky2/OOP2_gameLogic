@@ -15,7 +15,7 @@ EnemyEntity::EnemyEntity(IdType id, EnemyType type, b2World& world, float x, flo
     setupComponents(world, x, y, textures);
 }
 
-void EnemyEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
+void EnemyEntity::setupComponents(b2World&, float x, float y, TextureManager& textures) {
     // Base enemy setup - derived classes will override
     addComponent<Transform>(sf::Vector2f(x, y));
     addComponent<HealthComponent>(1);

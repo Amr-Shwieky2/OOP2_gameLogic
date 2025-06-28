@@ -1,5 +1,7 @@
 #include "EnemyManager.h"
 #include <algorithm>
+#include <Entity.h>
+#include <GameSession.h>
 
 void EnemyManager::update(float deltaTime, const Player& player, std::vector<std::unique_ptr<GameObject>>& allObjects) {
     extractEnemiesFromObjects(allObjects);
@@ -17,7 +19,7 @@ void EnemyManager::extractEnemiesFromObjects(std::vector<std::unique_ptr<GameObj
     }
 }
 
-void EnemyManager::updateEnemyAI(float deltaTime, const Player& player) {
+void EnemyManager::updateEnemyAI(float, const Player& player) {
     sf::Vector2f playerPos = player.getPosition();
 
     for (auto* enemy : m_enemies) {

@@ -42,6 +42,14 @@ std::vector<Entity*> EntityManager::getAllEntities() {
     return result;
 }
 
+void EntityManager::addEntity(std::unique_ptr<Entity> entity)
+{
+    if (entity) {
+        IdType id = entity->getId();
+        m_entities[id] = std::move(entity);
+    }
+}
+
 // Template method must be implemented in header
 // template <typename T, typename... Args>
 // T* EntityManager::createEntity(Args&&... args) { ... }

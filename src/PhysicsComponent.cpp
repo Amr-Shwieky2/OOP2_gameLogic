@@ -25,7 +25,7 @@ PhysicsComponent::~PhysicsComponent() {
     }
 }
 
-void PhysicsComponent::update(float dt) {
+void PhysicsComponent::update(float) {
     if (!m_body || !m_owner) return;
 
     // Sync transform with physics body
