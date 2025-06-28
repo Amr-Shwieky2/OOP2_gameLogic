@@ -66,6 +66,13 @@ void PlayerEntity::addScore(int points) {
     m_score += points;
 }
 
+int PlayerEntity::getLives() const {
+    if (auto* health = getComponent<HealthComponent>()) {
+        return health->getHealth();
+    }
+    return 0;
+}
+
 void PlayerEntity::applySpeedBoost(float duration) {
     // TODO: Implement effect system
 }
