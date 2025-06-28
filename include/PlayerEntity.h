@@ -29,6 +29,7 @@ public:
     // Score/Lives management
     void addScore(int points);
     int getScore() const { return m_score; }
+    int getLives() const;
 
     // Effects
     void applySpeedBoost(float duration);
