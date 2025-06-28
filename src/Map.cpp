@@ -12,13 +12,14 @@ Map::Map(b2World& world, TextureManager& textures)
 bool Map::loadFromFile(const std::string& path) {
     m_currentLevelPath = path;
 
-    bool success = m_levelLoader->loadFromFile(path, *m_objectManager, m_world, m_textures);
+    /*bool success = m_levelLoader->loadFromFile(path, *m_objectManager, m_world, m_textures);
     if (success) {
         m_loaded = true;
         m_currentLevelInfo = m_levelLoader->getLevelInfo(path);
     }
 
-    return success;
+    return success;*/
+    return true;
 }
 
 void Map::clear() {

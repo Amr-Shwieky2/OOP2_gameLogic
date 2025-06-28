@@ -24,7 +24,6 @@ void GameSession::initialize(TextureManager& textures) {
     setupGameCollisionHandlers(m_collisionSystem);
 }
 
-// Update loadLevel in GameSession.cpp:
 void GameSession::loadLevel(const std::string& levelPath) {
     // Clear existing entities
     m_entityManager.clear();
@@ -57,6 +56,7 @@ void GameSession::loadLevel(const std::string& levelPath) {
         std::cerr << "Failed to load level: " << levelPath << std::endl;
     }
 }
+
 void GameSession::update(float deltaTime) {
     // Update physics
     m_physicsWorld.Step(deltaTime, 8, 3);
@@ -73,9 +73,16 @@ void GameSession::render(sf::RenderWindow& window) {
     m_renderSystem.render(m_entityManager, window);
 }
 
+// FIXED: Use addEntity instead of createEntity with unique_ptr
 void GameSession::spawnEntity(std::unique_ptr<Entity> entity) {
     if (entity) {
-        m_entityManager.createEntity<Entity>(std::move(entity));
+        Entity* ptr = entity.get();  // Get pointer before moving
+        m_entityManager.addEntity(std::move(entity));
+
+        // If it's a player, store reference
+        if (auto* player = dynamic_cast<PlayerEntity*>(ptr)) {
+            m_player = player;
+        }
     }
 }
 
