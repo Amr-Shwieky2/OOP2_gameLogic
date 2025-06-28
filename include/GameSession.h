@@ -1,0 +1,46 @@
+//#pragma once
+//#include <memory>
+//#include <Box2D/Box2D.h>
+//#include "EntityManager.h"
+//#include "MultiMethodCollisionSystem.h"
+//#include "RenderSystem.h"
+//#include "ResourceManager.h"
+//
+//class PlayerEntity;
+//
+///**
+// * GameSession - Manages the game entities and systems
+// * Replaces GameWorld with component-based architecture
+// */
+//class GameSession {
+//public:
+//    GameSession();
+//    ~GameSession();
+//
+//    void initialize(TextureManager& textures);
+//    void loadLevel(const std::string& levelPath);
+//
+//    void update(float deltaTime);
+//    void render(sf::RenderWindow& window);
+//
+//    // Entity access
+//    PlayerEntity* getPlayer() { return m_player; }
+//    EntityManager& getEntityManager() { return m_entityManager; }
+//
+//    // Add entity to the world
+//    void spawnEntity(std::unique_ptr<Entity> entity);
+//
+//private:
+//    void checkCollisions();
+//    bool areColliding(Entity& a, Entity& b);
+//
+//    // Core systems
+//    b2World m_physicsWorld;
+//    EntityManager m_entityManager;
+//    MultiMethodCollisionSystem m_collisionSystem;
+//    RenderSystem m_renderSystem;
+//
+//    // References
+//    PlayerEntity* m_player = nullptr;
+//    TextureManager* m_textures = nullptr;
+//};

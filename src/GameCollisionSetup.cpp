@@ -1,0 +1,153 @@
+//#include "GameCollisionSetup.h"
+//#include "MultiMethodCollisionSystem.h"
+//#include "PlayerEntity.h"
+//#include "EnemyEntity.h"
+//#include "GiftEntity.h"
+//#include "CoinEntity.h"
+//#include "EntityFactory.h"
+//#include "HealthComponent.h"
+//#include "PhysicsComponent.h"
+//#include <iostream>
+//
+//// For entity ID generation
+//static int g_nextEntityId = 1;
+//
+//void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
+//
+//    // Player vs Coin
+//    collisionSystem.registerHandler<PlayerEntity, CoinEntity>(
+//        [](PlayerEntity& player, CoinEntity& coin) {
+//            if (!coin.isActive()) return;
+//
+//            player.addScore(10);
+//            coin.onCollect(&player);
+//            std::cout << "Player collected coin! Score: " << player.getScore() << std::endl;
+//        }
+//    );
+//
+//    // Player vs Enemy
+//    collisionSystem.registerHandler<PlayerEntity, SquareEnemyEntity>(
+//        [](PlayerEntity& player, SquareEnemyEntity& enemy) {
+//            if (!enemy.isActive()) return;
+//
+//            auto* playerHealth = player.getComponent<HealthComponent>();
+//            auto* enemyHealth = enemy.getComponent<HealthComponent>();
+//            auto* playerPhysics = player.getComponent<PhysicsComponent>();
+//            auto* enemyPhysics = enemy.getComponent<PhysicsComponent>();
+//
+//            if (!playerHealth || !enemyHealth) return;
+//
+//            // Check if player is jumping on enemy
+//            sf::Vector2f playerPos = playerPhysics->getPosition();
+//            sf::Vector2f enemyPos = enemyPhysics->getPosition();
+//
+//            if (playerPos.y < enemyPos.y - 20.0f) { // Player is above enemy
+//                // Player kills enemy
+//                enemyHealth->takeDamage(999);
+//                enemy.setActive(false);
+//
+//                // Bounce player
+//                playerPhysics->applyImpulse(0, -5.0f);
+//                player.addScore(100);
+//
+//                std::cout << "Player killed enemy!" << std::endl;
+//            }
+//            else {
+//                // Enemy hurts player
+//                if (!playerHealth->isInvulnerable()) {
+//                    playerHealth->takeDamage(1);
+//                    std::cout << "Player took damage! Health: " << playerHealth->getHealth() << std::endl;
+//
+//                    // Knockback
+//                    float knockbackDir = (playerPos.x > enemyPos.x) ? 1.0f : -1.0f;
+//                    playerPhysics->applyImpulse(knockbackDir * 3.0f, -2.0f);
+//                }
+//            }
+//        }
+//    );
+//
+//    // Player vs Gift
+//    collisionSystem.registerHandler<PlayerEntity, GiftEntity>(
+//        [](PlayerEntity& player, GiftEntity& gift) {
+//            if (!gift.isActive() || gift.isCollected()) return;
+//
+//            switch (gift.getGiftType()) {
+//            case GiftEntity::GiftType::LifeHeart: {
+//                auto* health = player.getComponent<HealthComponent>();
+//                if (health) health->heal(1);
+//                std::cout << "Player collected Life Heart!" << std::endl;
+//                break;
+//            }
+//
+//            case GiftEntity::GiftType::SpeedBoost:
+//                player.applySpeedBoost(5.0f);
+//                std::cout << "Player collected Speed Boost!" << std::endl;
+//                break;
+//
+//            case GiftEntity::GiftType::Shield:
+//                player.applyShield(7.0f);
+//                std::cout << "Player collected Shield!" << std::endl;
+//                break;
+//
+//            case GiftEntity::GiftType::RareCoin:
+//                player.addScore(50);
+//                std::cout << "Player collected Rare Coin!" << std::endl;
+//                break;
+//
+//                // TODO: Implement other gift effects
+//            default:
+//                break;
+//            }
+//
+//            gift.collect();
+//        }
+//    );
+//
+//    // TODO: Add more collision handlers as needed
+//}
+//
+//void registerGameEntities(b2World& world, TextureManager& textures) {
+//    EntityFactory& factory = EntityFactory::instance();
+//
+//    // Register Player
+//    factory.registerCreator("Player", [&](float x, float y) {
+//        return std::make_unique<PlayerEntity>(g_nextEntityId++, world, x, y, textures);
+//        });
+//
+//    // Register Coin  
+//    factory.registerCreator("C", [&](float x, float y) {
+//        auto entity = std::make_unique<CoinEntity>(g_nextEntityId++);
+//        entity->addComponent<Transform>(sf::Vector2f(x, y));
+//
+//        auto* render = entity->addComponent<RenderComponent>();
+//        render->setTexture(textures.getResource("Coin.png"));
+//        auto& sprite = render->getSprite();
+//        sprite.setScale(0.08f, 0.08f);
+//        auto bounds = sprite.getLocalBounds();
+//        sprite.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
+//
+//        entity->addComponent<CollisionComponent>(CollisionComponent::CollisionType::Collectible);
+//
+//        return entity;
+//        });
+//
+//    // Register Square Enemy
+//    factory.registerCreator("z", [&](float x, float y) {
+//        return std::make_unique<SquareEnemyEntity>(g_nextEntityId++, world, x, y, textures);
+//        });
+//
+//    // Register Gifts with level file characters
+//    auto registerGift = [&](const std::string& levelChar, GiftEntity::GiftType type) {
+//        factory.registerCreator(levelChar, [&, type](float x, float y) {
+//            return std::make_unique<GiftEntity>(g_nextEntityId++, type, x, y, textures);
+//            });
+//        };
+//
+//    registerGift("h", GiftEntity::GiftType::LifeHeart);
+//    registerGift("s", GiftEntity::GiftType::SpeedBoost);
+//    registerGift("p", GiftEntity::GiftType::Shield);
+//    registerGift("*", GiftEntity::GiftType::RareCoin);
+//    registerGift("r", GiftEntity::GiftType::ReverseMovement);
+//    registerGift("w", GiftEntity::GiftType::HeadwindStorm);
+//    registerGift("m", GiftEntity::GiftType::Magnetic);
+//}
