@@ -3,6 +3,8 @@
 #include "EntityFactory.h"
 #include "LevelLoader.h"
 #include "PlayerEntity.h"
+#include "EnemyEntity.h"
+#include "AIComponent.h"
 #include "CollisionComponent.h"
 #include "Transform.h"
 #include "Constants.h"
@@ -76,6 +78,18 @@ void GameSession::loadLevel(const std::string& levelPath) {
         std::cout << "  - Gifts: " << giftCount << std::endl;
         std::cout << "  - Other: " << otherCount << std::endl;
         std::cout << "  - Total entities: " << m_entityManager.getAllEntities().size() << std::endl;
+    
+        // Set player as target for all enemy AI
+        if (m_player) {
+            for (auto* entity : m_entityManager.getAllEntities()) {
+                if (auto* enemy = dynamic_cast<EnemyEntity*>(entity)) {
+                    if (auto* ai = enemy->getComponent<AIComponent>()) {
+                        ai->setTarget(m_player);
+                        std::cout << "[GameSession] Set AI target for enemy " << enemy->getId() << std::endl;
+                    }
+                }
+            }
+        }
     }
     else {
         std::cerr << "[GameSession] Failed to load level: " << levelPath << std::endl;

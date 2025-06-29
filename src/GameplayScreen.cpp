@@ -5,6 +5,7 @@
 #include <iostream>
 #include "HealthComponent.h"
 #include "Transform.h"
+#include "UIObserver.h"
 
 GameplayScreen::GameplayScreen() {
     initializeComponents();

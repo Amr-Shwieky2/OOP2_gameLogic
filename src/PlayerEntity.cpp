@@ -1,7 +1,4 @@
-// ==========================================
-// PlayerEntity.cpp - Enhanced Implementation
-// ==========================================
-
+// PlayerEntity.cpp - Implementation with State Pattern
 #include "PlayerEntity.h"
 #include "Transform.h"
 #include "PhysicsComponent.h"
@@ -9,12 +6,22 @@
 #include "HealthComponent.h"
 #include "CollisionComponent.h"
 #include "Constants.h"
+#include "PlayerState.h"
+#include "NormalState.h"
+#include "ShieldedState.h"
+#include "BoostedState.h"
+#include "EventSystem.h"
+#include "GameEvents.h"
 #include <iostream>
 
 PlayerEntity::PlayerEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : Entity(id)
     , m_textures(textures) {
     setupComponents(world, x, y, textures);
+
+    // Start in normal state
+    m_currentState = NormalState::getInstance();
+    m_currentState->enter(*this);
 }
 
 void PlayerEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
@@ -50,17 +57,9 @@ void PlayerEntity::update(float dt) {
     // Call base update (updates all components)
     Entity::update(dt);
 
-    // Update effect timers
-    if (m_speedBoostTimer > 0.0f) {
-        m_speedBoostTimer -= dt;
-    }
-    if (m_shieldTimer > 0.0f) {
-        m_shieldTimer -= dt;
-        // Update shield visual effect
-        auto* health = getComponent<HealthComponent>();
-        if (health) {
-            health->setInvulnerable(m_shieldTimer > 0.0f);
-        }
+    // Update current state
+    if (m_currentState) {
+        m_currentState->update(*this, dt);
     }
 
     // Update visuals and physics
@@ -68,35 +67,33 @@ void PlayerEntity::update(float dt) {
     updatePhysics();
 }
 
+void PlayerEntity::changeState(PlayerState* newState) {
+    if (m_currentState == newState) return;
+
+    std::string oldStateName = m_currentState ? m_currentState->getName() : "None";
+    std::string newStateName = newState ? newState->getName() : "None";
+
+    std::cout << "[Player] State change: " << oldStateName
+        << " -> " << newStateName << std::endl;
+
+    if (m_currentState) {
+        m_currentState->exit(*this);
+    }
+
+    m_currentState = newState;
+
+    if (m_currentState) {
+        m_currentState->enter(*this);
+    }
+
+    // Publish state changed event
+    EventSystem::getInstance().publish(
+        PlayerStateChangedEvent(oldStateName, newStateName)
+    );
+}
 void PlayerEntity::handleInput(const InputService& input) {
-    auto* physics = getComponent<PhysicsComponent>();
-    if (!physics) return;
-
-    float moveSpeed = PLAYER_MOVE_SPEED;
-
-    // Apply speed boost effect
-    if (m_speedBoostTimer > 0.0f) {
-        moveSpeed *= 1.5f;
-    }
-
-    // Handle left/right movement
-    if (input.isKeyDown(sf::Keyboard::Left)) {
-        auto vel = physics->getVelocity();
-        physics->setVelocity(-moveSpeed, vel.y);
-    }
-    else if (input.isKeyDown(sf::Keyboard::Right)) {
-        auto vel = physics->getVelocity();
-        physics->setVelocity(moveSpeed, vel.y);
-    }
-    else {
-        // Stop horizontal movement when no input
-        auto vel = physics->getVelocity();
-        physics->setVelocity(0, vel.y);
-    }
-
-    // Handle jumping
-    if (input.isKeyPressed(sf::Keyboard::Up) && isOnGround()) {
-        physics->applyImpulse(0, -PLAYER_JUMP_IMPULSE);
+    if (m_currentState) {
+        m_currentState->handleInput(*this, input);
     }
 }
 
@@ -109,50 +106,34 @@ void PlayerEntity::jump() {
 }
 
 void PlayerEntity::moveLeft() {
-    if (auto* physics = getComponent<PhysicsComponent>()) {
-        float moveSpeed = PLAYER_MOVE_SPEED;
-        if (m_speedBoostTimer > 0.0f) moveSpeed *= 1.5f;
-
-        auto vel = physics->getVelocity();
-        physics->setVelocity(-moveSpeed, vel.y);
-    }
+    // Movement is now handled by states
 }
 
 void PlayerEntity::moveRight() {
-    if (auto* physics = getComponent<PhysicsComponent>()) {
-        float moveSpeed = PLAYER_MOVE_SPEED;
-        if (m_speedBoostTimer > 0.0f) moveSpeed *= 1.5f;
-
-        auto vel = physics->getVelocity();
-        physics->setVelocity(moveSpeed, vel.y);
-    }
+    // Movement is now handled by states
 }
 
 void PlayerEntity::shoot() {
     // TODO: Create projectile entity and add to EntityManager
-    // This will require access to the EntityManager and EntityFactory
     std::cout << "Player shoot (TODO: implement projectile creation)" << std::endl;
 }
 
 void PlayerEntity::addScore(int points) {
+    int oldScore = m_score;
     m_score += points;
+
+    // Publish score changed event
+    EventSystem::getInstance().publish(
+        ScoreChangedEvent(m_score, points)
+    );
 }
 
 void PlayerEntity::applySpeedBoost(float duration) {
-    m_speedBoostTimer = duration;
-    std::cout << "Speed boost applied for " << duration << " seconds" << std::endl;
+    changeState(BoostedState::getInstance());
 }
 
 void PlayerEntity::applyShield(float duration) {
-    m_shieldTimer = duration;
-
-    // Update visual
-    auto* render = getComponent<RenderComponent>();
-    if (render) {
-        render->getSprite().setColor(sf::Color(255, 255, 255, 128)); // Semi-transparent
-    }
-
-    std::cout << "Shield applied for " << duration << " seconds" << std::endl;
+    changeState(ShieldedState::getInstance());
 }
 
 sf::Vector2f PlayerEntity::getPosition() const {
@@ -176,14 +157,6 @@ void PlayerEntity::updateVisuals() {
     if (render && transform) {
         // Update sprite position
         render->getSprite().setPosition(transform->getPosition());
-
-        // Update texture based on effects
-        if (m_shieldTimer > 0.0f) {
-            render->setTexture(m_textures.getResource("TransparentBall.png"));
-        }
-        else {
-            render->setTexture(m_textures.getResource("NormalBall.png"));
-        }
     }
 }
 

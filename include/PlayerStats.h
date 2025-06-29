@@ -3,7 +3,7 @@
 class PlayerStats {
 public:
     PlayerStats(int initialLives = 3);
-
+    
     // Life management
     void addLife();
     void loseLife();

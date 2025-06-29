@@ -5,6 +5,9 @@
 #include "HealthComponent.h"
 #include "CollisionComponent.h"
 #include "MovementComponent.h"
+#include "AIComponent.h"
+#include "PatrolStrategy.h"
+#include "FollowPlayerStrategy.h"
 #include "ResourceManager.h"
 #include "Constants.h"
 
@@ -30,12 +33,12 @@ SquareEnemyEntity::SquareEnemyEntity(IdType id, b2World& world, float x, float y
 void SquareEnemyEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
     // Call base setup
     EnemyEntity::setupComponents(world, x, y, textures);
-    
+
     // Add physics
     auto* physics = addComponent<PhysicsComponent>(world, b2_dynamicBody);
     physics->createBoxShape(ENEMY_WIDTH * PPM, ENEMY_HEIGHT * PPM);
     physics->setPosition(x, y);
-    
+
     // Add rendering
     auto* render = addComponent<RenderComponent>();
     render->setTexture(textures.getResource("SquareEnemy.png"));
@@ -43,8 +46,9 @@ void SquareEnemyEntity::setupComponents(b2World& world, float x, float y, Textur
     sprite.setScale(0.1f, 0.1f);
     auto bounds = sprite.getLocalBounds();
     sprite.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
-    
-    // Add movement (following player)
-    auto* movement = addComponent<MovementComponent>(MovementComponent::MovementType::Following);
-    movement->setSpeed(1.0f);
+
+    // Add AI with follow strategy by default
+    auto* ai = addComponent<AIComponent>(std::make_unique<FollowPlayerStrategy>(100.0f, 300.0f));
+
+    // Note: Target player will be set by GameSession after all entities are created
 }

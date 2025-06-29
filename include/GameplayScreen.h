@@ -31,6 +31,7 @@ private:
     std::unique_ptr<CameraManager> m_cameraManager;
     std::unique_ptr<BackgroundRenderer> m_backgroundRenderer;
     std::unique_ptr<UIOverlay> m_ui;
+    std::unique_ptr<UIObserver> m_uiObserver;
 
     // Input handling
     InputService m_inputService;  // Direct input service instead of InputManager
@@ -38,6 +39,7 @@ private:
     // Resources
     ResourceManager<sf::Texture> m_textures;
     sf::RenderWindow* m_window = nullptr;
+    sf::Font m_font;
 
     // Level management
     std::string m_currentLevel = "level1.txt";

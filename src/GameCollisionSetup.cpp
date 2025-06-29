@@ -14,7 +14,10 @@
 #include "FlagEntity.h"
 #include "CactusEntity.h"
 #include "BoxEntity.h"
+#include "EventSystem.h"
+#include "GameEvents.h"
 #include <iostream>
+#include <SmartEnemyEntity.h>
 
 // For entity ID generation
 static int g_nextEntityId = 1;
@@ -28,6 +31,12 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
             player.addScore(10);
             coin.onCollect(&player);
+
+            // Publish item collected event
+            EventSystem::getInstance().publish(
+                ItemCollectedEvent(player.getId(), coin.getId(), ItemCollectedEvent::ItemType::Coin)
+            );
+
             std::cout << "Player collected coin! Score: " << player.getScore() << std::endl;
         }
     );
@@ -228,6 +237,16 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
 
     factory.registerCreator("B", [&](float x, float y) -> std::unique_ptr<Entity> {
         return std::make_unique<BoxEntity>(g_nextEntityId++, world, x, y, textures);
+        });
+
+    // Register Square Enemy
+    factory.registerCreator("z", [&](float x, float y) -> std::unique_ptr<Entity> {
+        return std::make_unique<SquareEnemyEntity>(g_nextEntityId++, world, x, y, textures);
+        });
+
+    // Register Smart Enemy (use 'Z' for smart enemy in level files)
+    factory.registerCreator("Z", [&](float x, float y) -> std::unique_ptr<Entity> {
+        return std::make_unique<SmartEnemyEntity>(g_nextEntityId++, world, x, y, textures);
         });
 
 }

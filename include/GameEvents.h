@@ -1,0 +1,102 @@
+// GameEvents.h
+#pragma once
+#include "EventSystem.h"
+#include "Entity.h"
+#include <string>
+
+/**
+ * Score changed event
+ */
+class ScoreChangedEvent : public Event {
+public:
+    ScoreChangedEvent(int newScore, int delta)
+        : newScore(newScore), delta(delta) {
+    }
+
+    const char* getName() const override { return "ScoreChanged"; }
+
+    int newScore;  // New total score
+    int delta;     // Change amount
+};
+
+/**
+ * Player died event
+ */
+class PlayerDiedEvent : public Event {
+public:
+    PlayerDiedEvent(Entity::IdType playerId)
+        : playerId(playerId) {
+    }
+
+    const char* getName() const override { return "PlayerDied"; }
+
+    Entity::IdType playerId;
+};
+
+/**
+ * Item collected event
+ */
+class ItemCollectedEvent : public Event {
+public:
+    enum class ItemType {
+        Coin,
+        Gift,
+        PowerUp
+    };
+
+    ItemCollectedEvent(Entity::IdType collectorId, Entity::IdType itemId, ItemType type)
+        : collectorId(collectorId), itemId(itemId), type(type) {
+    }
+
+    const char* getName() const override { return "ItemCollected"; }
+
+    Entity::IdType collectorId;
+    Entity::IdType itemId;
+    ItemType type;
+};
+
+/**
+ * Enemy killed event
+ */
+class EnemyKilledEvent : public Event {
+public:
+    EnemyKilledEvent(Entity::IdType enemyId, Entity::IdType killerId)
+        : enemyId(enemyId), killerId(killerId) {
+    }
+
+    const char* getName() const override { return "EnemyKilled"; }
+
+    Entity::IdType enemyId;
+    Entity::IdType killerId;
+};
+
+/**
+ * Level completed event
+ */
+class LevelCompletedEvent : public Event {
+public:
+    LevelCompletedEvent(const std::string& levelName, int score, float time)
+        : levelName(levelName), finalScore(score), completionTime(time) {
+    }
+
+    const char* getName() const override { return "LevelCompleted"; }
+
+    std::string levelName;
+    int finalScore;
+    float completionTime;
+};
+
+/**
+ * Player state changed event
+ */
+class PlayerStateChangedEvent : public Event {
+public:
+    PlayerStateChangedEvent(const std::string& oldState, const std::string& newState)
+        : oldStateName(oldState), newStateName(newState) {
+    }
+
+    const char* getName() const override { return "PlayerStateChanged"; }
+
+    std::string oldStateName;
+    std::string newStateName;
+};
