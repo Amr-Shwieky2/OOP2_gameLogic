@@ -17,7 +17,8 @@ void BoxEntity::setupComponents(b2World& world, float x, float y, TextureManager
     // Dynamic body so it can be pushed
     auto* physics = addComponent<PhysicsComponent>(world, b2_dynamicBody);
     physics->createBoxShape(BOX_SIZE, BOX_SIZE);
-    physics->setPosition(x + BOX_SIZE / 2.f, y - BOX_SIZE / 2.f);
+    physics->setPosition(x + BOX_SIZE / 2.f,
+                         y + TILE_SIZE - BOX_SIZE / 2.f);
 
     // Set physics properties
     if (auto* body = physics->getBody()) {
