@@ -20,7 +20,10 @@
 #include <SmartEnemyEntity.h>
 
 // For entity ID generation
-static int g_nextEntityId = 1;
+// This needs external linkage so other modules (like SurpriseBoxManager)
+// can reference it. Previously it was declared static which limited its
+// visibility and caused linker errors.
+int g_nextEntityId = 1;
 
 void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
