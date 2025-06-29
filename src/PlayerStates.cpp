@@ -14,7 +14,8 @@ std::unique_ptr<NormalState> NormalState::s_instance = nullptr;
 
 PlayerState* NormalState::getInstance() {
     if (!s_instance) {
-        s_instance = std::make_unique<NormalState>();
+        // Can't use make_unique with private constructor
+        s_instance = std::unique_ptr<NormalState>(new NormalState());
     }
     return s_instance.get();
 }
@@ -77,7 +78,8 @@ std::unique_ptr<ShieldedState> ShieldedState::s_instance = nullptr;
 
 PlayerState* ShieldedState::getInstance() {
     if (!s_instance) {
-        s_instance = std::make_unique<ShieldedState>();
+        // Can't use make_unique with private constructor
+        s_instance = std::unique_ptr<ShieldedState>(new ShieldedState());
     }
     return s_instance.get();
 }
@@ -144,7 +146,8 @@ std::unique_ptr<BoostedState> BoostedState::s_instance = nullptr;
 
 PlayerState* BoostedState::getInstance() {
     if (!s_instance) {
-        s_instance = std::make_unique<BoostedState>();
+        // Can't use make_unique with private constructor
+        s_instance = std::unique_ptr<BoostedState>(new BoostedState());
     }
     return s_instance.get();
 }
