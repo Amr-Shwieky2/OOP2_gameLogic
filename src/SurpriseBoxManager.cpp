@@ -1,29 +1,34 @@
-﻿#include "SurpriseBoxManager.h"
-#include "LifeHeartGift.h"
-#include "SpeedGift.h"
-#include "ProtectiveShieldGift.h"
-#include "RareCoinGift.h"
-#include "ReverseMovementGift.h"
-#include "HeadwindStormGift.h"
-#include "Coin.h"
+﻿// SurpriseBoxManager.cpp
+#include "SurpriseBoxManager.h"
+#include "EntityManager.h"
+#include "EntityFactory.h"
+#include "PlayerEntity.h"
+#include "GiftEntity.h"
+#include "Transform.h"
+#include "RenderComponent.h"
+#include "CollisionComponent.h"
 #include "Constants.h"
+#include "EventSystem.h"
+#include "GameEvents.h"
 #include <iostream>
-#include <cmath>
-#include <App.h>
-#include "SurpriseBoxScreen.h"
-#include "MagneticGift.h"
 
-SurpriseBoxManager::SurpriseBoxManager(TextureManagerType& textures, sf::RenderWindow& window)
+// For entity ID generation
+extern int g_nextEntityId;
+
+SurpriseBoxManager::SurpriseBoxManager(TextureManager& textures, sf::RenderWindow& window)
     : m_textures(textures)
     , m_window(&window)
     , m_gen(std::random_device{}())
 {
-    // إنشاء شاشة الصندوق
+    // Create surprise box screen
     m_surpriseScreen = std::make_unique<SurpriseBoxScreen>(window, textures);
-}
 
-void SurpriseBoxManager::setSpawnCallback(std::function<void(std::unique_ptr<GameObject>)> callback) {
-    m_spawnCallback = callback;
+    // Subscribe to coin collection events
+    EventSystem::getInstance().subscribe<CoinCollectedEvent>(
+        [this](const CoinCollectedEvent& event) {
+            this->onCoinCollected();
+        }
+    );
 }
 
 bool SurpriseBoxManager::shouldTriggerSurprise() const {
@@ -32,63 +37,119 @@ bool SurpriseBoxManager::shouldTriggerSurprise() const {
 
 void SurpriseBoxManager::onCoinCollected() {
     m_coinsCollected++;
+
+    std::cout << "[SurpriseBox] Coins collected: " << m_coinsCollected
+        << "/" << (m_lastTriggerCoin + COINS_FOR_SURPRISE) << std::endl;
+
     if (shouldTriggerSurprise()) {
         triggerSurprise();
     }
 }
 
 void SurpriseBoxManager::triggerSurprise() {
-    // عرض شاشة الصندوق المستقلة
+    if (!m_player || !m_entityManager || !m_world) {
+        std::cerr << "[SurpriseBox] Cannot trigger - missing dependencies" << std::endl;
+        return;
+    }
+
+    std::cout << "[SurpriseBox] Triggering surprise box!" << std::endl;
+
+    // Show surprise box screen
     SurpriseGiftType selectedGift = m_surpriseScreen->showSurpriseBox();
 
-    // إنشاء الهدية المختارة
-    spawnGiftByType(selectedGift);
+    // Get player position for spawning
+    auto* playerTransform = m_player->getComponent<Transform>();
+    if (!playerTransform) {
+        std::cerr << "[SurpriseBox] Player has no transform component" << std::endl;
+        return;
+    }
 
-    // تحديث العداد
+    // Calculate spawn position (to the right of player)
+    sf::Vector2f playerPos = playerTransform->getPosition();
+    sf::Vector2f spawnPos = playerPos + sf::Vector2f(150.0f, -50.0f);
+
+    // Spawn the selected gift
+    spawnGiftEntity(selectedGift, spawnPos);
+
+    // Update counter
     m_lastTriggerCoin = m_coinsCollected;
-    m_boxActive = false;
 }
 
-void SurpriseBoxManager::spawnGiftByType(SurpriseGiftType giftType) {
+void SurpriseBoxManager::spawnGiftEntity(SurpriseGiftType giftType, const sf::Vector2f& position) {
+    if (!m_entityManager || !m_world) {
+        std::cerr << "[SurpriseBox] Cannot spawn gift - missing entity manager or world" << std::endl;
+        return;
+    }
 
-    sf::Vector2f playerCenter = m_player->getSpriteCenter();
-    sf::Vector2f giftPos = playerCenter + sf::Vector2f(270.f, 0.f);
+    // Convert SurpriseGiftType to GiftEntity::GiftType
+    GiftEntity::GiftType entityGiftType;
+    std::string giftName;
+
+    switch (giftType) {
+    case SurpriseGiftType::LifeHeart:
+        entityGiftType = GiftEntity::GiftType::LifeHeart;
+        giftName = "Life Heart";
+        break;
+    case SurpriseGiftType::SpeedBoost:
+        entityGiftType = GiftEntity::GiftType::SpeedBoost;
+        giftName = "Speed Boost";
+        break;
+    case SurpriseGiftType::Shield:
+        entityGiftType = GiftEntity::GiftType::Shield;
+        giftName = "Shield";
+        break;
+    case SurpriseGiftType::RareCoin:
+        entityGiftType = GiftEntity::GiftType::RareCoin;
+        giftName = "Rare Coin";
+        break;
+    case SurpriseGiftType::ReverseMovement:
+        entityGiftType = GiftEntity::GiftType::ReverseMovement;
+        giftName = "Reverse Movement";
+        break;
+    case SurpriseGiftType::HeadwindStorm:
+        entityGiftType = GiftEntity::GiftType::HeadwindStorm;
+        giftName = "Headwind Storm";
+        break;
+    case SurpriseGiftType::Magnetic:
+        entityGiftType = GiftEntity::GiftType::Magnetic;
+        giftName = "Magnetic";
+        break;
+    default:
+        entityGiftType = GiftEntity::GiftType::RareCoin;
+        giftName = "Unknown Gift";
+        break;
+    }
 
     try {
-        switch (giftType) {
-        case SurpriseGiftType::LifeHeart:
-            m_spawnCallback(std::make_unique<LifeHeartGift>(giftPos.x, giftPos.y, m_textures));
-            break;
-        case SurpriseGiftType::SpeedBoost:
-            m_spawnCallback(std::make_unique<SpeedGift>(giftPos.x, giftPos.y, m_textures));
-            break;
-        case SurpriseGiftType::Shield:
-            m_spawnCallback(std::make_unique<ProtectiveShieldGift>(giftPos.x, giftPos.y, m_textures));
-            break;
-        case SurpriseGiftType::RareCoin:
-            m_spawnCallback(std::make_unique<RareCoinGift>(giftPos.x, giftPos.y, m_textures));
-            break;
-        case SurpriseGiftType::ReverseMovement:
-            m_spawnCallback(std::make_unique<ReverseMovementGift>(giftPos.x, giftPos.y, m_textures));
-            break;
-        case SurpriseGiftType::HeadwindStorm:
-            m_spawnCallback(std::make_unique<HeadwindStormGift>(giftPos.x, giftPos.y, m_textures));
-            break;
-        case SurpriseGiftType::Magnetic:
-            m_spawnCallback(std::make_unique<MagneticGift>(giftPos.x, giftPos.y, m_textures));
-            break;
-        default:
-            m_spawnCallback(std::make_unique<Coin>(giftPos.x, giftPos.y, m_textures));
-            std::cout << "Default coin spawned!" << std::endl;
-            break;
-        }
+        // Create gift entity
+        auto giftEntity = std::make_unique<GiftEntity>(
+            g_nextEntityId++,
+            entityGiftType,
+            position.x,
+            position.y,
+            m_textures
+        );
+
+        // Add physics if needed (optional - gifts might just be static)
+        // You could add a PhysicsComponent here if you want gifts to fall
+
+        std::cout << "[SurpriseBox] Spawning " << giftName << " at position ("
+            << position.x << ", " << position.y << ")" << std::endl;
+
+        // Add to entity manager
+        m_entityManager->addEntity(std::move(giftEntity));
+
+        // Publish event for UI notification
+        EventSystem::getInstance().publish(
+            ItemCollectedEvent(
+                m_player->getId(),
+                g_nextEntityId - 1,  // The gift's ID
+                ItemCollectedEvent::ItemType::Gift
+            )
+        );
+
     }
     catch (const std::exception& e) {
-        std::cout << "Error spawning gift: " << e.what() << std::endl;
-        m_spawnCallback(std::make_unique<Coin>(giftPos.x, giftPos.y, m_textures));
+        std::cerr << "[SurpriseBox] Error spawning gift: " << e.what() << std::endl;
     }
-}
-
-void SurpriseBoxManager::setPlayer(Player* player) {
-    m_player = player;
 }

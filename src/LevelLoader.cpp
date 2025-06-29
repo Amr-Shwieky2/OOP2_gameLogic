@@ -6,7 +6,6 @@
 #include <iostream>
 
 // For ground tiles that aren't entities yet, we'll need a temporary solution
-#include "GroundTile.h"
 #include "GameCollisionSetup.h"
 
 bool LevelLoader::loadFromFile(const std::string& path,

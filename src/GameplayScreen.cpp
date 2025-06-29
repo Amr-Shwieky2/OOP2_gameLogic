@@ -2,10 +2,12 @@
 #include "GameplayScreen.h"
 #include "Constants.h"
 #include "PlayerEntity.h"
-#include <iostream>
 #include "HealthComponent.h"
 #include "Transform.h"
-#include "UIObserver.h"
+#include "UIObserver.h"  // Include the header file
+#include "EventSystem.h"
+#include "GameEvents.h"
+#include <iostream>
 
 GameplayScreen::GameplayScreen() {
     initializeComponents();
@@ -20,13 +22,31 @@ void GameplayScreen::initializeComponents() {
     m_backgroundRenderer = std::make_unique<BackgroundRenderer>(m_textures);
     m_ui = std::make_unique<UIOverlay>(WINDOW_WIDTH);
 
+    // Load font for UI Observer
+    if (!m_font.loadFromFile("arial.ttf")) {
+        std::cerr << "[WARNING] Failed to load font, UI notifications disabled" << std::endl;
+    }
+
     // Initialize camera
     m_cameraManager->initialize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     // Initialize game session
-    m_gameSession->initialize(m_textures);
+    m_gameSession->initialize(m_textures, *m_window);
 
     std::cout << "[OK] GameplayScreen components initialized with ECS" << std::endl;
+}
+
+void GameplayScreen::initializeUIObserver() {
+    // Only initialize if font loaded successfully
+    if (m_font.getInfo().family.empty()) {
+        return;
+    }
+
+    // Create and initialize UI Observer
+    m_uiObserver = std::make_unique<UIObserver>(m_font);
+    m_uiObserver->initialize();
+
+    std::cout << "[OK] UI Observer initialized and listening to events" << std::endl;
 }
 
 void GameplayScreen::handleEvents(sf::RenderWindow& window) {
@@ -36,6 +56,10 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
     if (!m_initialized) {
         // Load initial level
         m_gameSession->loadLevel(m_currentLevel);
+
+        // Initialize UI Observer after level is loaded
+        initializeUIObserver();
+
         m_initialized = true;
         std::cout << "[OK] Level loaded: " << m_currentLevel << std::endl;
     }
@@ -62,6 +86,9 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
                 m_gameSession->loadLevel("level2.txt");
                 std::cout << "[OK] Switched to level2.txt" << std::endl;
             }
+            else if (event.key.code == sf::Keyboard::Escape) {
+                window.close();
+            }
         }
     }
 }
@@ -87,6 +114,24 @@ void GameplayScreen::update(float deltaTime) {
 
     // Update UI
     updateUI(*player);
+
+    // Update UI Observer notifications
+    if (m_uiObserver) {
+        m_uiObserver->update(deltaTime);
+    }
+
+    // Check for game over condition
+    auto* health = player->getComponent<HealthComponent>();
+    if (health && !health->isAlive()) {
+        // Publish player died event
+        EventSystem::getInstance().publish(
+            PlayerDiedEvent(player->getId())
+        );
+
+        // Reset level
+        std::cout << "[GAME OVER] Player died, restarting level..." << std::endl;
+        m_gameSession->loadLevel(m_currentLevel);
+    }
 }
 
 void GameplayScreen::render(sf::RenderWindow& window) {
@@ -102,12 +147,47 @@ void GameplayScreen::render(sf::RenderWindow& window) {
     // Render UI (switch to default view)
     sf::View defaultView = window.getDefaultView();
     window.setView(defaultView);
+
+    // Render UI overlay
     m_ui->draw(window);
+
+    // Render UI notifications
+    if (m_uiObserver) {
+        m_uiObserver->render(window);
+    }
 }
 
 void GameplayScreen::handlePlayerInput(PlayerEntity& player) {
     // Pass input service to player for handling
     player.handleInput(m_inputService);
+
+    // Additional debug keys
+    if (m_inputService.isKeyPressed(sf::Keyboard::F3)) {
+        // Debug: Add score
+        player.addScore(100);
+        std::cout << "[DEBUG] Added 100 score" << std::endl;
+    }
+
+    if (m_inputService.isKeyPressed(sf::Keyboard::F4)) {
+        // Debug: Damage player
+        auto* health = player.getComponent<HealthComponent>();
+        if (health) {
+            health->takeDamage(1);
+            std::cout << "[DEBUG] Player health: " << health->getHealth() << std::endl;
+        }
+    }
+
+    if (m_inputService.isKeyPressed(sf::Keyboard::F5)) {
+        // Debug: Apply speed boost
+        player.applySpeedBoost(5.0f);
+        std::cout << "[DEBUG] Applied speed boost" << std::endl;
+    }
+
+    if (m_inputService.isKeyPressed(sf::Keyboard::F6)) {
+        // Debug: Apply shield
+        player.applyShield(5.0f);
+        std::cout << "[DEBUG] Applied shield" << std::endl;
+    }
 }
 
 void GameplayScreen::updateCameraForPlayer(PlayerEntity& player) {

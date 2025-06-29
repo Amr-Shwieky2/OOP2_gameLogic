@@ -6,6 +6,7 @@
 #include "RenderSystem.h"
 #include "ResourceManager.h"
 #include "LevelLoader.h"
+#include <SurpriseBoxManager.h>
 
 
 class PlayerEntity;
@@ -19,7 +20,7 @@ public:
     GameSession();
     ~GameSession();
 
-    void initialize(TextureManager& textures);
+    void initialize(TextureManager& textures, sf::RenderWindow& window);
     void loadLevel(const std::string& levelPath);
 
     void update(float deltaTime);
@@ -31,6 +32,8 @@ public:
 
     // Add entity to the world
     void spawnEntity(std::unique_ptr<Entity> entity);
+
+    SurpriseBoxManager* getSurpriseBoxManager() { return m_surpriseBoxManager.get(); }
 
 private:
     void checkCollisions();
@@ -45,4 +48,7 @@ private:
     // References
     PlayerEntity* m_player = nullptr;
     TextureManager* m_textures = nullptr;
+
+    std::unique_ptr<SurpriseBoxManager> m_surpriseBoxManager;
+
 };

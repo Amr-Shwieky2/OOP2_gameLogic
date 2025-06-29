@@ -16,7 +16,7 @@ GameSession::GameSession()
 
 GameSession::~GameSession() = default;
 
-void GameSession::initialize(TextureManager& textures) {
+void GameSession::initialize(TextureManager& textures, sf::RenderWindow& window) {
     m_textures = &textures;
 
     // Register all entity types
@@ -24,6 +24,13 @@ void GameSession::initialize(TextureManager& textures) {
 
     // Setup collision handlers
     setupGameCollisionHandlers(m_collisionSystem);
+
+    // Initialize surprise box manager
+    if (sf::RenderWindow* window1 = &window) { // You'll need to pass window reference
+        m_surpriseBoxManager = std::make_unique<SurpriseBoxManager>(textures, *window1);
+        m_surpriseBoxManager->setEntityManager(&m_entityManager);
+        m_surpriseBoxManager->setPhysicsWorld(&m_physicsWorld);
+    }
 }
 
 void GameSession::loadLevel(const std::string& levelPath) {
@@ -88,6 +95,10 @@ void GameSession::loadLevel(const std::string& levelPath) {
                         std::cout << "[GameSession] Set AI target for enemy " << enemy->getId() << std::endl;
                     }
                 }
+            }
+            if (m_player && m_surpriseBoxManager) {
+                m_surpriseBoxManager->setPlayer(m_player);
+                m_surpriseBoxManager->reset(); // Reset coin counter for new level
             }
         }
     }

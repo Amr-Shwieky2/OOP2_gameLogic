@@ -100,3 +100,16 @@ public:
     std::string oldStateName;
     std::string newStateName;
 };
+
+// Add to GameEvents.h:
+class CoinCollectedEvent : public Event {
+public:
+    CoinCollectedEvent(Entity::IdType playerId, int totalCoins)
+        : playerId(playerId), totalCoins(totalCoins) {
+    }
+
+    const char* getName() const override { return "CoinCollected"; }
+
+    Entity::IdType playerId;
+    int totalCoins;
+};

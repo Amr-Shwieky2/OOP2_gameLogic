@@ -10,6 +10,9 @@
 #include "UIOverlay.h"
 #include "ResourceManager.h"
 
+// Forward declaration to fix the error
+class UIObserver;
+
 class GameplayScreen : public IScreen {
 public:
     GameplayScreen();
@@ -25,13 +28,14 @@ private:
     void handlePlayerInput(PlayerEntity& player);
     void updateCameraForPlayer(PlayerEntity& player);
     void updateUI(PlayerEntity& player);
+    void initializeUIObserver();
 
     // Core components - Using new ECS system
     std::unique_ptr<GameSession> m_gameSession;
     std::unique_ptr<CameraManager> m_cameraManager;
     std::unique_ptr<BackgroundRenderer> m_backgroundRenderer;
     std::unique_ptr<UIOverlay> m_ui;
-    std::unique_ptr<UIObserver> m_uiObserver;
+    std::unique_ptr<UIObserver> m_uiObserver;  // Now properly declared
 
     // Input handling
     InputService m_inputService;  // Direct input service instead of InputManager
