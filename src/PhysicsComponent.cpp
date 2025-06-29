@@ -108,7 +108,10 @@ void PhysicsComponent::createCircleShape(float radius) {
     m_body->CreateFixture(&fixtureDef);
 }
 
-void PhysicsComponent::createBoxShape(float width, float height) {
+void PhysicsComponent::createBoxShape(float width, float height,
+                                      float density,
+                                      float friction,
+                                      float restitution) {
     if (!m_body) return;
 
     // Remove existing fixtures
@@ -126,9 +129,9 @@ void PhysicsComponent::createBoxShape(float width, float height) {
     // Create fixture
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &box;
-    fixtureDef.density = 1.0f;
-    fixtureDef.friction = 0.3f;
-    fixtureDef.restitution = 0.1f;
+    fixtureDef.density = density;
+    fixtureDef.friction = friction;
+    fixtureDef.restitution = restitution;
 
     m_body->CreateFixture(&fixtureDef);
 }

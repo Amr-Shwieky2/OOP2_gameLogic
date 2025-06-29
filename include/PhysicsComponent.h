@@ -32,7 +32,10 @@ public:
 
     // Configure physics body
     void createCircleShape(float radius);
-    void createBoxShape(float width, float height);
+    void createBoxShape(float width, float height,
+                        float density = 1.0f,
+                        float friction = 0.3f,
+                        float restitution = 0.1f);
 
 private:
     b2Body* m_body = nullptr;
