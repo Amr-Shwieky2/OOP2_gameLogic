@@ -1,12 +1,12 @@
-﻿// GameplayScreen.h - Updated Header
+﻿// GameplayScreen.h - FULLY INTEGRATED with GameSession
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include "IScreen.h"
-#include "GameSession.h"  // CHANGED: Use GameSession instead of GameWorld
+#include "GameSession.h"  // Using GameSession instead of GameWorld
 #include "CameraManager.h"
 #include "BackgroundRenderer.h"
-#include "InputManager.h"
+#include "InputService.h"  // Changed from InputManager
 #include "UIOverlay.h"
 #include "ResourceManager.h"
 
@@ -22,17 +22,18 @@ public:
 
 private:
     void initializeComponents();
-    void setupGameCallbacks();
     void handlePlayerInput(PlayerEntity& player);
     void updateCameraForPlayer(PlayerEntity& player);
     void updateUI(PlayerEntity& player);
 
-    // Core components - CHANGED: GameSession instead of GameWorld
+    // Core components - Using new ECS system
     std::unique_ptr<GameSession> m_gameSession;
     std::unique_ptr<CameraManager> m_cameraManager;
     std::unique_ptr<BackgroundRenderer> m_backgroundRenderer;
-    std::unique_ptr<InputManager> m_inputManager;
     std::unique_ptr<UIOverlay> m_ui;
+
+    // Input handling
+    InputService m_inputService;  // Direct input service instead of InputManager
 
     // Resources
     ResourceManager<sf::Texture> m_textures;

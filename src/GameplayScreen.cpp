@@ -1,13 +1,10 @@
-﻿// ==========================================
-// GameplayScreen.cpp - Updated Implementation
-// ==========================================
-
+﻿// GameplayScreen.cpp - FULLY INTEGRATED Implementation
 #include "GameplayScreen.h"
 #include "Constants.h"
 #include "PlayerEntity.h"
 #include <iostream>
-#include <HealthComponent.h>
-#include <Transform.h>
+#include "HealthComponent.h"
+#include "Transform.h"
 
 GameplayScreen::GameplayScreen() {
     initializeComponents();
@@ -16,11 +13,10 @@ GameplayScreen::GameplayScreen() {
 GameplayScreen::~GameplayScreen() = default;
 
 void GameplayScreen::initializeComponents() {
-    // Initialize core components - CHANGED: GameSession instead of GameWorld
+    // Initialize core components with new ECS system
     m_gameSession = std::make_unique<GameSession>();
     m_cameraManager = std::make_unique<CameraManager>();
     m_backgroundRenderer = std::make_unique<BackgroundRenderer>(m_textures);
-    m_inputManager = std::make_unique<InputManager>();
     m_ui = std::make_unique<UIOverlay>(WINDOW_WIDTH);
 
     // Initialize camera
@@ -29,7 +25,7 @@ void GameplayScreen::initializeComponents() {
     // Initialize game session
     m_gameSession->initialize(m_textures);
 
-    std::cout << "GameplayScreen components initialized" << std::endl;
+    std::cout << "[OK] GameplayScreen components initialized with ECS" << std::endl;
 }
 
 void GameplayScreen::handleEvents(sf::RenderWindow& window) {
@@ -39,30 +35,31 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
     if (!m_initialized) {
         // Load initial level
         m_gameSession->loadLevel(m_currentLevel);
-
-        // Setup input system
-        m_inputManager->initialize(0);  // Level 0 = keyboard input
-
         m_initialized = true;
-        std::cout << "GameplayScreen initialized with level: " << m_currentLevel << std::endl;
+        std::cout << "[OK] Level loaded: " << m_currentLevel << std::endl;
     }
 
-    // Handle window events
-    m_inputManager->handleEvents(window);
+    // Update input service
+    m_inputService.update();
 
+    // Handle window events
     sf::Event event;
     while (window.pollEvent(event)) {
+        if (event.type == sf::Event::Closed) {
+            window.close();
+        }
+
         m_ui->handleEvent(event, window);
 
         // Handle level switching for testing
         if (event.type == sf::Event::KeyPressed) {
             if (event.key.code == sf::Keyboard::F1) {
                 m_gameSession->loadLevel("level1.txt");
-                std::cout << "Switched to level1.txt" << std::endl;
+                std::cout << "[OK] Switched to level1.txt" << std::endl;
             }
             else if (event.key.code == sf::Keyboard::F2) {
                 m_gameSession->loadLevel("level2.txt");
-                std::cout << "Switched to level2.txt" << std::endl;
+                std::cout << "[OK] Switched to level2.txt" << std::endl;
             }
         }
     }
@@ -74,14 +71,14 @@ void GameplayScreen::update(float deltaTime) {
     // Get player from new system
     PlayerEntity* player = m_gameSession->getPlayer();
     if (!player) {
-        std::cout << "Warning: No player found in GameSession" << std::endl;
+        std::cout << "[WARNING] No player found in GameSession" << std::endl;
         return;
     }
 
-    // Handle player input
+    // Handle player input with component system
     handlePlayerInput(*player);
 
-    // Update game session (replaces GameWorld, EnemyManager, ProjectileManager updates)
+    // Update game session (all entities and systems)
     m_gameSession->update(deltaTime);
 
     // Update camera to follow player
@@ -98,7 +95,7 @@ void GameplayScreen::render(sf::RenderWindow& window) {
     // Render background
     m_backgroundRenderer->render(window, m_cameraManager->getCamera());
 
-    // Render game session (replaces GameWorld, EnemyManager, ProjectileManager rendering)
+    // Render game session (all entities)
     m_gameSession->render(window);
 
     // Render UI (switch to default view)
@@ -108,43 +105,13 @@ void GameplayScreen::render(sf::RenderWindow& window) {
 }
 
 void GameplayScreen::handlePlayerInput(PlayerEntity& player) {
-    // This will need to be adapted once PlayerEntity has proper input handling
-    // For now, we'll use the InputService approach
-
-    // TODO: Implement proper input handling for PlayerEntity
-    // This might involve adding an InputComponent or StateComponent
-
-    // Temporary: Direct input handling
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-        player.moveLeft();
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-        player.moveRight();
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-        player.jump();
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::C)) {
-        player.shoot();
-    }
+    // Pass input service to player for handling
+    player.handleInput(m_inputService);
 }
 
 void GameplayScreen::updateCameraForPlayer(PlayerEntity& player) {
-    // Get player position from Transform component
-    auto* transform = player.getComponent<Transform>();
-    if (transform) {
-        sf::Vector2f playerPos = transform->getPosition();
-
-        // Update camera position (simplified - you may want to smooth this)
-        float newX = std::max(playerPos.x, WINDOW_WIDTH / 2.f);
-        sf::Vector2f cameraCenter(newX, WINDOW_HEIGHT / 2.f);
-
-        // Update camera (you'll need to add this method to CameraManager)
-        // m_cameraManager->setCenterPosition(cameraCenter);
-
-        // For now, use the existing update method if it exists
-        // This might need adjustment based on your CameraManager implementation
-    }
+    // Use the CameraManager's update method
+    m_cameraManager->update(player);
 }
 
 void GameplayScreen::updateUI(PlayerEntity& player) {
@@ -159,10 +126,4 @@ void GameplayScreen::updateUI(PlayerEntity& player) {
     }
 
     m_ui->update(score, lives);
-}
-
-void GameplayScreen::setupGameCallbacks() {
-    // This method can be removed since GameSession handles entity management internally
-    // Or it can be used for setting up observers/events in the future
-    std::cout << "Game callbacks setup (placeholder for future event system)" << std::endl;
 }

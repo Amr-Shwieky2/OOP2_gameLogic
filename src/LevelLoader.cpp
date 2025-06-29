@@ -80,16 +80,23 @@ std::unique_ptr<Entity> LevelLoader::createEntityForChar(char tileChar, float x,
         // TODO: Handle ground tiles, obstacles, etc.
         // For now, return nullptr for non-entity tiles
     case 'G': // Ground
+        return factory.create("G", x, y);
     case 'L': // Left ground
+        return factory.create("L", x, y);
     case 'R': // Right ground
+        return factory.create("R", x, y);
     case 'M': // Middle ground
+        return factory.create("M", x, y);
     case 'E': // Edge
+        return factory.create("E", x, y);
     case 'B': // Box
+        return factory.create("B", x, y);
     case 'S': // Sea
+        return factory.create("S", x, y);
     case 'X': // Flag
+        return factory.create("X", x, y);
     case 'c': // Cactus
-        // These need to be converted to entities or handled differently
-        return nullptr;
+        return factory.create("c", x, y);
 
     default:
         return nullptr;

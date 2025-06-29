@@ -29,31 +29,56 @@ void GameSession::loadLevel(const std::string& levelPath) {
     m_entityManager.clear();
     m_player = nullptr;
 
+    std::cout << "\n[GameSession] Loading level: " << levelPath << std::endl;
+
     // Load level from file
     bool success = m_levelLoader.loadFromFile(levelPath, m_entityManager, m_physicsWorld, *m_textures);
 
     if (success) {
-        // Find the player entity
+        // Count entities by type
+        int playerCount = 0, enemyCount = 0, coinCount = 0, giftCount = 0, otherCount = 0;
+
+        // Find the player entity and count entity types
         for (auto* entity : m_entityManager.getAllEntities()) {
             if (auto* player = dynamic_cast<PlayerEntity*>(entity)) {
                 m_player = player;
-                break;
+                playerCount++;
+            }
+            else if (dynamic_cast<EnemyEntity*>(entity)) {
+                enemyCount++;
+            }
+            else if (dynamic_cast<CoinEntity*>(entity)) {
+                coinCount++;
+            }
+            else if (dynamic_cast<GiftEntity*>(entity)) {
+                giftCount++;
+            }
+            else {
+                otherCount++;
             }
         }
 
         if (!m_player) {
             // No player in level file, create one
+            std::cout << "[GameSession] No player in level, creating default player" << std::endl;
             auto playerEntity = EntityFactory::instance().create("Player", 200.0f, 400.0f);
             if (playerEntity) {
                 m_player = dynamic_cast<PlayerEntity*>(playerEntity.get());
                 m_entityManager.addEntity(std::move(playerEntity));
+                playerCount = 1;
             }
         }
 
-        std::cout << "Level loaded successfully: " << levelPath << std::endl;
+        std::cout << "[GameSession] Level loaded successfully!" << std::endl;
+        std::cout << "  - Players: " << playerCount << std::endl;
+        std::cout << "  - Enemies: " << enemyCount << std::endl;
+        std::cout << "  - Coins: " << coinCount << std::endl;
+        std::cout << "  - Gifts: " << giftCount << std::endl;
+        std::cout << "  - Other: " << otherCount << std::endl;
+        std::cout << "  - Total entities: " << m_entityManager.getAllEntities().size() << std::endl;
     }
     else {
-        std::cerr << "Failed to load level: " << levelPath << std::endl;
+        std::cerr << "[GameSession] Failed to load level: " << levelPath << std::endl;
     }
 }
 

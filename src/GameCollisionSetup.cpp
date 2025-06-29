@@ -9,6 +9,11 @@
 #include "PhysicsComponent.h"
 #include "RenderComponent.h"
 #include "CollisionComponent.h"
+#include "GroundEntity.h"
+#include "SeaEntity.h"
+#include "FlagEntity.h"
+#include "CactusEntity.h"
+#include "BoxEntity.h"
 #include <iostream>
 
 // For entity ID generation
@@ -105,7 +110,47 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
         }
     );
 
-    // TODO: Add more collision handlers as needed
+    // Player vs Sea (instant death)
+    collisionSystem.registerHandler<PlayerEntity, SeaEntity>(
+        [](PlayerEntity& player, SeaEntity& sea) {
+            auto* health = player.getComponent<HealthComponent>();
+            if (health && !health->isInvulnerable()) {
+                health->setHealth(0); // Instant death
+                std::cout << "Player fell in the sea!" << std::endl;
+            }
+        }
+    );
+
+    // Player vs Cactus (damage)
+    collisionSystem.registerHandler<PlayerEntity, CactusEntity>(
+        [](PlayerEntity& player, CactusEntity& cactus) {
+            auto* health = player.getComponent<HealthComponent>();
+            if (health && !health->isInvulnerable()) {
+                health->takeDamage(1);
+
+                // Knockback
+                auto* playerPhysics = player.getComponent<PhysicsComponent>();
+                auto* cactusTransform = cactus.getComponent<Transform>();
+                if (playerPhysics && cactusTransform) {
+                    sf::Vector2f playerPos = playerPhysics->getPosition();
+                    sf::Vector2f cactusPos = cactusTransform->getPosition();
+
+                    float knockbackDir = (playerPos.x > cactusPos.x) ? 1.0f : -1.0f;
+                    playerPhysics->applyImpulse(knockbackDir * 2.0f, -1.0f);
+                }
+
+                std::cout << "Player hit cactus! Health: " << health->getHealth() << std::endl;
+            }
+        }
+    );
+
+    // Player vs Flag (level complete)
+    collisionSystem.registerHandler<PlayerEntity, FlagEntity>(
+        [](PlayerEntity& player, FlagEntity& flag) {
+            std::cout << "Level Complete! Player reached the flag!" << std::endl;
+            // TODO: Trigger level complete event
+        }
+    );
 }
 
 // FIXED: All lambdas now have explicit return types and proper return statements
@@ -154,4 +199,35 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
     registerGift("r", GiftEntity::GiftType::ReverseMovement);
     registerGift("w", GiftEntity::GiftType::HeadwindStorm);
     registerGift("m", GiftEntity::GiftType::Magnetic);
+
+    // Register Ground Tiles
+    auto registerGround = [&](const std::string& levelChar, TileType type) {
+        factory.registerCreator(levelChar, [&, type](float x, float y) -> std::unique_ptr<Entity> {
+            return std::make_unique<GroundEntity>(g_nextEntityId++, type, world, x, y, textures);
+            });
+        };
+
+    registerGround("G", TileType::Ground);
+    registerGround("L", TileType::Left);
+    registerGround("R", TileType::Right);
+    registerGround("M", TileType::Middle);
+    registerGround("E", TileType::Edge);
+
+    // Register remaining entity types
+    factory.registerCreator("S", [&](float x, float y) -> std::unique_ptr<Entity> {
+        return std::make_unique<SeaEntity>(g_nextEntityId++, world, x, y, textures);
+        });
+
+    factory.registerCreator("X", [&](float x, float y) -> std::unique_ptr<Entity> {
+        return std::make_unique<FlagEntity>(g_nextEntityId++, world, x, y, textures);
+        });
+
+    factory.registerCreator("c", [&](float x, float y) -> std::unique_ptr<Entity> {
+        return std::make_unique<CactusEntity>(g_nextEntityId++, world, x, y, textures);
+        });
+
+    factory.registerCreator("B", [&](float x, float y) -> std::unique_ptr<Entity> {
+        return std::make_unique<BoxEntity>(g_nextEntityId++, world, x, y, textures);
+        });
+
 }
