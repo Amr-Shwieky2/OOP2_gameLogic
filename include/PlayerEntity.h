@@ -50,6 +50,7 @@ private:
     void setupComponents(b2World& world, float x, float y, TextureManager& textures);
     void updateVisuals();
     void updatePhysics();
+    void applyRollRotation(float dt);
 
     int m_score = 0;
     TextureManager& m_textures;
