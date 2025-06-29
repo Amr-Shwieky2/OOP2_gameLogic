@@ -20,6 +20,7 @@ void BoxEntity::setupComponents(b2World& world, float x, float y, TextureManager
     physics->setPosition(x + BOX_SIZE / 2.f,
                          y + TILE_SIZE - BOX_SIZE / 2.f);
 
+
     // Set physics properties
     if (auto* body = physics->getBody()) {
         body->SetFixedRotation(true); // Prevent rotation
