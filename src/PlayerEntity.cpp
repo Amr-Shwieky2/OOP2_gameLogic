@@ -189,7 +189,7 @@ void PlayerEntity::applyRollRotation(float dt) {
 
     if (render && physics) {
         float vx = physics->getVelocity().x;
-        float deltaAngle = -vx * dt * PLAYER_SPIN_RATE;
+        float deltaAngle = vx * dt * PLAYER_SPIN_RATE;
         render->getSprite().rotate(deltaAngle);
     }
 }
