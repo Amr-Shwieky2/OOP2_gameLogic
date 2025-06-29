@@ -8,6 +8,7 @@ constexpr float PLAYER_SPIN_RATE = (180.f / 3.14159265f) / PLAYER_RADIUS;
 constexpr float PPM = 100.f;
 
 constexpr float TILE_SIZE = 192.f;
+constexpr float EDGE_HEIGHT_OFFSET = TILE_SIZE * 0.25f;
 
 constexpr float WINDOW_WIDTH = 1400.f;
 constexpr float WINDOW_HEIGHT = 900.f;

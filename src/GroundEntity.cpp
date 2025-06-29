@@ -14,20 +14,21 @@ GroundEntity::GroundEntity(IdType id, TileType type, b2World& world, float x, fl
 }
 
 void GroundEntity::setupComponents(TileType type, b2World& world, float x, float y, TextureManager& textures) {
+    float heightOffset = (type == TileType::Edge) ? EDGE_HEIGHT_OFFSET : 0.f;
     // Add transform
-    addComponent<Transform>(sf::Vector2f(x, y));
+    addComponent<Transform>(sf::Vector2f(x, y - heightOffset));
 
     // Add physics (static body for ground)
     auto* physics = addComponent<PhysicsComponent>(world, b2_staticBody);
     physics->createBoxShape(TILE_SIZE, TILE_SIZE);
-    physics->setPosition(x + TILE_SIZE / 2.f, y + TILE_SIZE / 2.f);
+    physics->setPosition(x + TILE_SIZE / 2.f, y + TILE_SIZE / 2.f - heightOffset);
 
     // Add rendering
     auto* render = addComponent<RenderComponent>();
     std::string textureName = getTextureNameForType(type);
     render->setTexture(textures.getResource(textureName));
     auto& sprite = render->getSprite();
-    sprite.setPosition(x, y);
+    sprite.setPosition(x, y - heightOffset);
 
     // Add collision
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Ground);
