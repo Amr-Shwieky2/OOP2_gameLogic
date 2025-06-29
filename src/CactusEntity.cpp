@@ -14,14 +14,14 @@ CactusEntity::CactusEntity(IdType id, b2World& world, float x, float y, TextureM
 void CactusEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
     addComponent<Transform>(sf::Vector2f(x, y));
 
-    constexpr float bodyWidth  = TILE_SIZE * 0.3f;
-    constexpr float bodyHeight = TILE_SIZE * 0.8f;
+    constexpr float bodyWidth  = TILE_SIZE * 1.1f;
+    constexpr float bodyHeight = TILE_SIZE * 1.9f;
 
     auto* physics = addComponent<PhysicsComponent>(world, b2_staticBody);
     physics->createBoxShape(bodyWidth, bodyHeight);
     physics->setPosition(
         x + TILE_SIZE / 2.f,
-        y + TILE_SIZE - bodyHeight / 2.f);
+        y + (TILE_SIZE - bodyHeight) / 2.f);
 
     auto* render = addComponent<RenderComponent>();
     render->setTexture(textures.getResource("cactus.png"));
@@ -30,7 +30,7 @@ void CactusEntity::setupComponents(b2World& world, float x, float y, TextureMana
     float scaleX = bodyWidth  / static_cast<float>(texSize.x);
     float scaleY = bodyHeight / static_cast<float>(texSize.y);
     sprite.setScale(scaleX, scaleY);
-    sprite.setOrigin(texSize.x / 2.f, texSize.y / 2.f);
+    sprite.setOrigin(texSize.x / 2.f, (texSize.y - 350)/ 2.f);
 
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Hazard);
 }
