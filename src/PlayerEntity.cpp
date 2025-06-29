@@ -13,6 +13,7 @@
 #include "EventSystem.h"
 #include "GameEvents.h"
 #include <iostream>
+#include <cmath>
 
 PlayerEntity::PlayerEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : Entity(id)
@@ -61,6 +62,9 @@ void PlayerEntity::update(float dt) {
     if (m_currentState) {
         m_currentState->update(*this, dt);
     }
+
+    // Apply rolling rotation based on movement
+    applyRollRotation(dt);
 
     // Update visuals and physics
     updateVisuals();
@@ -176,5 +180,16 @@ void PlayerEntity::updatePhysics() {
         else {
             m_groundContacts = 0;
         }
+    }
+}
+
+void PlayerEntity::applyRollRotation(float dt) {
+    auto* render = getComponent<RenderComponent>();
+    auto* physics = getComponent<PhysicsComponent>();
+
+    if (render && physics) {
+        float vx = physics->getVelocity().x;
+        float deltaAngle = -vx * dt * PLAYER_SPIN_RATE;
+        render->getSprite().rotate(deltaAngle);
     }
 }
