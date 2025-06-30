@@ -21,7 +21,7 @@ void ProjectileEntity::setupComponents(b2World& world, float x, float y,
 
     // Add physics
     auto* physics = addComponent<PhysicsComponent>(world, b2_dynamicBody);
-    physics->createCircleShape(10.0f); // Small projectile
+    physics->createCircleShape(5.0f); // Small projectile
     physics->setPosition(x, y);
 
     // Set velocity
@@ -33,7 +33,7 @@ void ProjectileEntity::setupComponents(b2World& world, float x, float y,
     auto* render = addComponent<RenderComponent>();
     render->setTexture(textures.getResource(m_fromPlayer ? "Bullet.png" : "Bullet.png"));
     auto& sprite = render->getSprite();
-    sprite.setScale(0.1f, 0.1f);
+    sprite.setScale(0.07f, 0.07f);
     auto bounds = sprite.getLocalBounds();
     sprite.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
 

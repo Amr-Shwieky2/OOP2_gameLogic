@@ -17,8 +17,7 @@ class PlayerEntity;
 
 class SurpriseBoxManager {
 public:
-    // Number of coins required before triggering the surprise box
-    // The design calls for a reward every ten coins collected
+
     static constexpr int COINS_FOR_SURPRISE = 10;
 
     SurpriseBoxManager(TextureManager& textures, sf::RenderWindow& window);

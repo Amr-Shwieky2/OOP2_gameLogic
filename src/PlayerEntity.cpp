@@ -12,12 +12,16 @@
 #include "BoostedState.h"
 #include "EventSystem.h"
 #include "GameEvents.h"
+#include "GameSession.h"
+#include "ProjectileEntity.h"
+#include <memory>
 #include <iostream>
 #include <cmath>
 
 PlayerEntity::PlayerEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : Entity(id)
-    , m_textures(textures) {
+    , m_textures(textures)
+    , m_world(world) {
     setupComponents(world, x, y, textures);
 
     // Start in normal state
@@ -118,8 +122,21 @@ void PlayerEntity::moveRight() {
 }
 
 void PlayerEntity::shoot() {
-    // TODO: Create projectile entity and add to EntityManager
-    std::cout << "Player shoot (TODO: implement projectile creation)" << std::endl;
+    extern int g_nextEntityId;
+    extern GameSession* g_currentSession;
+
+    if (!g_currentSession) {
+        std::cerr << "[PlayerEntity] No active game session for shooting" << std::endl;
+        return;
+    }
+
+    // Determine shoot direction based on current velocity
+    sf::Vector2f dir = getVelocity().x >= 0 ? sf::Vector2f(1.f, 0.f) : sf::Vector2f(-1.f, 0.f);
+    sf::Vector2f pos = getPosition();
+
+    auto projectile = std::make_unique<ProjectileEntity>(
+        g_nextEntityId++, m_world, pos.x, pos.y, dir, m_textures, true);
+    g_currentSession->spawnEntity(std::move(projectile));
 }
 
 void PlayerEntity::addScore(int points) {
