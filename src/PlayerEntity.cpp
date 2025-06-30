@@ -12,8 +12,15 @@
 #include "BoostedState.h"
 #include "EventSystem.h"
 #include "GameEvents.h"
+#include "ProjectileEntity.h"
+#include "GameSession.h"
+#include "EntityManager.h"
 #include <iostream>
 #include <cmath>
+
+extern int g_nextEntityId;
+
+GameSession* PlayerEntity::s_gameSession = nullptr;
 
 PlayerEntity::PlayerEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : Entity(id)
@@ -118,8 +125,21 @@ void PlayerEntity::moveRight() {
 }
 
 void PlayerEntity::shoot() {
-    // TODO: Create projectile entity and add to EntityManager
-    std::cout << "Player shoot (TODO: implement projectile creation)" << std::endl;
+    if (!s_gameSession) return;
+
+    auto* physics = getComponent<PhysicsComponent>();
+    if (!physics) return;
+
+    sf::Vector2f pos = physics->getPosition();
+
+    float dirX = 1.0f;
+    float dirY = 0.0f;
+
+    auto projectile = std::make_unique<ProjectileEntity>(
+        g_nextEntityId++, physics->getWorld(), pos.x + PLAYER_RADIUS * PPM, pos.y,
+        dirX, dirY, m_textures);
+
+    s_gameSession->spawnEntity(std::move(projectile));
 }
 
 void PlayerEntity::addScore(int points) {

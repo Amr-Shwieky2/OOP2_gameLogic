@@ -16,6 +16,10 @@ constexpr float WINDOW_HEIGHT = 900.f;
 constexpr float ENEMY_WIDTH = 1.0f;
 constexpr float ENEMY_HEIGHT = 1.0f;
 
+constexpr float PROJECTILE_SPEED = 10.f;
+constexpr float PROJECTILE_RADIUS = 0.1f;
+constexpr float PROJECTILE_LIFETIME = 2.f;
+
 static constexpr float BOX_DENSITY = 0.2f;      // كثافة 
 static constexpr float BOX_FRICTION = 0.4f;     // احتكاك 
 static constexpr float BOX_RESTITUTION = 0.05f; // ارتداد 

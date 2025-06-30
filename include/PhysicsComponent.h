@@ -29,6 +29,8 @@ public:
     // Box2D body access
     b2Body* getBody() { return m_body; }
     const b2Body* getBody() const { return m_body; }
+    b2World& getWorld() { return m_world; }
+    const b2World& getWorld() const { return m_world; }
 
     // Configure physics body
     void createCircleShape(float radius);
