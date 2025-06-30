@@ -18,7 +18,7 @@ void GroundEntity::setupComponents(TileType type, b2World& world, float x, float
     // Use the tile centre as the logical position so physics and rendering
     // remain in sync when the PhysicsComponent updates the Transform.
     float centerX = x + TILE_SIZE / 2.f;
-    float centerY = y + TILE_SIZE / 2.f - heightOffset;
+    float centerY = y + TILE_SIZE / (2.f - heightOffset);
 
     // Add transform at the centre of the tile
     addComponent<Transform>(sf::Vector2f(centerX, centerY));

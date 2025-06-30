@@ -49,7 +49,7 @@ T* Entity::addComponent(Args&&... args) {
     static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
     auto comp = std::make_unique<T>(std::forward<Args>(args)...);
     T* ptr = comp.get();
-	comp->setOwner(this);  // Set the owner of the component
+    comp->setOwner(this);  // Set the owner of the component
     m_components[typeid(T)] = std::move(comp);
     return ptr;
 }
