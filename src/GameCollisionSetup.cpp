@@ -4,6 +4,7 @@
 #include "EnemyEntity.h"
 #include "GiftEntity.h"
 #include "CoinEntity.h"
+#include "ProjectileEntity.h"
 #include "EntityFactory.h"
 #include "HealthComponent.h"
 #include "PhysicsComponent.h"
@@ -162,6 +163,25 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
         [](PlayerEntity& player, FlagEntity& flag) {
             std::cout << "Level Complete! Player reached the flag!" << std::endl;
             // TODO: Trigger level complete event
+        }
+    );
+
+    // Projectile (from player) vs Enemy
+    collisionSystem.registerHandler<ProjectileEntity, EnemyEntity>(
+        [](ProjectileEntity& proj, EnemyEntity& enemy) {
+            if (!proj.isFromPlayer() || !enemy.isActive()) return;
+
+            auto* health = enemy.getComponent<HealthComponent>();
+            if (health) {
+                health->takeDamage(1);
+                if (!health->isAlive()) {
+                    enemy.setActive(false);
+                    EventSystem::getInstance().publish(
+                        EnemyKilledEvent(enemy.getId(), proj.getId()));
+                }
+            }
+
+            proj.setActive(false);
         }
     );
 }

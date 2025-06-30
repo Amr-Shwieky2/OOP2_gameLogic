@@ -54,6 +54,7 @@ private:
 
     int m_score = 0;
     TextureManager& m_textures;
+    b2World& m_world;
 
     // State Pattern
     PlayerState* m_currentState = nullptr;

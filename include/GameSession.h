@@ -11,6 +11,9 @@
 
 class PlayerEntity;
 
+// Global pointer to the active game session for easy access
+extern class GameSession* g_currentSession;
+
 /**
  * GameSession - Manages the game entities and systems
  * Replaces GameWorld with component-based architecture
