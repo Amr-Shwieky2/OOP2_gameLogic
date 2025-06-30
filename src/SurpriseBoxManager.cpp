@@ -23,10 +23,12 @@ SurpriseBoxManager::SurpriseBoxManager(TextureManager& textures, sf::RenderWindo
     // Create surprise box screen
     m_surpriseScreen = std::make_unique<SurpriseBoxScreen>(window, textures);
 
-    // Subscribe to coin collection events
-    EventSystem::getInstance().subscribe<CoinCollectedEvent>(
-        [this](const CoinCollectedEvent& event) {
-            this->onCoinCollected();
+    // Subscribe to coin collection events via ItemCollectedEvent
+    EventSystem::getInstance().subscribe<ItemCollectedEvent>(
+        [this](const ItemCollectedEvent& event) {
+            if (event.type == ItemCollectedEvent::ItemType::Coin) {
+                this->onCoinCollected();
+            }
         }
     );
 }
@@ -66,7 +68,8 @@ void SurpriseBoxManager::triggerSurprise() {
 
     // Calculate spawn position (to the right of player)
     sf::Vector2f playerPos = playerTransform->getPosition();
-    sf::Vector2f spawnPos = playerPos + sf::Vector2f(150.0f, -50.0f);
+    // Spawn the gift slightly to the right of the player at ground height
+    sf::Vector2f spawnPos = playerPos + sf::Vector2f(150.0f, 0.0f);
 
     // Spawn the selected gift
     spawnGiftEntity(selectedGift, spawnPos);
