@@ -10,7 +10,8 @@
 class BoxEntity : public Entity {
 public:
     BoxEntity(IdType id, b2World& world, float x, float y, TextureManager& textures);
-
+    void update(float dt) override;
 private:
     void setupComponents(b2World& world, float x, float y, TextureManager& textures);
+    
 };

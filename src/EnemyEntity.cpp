@@ -34,21 +34,39 @@ void SquareEnemyEntity::setupComponents(b2World& world, float x, float y, Textur
     // Call base setup
     EnemyEntity::setupComponents(world, x, y, textures);
 
-    // Add physics
-    auto* physics = addComponent<PhysicsComponent>(world, b2_dynamicBody);
-    physics->createBoxShape(ENEMY_WIDTH * PPM, ENEMY_HEIGHT * PPM);
-    physics->setPosition(x, y);
+    // Position enemy at tile center
+    float centerX = x + TILE_SIZE / 2.f;
+    float centerY = y + TILE_SIZE / 2.f;
 
-    // Add rendering
+    // Update transform position
+    auto* transform = getComponent<Transform>();
+    if (transform) {
+        transform->setPosition(centerX, centerY);
+    }
+
+    // Add physics with larger size for visibility
+    auto* physics = addComponent<PhysicsComponent>(world, b2_dynamicBody);
+    physics->createBoxShape(TILE_SIZE * 0.8f, TILE_SIZE * 0.8f); // 80% of tile size
+    physics->setPosition(centerX, centerY);
+
+    // Prevent falling through ground
+    if (auto* body = physics->getBody()) {
+        body->SetFixedRotation(true);
+        body->SetGravityScale(1.0f); // Normal gravity
+    }
+
+    // Add rendering with better visibility
     auto* render = addComponent<RenderComponent>();
     render->setTexture(textures.getResource("SquareEnemy.png"));
     auto& sprite = render->getSprite();
-    sprite.setScale(0.1f, 0.1f);
+
+    // Make enemy larger and more visible
+    sprite.setScale(0.3f, 0.3f); // Increased from 0.1f
+    sprite.setColor(sf::Color(255, 100, 100)); // Red tint for visibility
+
     auto bounds = sprite.getLocalBounds();
     sprite.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
 
     // Add AI with follow strategy by default
-    auto* ai = addComponent<AIComponent>(std::make_unique<FollowPlayerStrategy>(100.0f, 300.0f));
-
-    // Note: Target player will be set by GameSession after all entities are created
+    auto* ai = addComponent<AIComponent>(std::make_unique<FollowPlayerStrategy>(100.0f, 500.0f)); // Increased detection range
 }
