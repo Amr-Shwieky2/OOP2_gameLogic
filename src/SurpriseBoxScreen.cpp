@@ -43,13 +43,16 @@ SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerTyp
 
 SurpriseGiftType SurpriseBoxScreen::showSurpriseBox() {
     m_isRunning = true;
+
     // Open the box immediately and choose a gift
     m_boxOpened = true;
     m_selectedGift = getRandomGiftType();
+
     m_animationTimer = 0.0f;
     m_boxScale = 0.0f;
     m_particles.clear();
     m_giftImageLoaded = false;
+
     createParticles();
 
     sf::Clock clock;
@@ -71,9 +74,16 @@ void SurpriseBoxScreen::handleEvents() {
             m_window.close();
             m_isRunning = false;
         }
-        if (event.type == sf::Event::KeyPressed) {
-            // Allow player to skip the screen
-            if (event.key.code == sf::Keyboard::Space) {
+
+        if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
+            // Space acts as a skip/continue key once the gift is revealed
+            if (!m_boxOpened) {
+                m_boxOpened = true;
+                m_animationTimer = 0.0f;
+                createParticles();
+                m_selectedGift = getRandomGiftType();
+            } else {
+
                 m_isRunning = false;
             }
         }

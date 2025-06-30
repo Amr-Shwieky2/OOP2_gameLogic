@@ -17,7 +17,7 @@ class PlayerEntity;
 
 class SurpriseBoxManager {
 public:
-    // Number of coins required before showing the surprise box
+
     static constexpr int COINS_FOR_SURPRISE = 10;
 
     SurpriseBoxManager(TextureManager& textures, sf::RenderWindow& window);
