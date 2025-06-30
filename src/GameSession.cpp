@@ -12,11 +12,19 @@
 #include <RenderComponent.h>
 #include <PhysicsComponent.h>
 
+// Global pointer to the current active session
+GameSession* g_currentSession = nullptr;
+
 GameSession::GameSession()
     : m_physicsWorld(b2Vec2(0.0f, 9.8f)) {
+    g_currentSession = this;
 }
 
-GameSession::~GameSession() = default;
+GameSession::~GameSession() {
+    if (g_currentSession == this) {
+        g_currentSession = nullptr;
+    }
+}
 
 void GameSession::initialize(TextureManager& textures, sf::RenderWindow& window) {
     m_textures = &textures;
