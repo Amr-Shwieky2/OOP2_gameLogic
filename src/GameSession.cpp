@@ -129,9 +129,10 @@ void GameSession::spawnEntity(std::unique_ptr<Entity> entity) {
         Entity* ptr = entity.get();  // Get pointer before moving
         m_entityManager.addEntity(std::move(entity));
 
-        // If it's a player, store reference
+        // If it's a player, store reference and allow it to spawn entities
         if (auto* player = dynamic_cast<PlayerEntity*>(ptr)) {
             m_player = player;
+            PlayerEntity::setGameSession(this);
         }
     }
 }

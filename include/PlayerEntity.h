@@ -8,6 +8,7 @@
 #include "InputService.h"
 
 class PlayerState;
+class GameSession;
 
 /**
  * PlayerEntity - Enhanced with State Pattern
@@ -46,6 +47,9 @@ public:
     bool isOnGround() const;
     TextureManager& getTextures() { return m_textures; }
 
+    static void setGameSession(GameSession* session) { s_gameSession = session; }
+    static GameSession* getGameSession() { return s_gameSession; }
+
 private:
     void setupComponents(b2World& world, float x, float y, TextureManager& textures);
     void updateVisuals();
@@ -60,4 +64,6 @@ private:
 
     // Ground detection
     int m_groundContacts = 0;
+
+    static GameSession* s_gameSession;
 };
