@@ -19,23 +19,23 @@ add_subdirectory (external/box2d/src)
 
 include (cmake/Zip.cmake)
 
-# Locate SFML. If SFML is installed in a custom location set SFML_DIR accordingly
-find_package (SFML 2.6 COMPONENTS graphics window system audio REQUIRED)
+set (SFML_LOCATION "C:/SFML/SFML-2.6.1")
+set (SFML_DIR "${SFML_LOCATION}/lib/cmake/SFML")
+
+find_package (SFML 2.6 COMPONENTS graphics REQUIRED)
+
+set_target_properties (sfml-main sfml-system sfml-window sfml-graphics sfml-audio sfml-network PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE)
 
 target_link_libraries (${CMAKE_PROJECT_NAME}
-    PRIVATE
-        sfml-graphics
-        sfml-window
-        sfml-system
-        sfml-audio
-        box2d
+    sfml-graphics
+    sfml-window
+    sfml-system
+    sfml-audio         
+    sfml-main
 )
+target_link_libraries (${CMAKE_PROJECT_NAME} box2d)
+target_sources(oop2_ex04 PRIVATE include/miniaudio.h)
 
-target_sources (${CMAKE_PROJECT_NAME} PRIVATE include/miniaudio.h)
 
-# On Windows copy the required SFML DLLs to the output directory
-if (WIN32)
-    include (cmake/SFML.cmake)
-endif ()
-
+include (cmake/SFML.cmake)
 
