@@ -12,15 +12,21 @@ FlagEntity::FlagEntity(IdType id, b2World& world, float x, float y, TextureManag
 }
 
 void FlagEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
-    addComponent<Transform>(sf::Vector2f(x, y));
+    float centerX = x + TILE_SIZE / 2.f;
+    float centerY = y + TILE_SIZE / 2.f;
+
+    addComponent<Transform>(sf::Vector2f(centerX, centerY));
 
     auto* physics = addComponent<PhysicsComponent>(world, b2_staticBody);
     physics->createBoxShape(TILE_SIZE / 2.f, TILE_SIZE);
-    physics->setPosition(x + TILE_SIZE / 2.f, y + TILE_SIZE / 2.f);
+    physics->setPosition(centerX, centerY);
 
     auto* render = addComponent<RenderComponent>();
     render->setTexture(textures.getResource("redflag.png"));
-    render->getSprite().setPosition(x, y);
+    auto& sprite = render->getSprite();
+    auto bounds = sprite.getLocalBounds();
+    sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
+    sprite.setPosition(centerX, centerY);
 
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Collectible);
 }
