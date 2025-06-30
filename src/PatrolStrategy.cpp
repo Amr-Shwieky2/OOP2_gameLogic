@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include "Transform.h"
 #include "PhysicsComponent.h"
+#include "Constants.h"
 #include <iostream>
 #include <cmath>
 
@@ -41,7 +42,8 @@ void PatrolStrategy::update(Entity& entity, float dt, PlayerEntity* player) {
 
     // Move in current direction
     sf::Vector2f velocity = physics->getVelocity();
-    physics->setVelocity(m_direction * m_speed, velocity.y);
+    // Convert speed from pixels/sec to Box2D meters/sec
+    physics->setVelocity(m_direction * (m_speed / PPM), velocity.y);
 
     // Debug output every 60 frames (about once per second)
     static int frameCount = 0;

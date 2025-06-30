@@ -4,6 +4,7 @@
 #include "PlayerEntity.h"
 #include "Transform.h"
 #include "PhysicsComponent.h"
+#include "Constants.h"
 #include <iostream>
 #include <cmath>
 
@@ -47,7 +48,8 @@ void FollowPlayerStrategy::update(Entity& entity, float dt, PlayerEntity* player
 
         // Move towards player horizontally
         sf::Vector2f velocity = physics->getVelocity();
-        physics->setVelocity(direction.x * m_speed, velocity.y);
+        // Convert speed from pixels/sec to Box2D meters/sec
+        physics->setVelocity(direction.x * (m_speed / PPM), velocity.y);
 
         if (frameCount % 60 == 0) {
             std::cout << "[FOLLOW] Chasing player! Direction: " << direction.x

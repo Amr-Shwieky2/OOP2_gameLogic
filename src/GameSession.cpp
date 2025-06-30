@@ -105,7 +105,8 @@ void GameSession::loadLevel(const std::string& levelPath) {
 
                             // Give it a small initial velocity
                             if (enemy->getEnemyType() == EnemyEntity::EnemyType::Square) {
-                                physics->setVelocity(50.0f, 0.0f); // Start moving right
+                                // Convert speed to meters/sec for Box2D
+                                physics->setVelocity(50.0f / PPM, 0.0f); // Start moving right
                                 std::cout << "[GameSession] Gave initial velocity to Square enemy "
                                     << enemy->getId() << std::endl;
                             }
