@@ -12,23 +12,27 @@ BoxEntity::BoxEntity(IdType id, b2World& world, float x, float y, TextureManager
 }
 
 void BoxEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
-    addComponent<Transform>(sf::Vector2f(x + BOX_SIZE / 2.f,
-                                         y + TILE_SIZE - BOX_SIZE / 2.f));
+    // Position centered in tile
+    float centerX = x + TILE_SIZE / 2.f;
+    float centerY = y + TILE_SIZE / 2.f;
+
+    addComponent<Transform>(sf::Vector2f(centerX, centerY));
 
     // Dynamic body so it can be pushed
     auto* physics = addComponent<PhysicsComponent>(world, b2_dynamicBody);
     physics->createBoxShape(BOX_SIZE, BOX_SIZE,
-                            BOX_DENSITY,
-                            BOX_FRICTION,
-                            BOX_RESTITUTION);
-    physics->setPosition(x + BOX_SIZE / 2.f,
-                         y + TILE_SIZE - BOX_SIZE / 2.f);
-
+        BOX_DENSITY,
+        BOX_FRICTION,
+        BOX_RESTITUTION);
+    physics->setPosition(centerX, centerY);
 
     // Set physics properties
     if (auto* body = physics->getBody()) {
         body->SetFixedRotation(true); // Prevent rotation
-        body->SetLinearDamping(0.2f); // Add some resistance
+        body->SetLinearDamping(0.5f); // Add more resistance for better control
+
+        // Store entity pointer in body user data for collision callbacks
+        body->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
     }
 
     auto* render = addComponent<RenderComponent>();
@@ -41,4 +45,20 @@ void BoxEntity::setupComponents(b2World& world, float x, float y, TextureManager
     sprite.setOrigin(texSize.x / 2.f, texSize.y / 2.f);
 
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Obstacle);
+}
+
+// Override update to ensure visual sync
+void BoxEntity::update(float dt) {
+    Entity::update(dt);
+
+    // Ensure sprite follows physics body
+    auto* physics = getComponent<PhysicsComponent>();
+    auto* render = getComponent<RenderComponent>();
+    auto* transform = getComponent<Transform>();
+
+    if (physics && render && transform) {
+        sf::Vector2f pos = physics->getPosition();
+        transform->setPosition(pos);
+        render->getSprite().setPosition(pos);
+    }
 }

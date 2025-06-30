@@ -18,6 +18,7 @@
 #include "GameEvents.h"
 #include <iostream>
 #include <SmartEnemyEntity.h>
+#include <FalconEnemyEntity.h>
 
 // For entity ID generation
 // This needs external linkage so other modules (like SurpriseBoxManager)
@@ -252,4 +253,8 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
         return std::make_unique<SmartEnemyEntity>(g_nextEntityId++, world, x, y, textures);
         });
 
+    // Register Falcon Enemy (use 'F' for falcon enemy in level files)
+    factory.registerCreator("F", [&](float x, float y) -> std::unique_ptr<Entity> {
+        return std::make_unique<FalconEnemyEntity>(g_nextEntityId++, world, x, y, textures);
+        });
 }
