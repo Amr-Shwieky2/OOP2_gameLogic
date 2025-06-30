@@ -53,7 +53,10 @@ std::unique_ptr<Entity> LevelLoader::createEntityForChar(char tileChar, float x,
         return factory.create("C", x + TILE_SIZE / 4.f, y + TILE_SIZE / 4.f);
 
     case 'z': // Square Enemy
-        return factory.create("z", x / PPM, y / PPM);
+        return factory.create("z", x, y);
+
+    case 'Z': // Smart Enemy
+        return factory.create("Z", x, y);
 
     case 's': // Speed Gift
         return factory.create("s", x, y);
