@@ -19,8 +19,8 @@ add_subdirectory (external/box2d/src)
 
 include (cmake/Zip.cmake)
 
-set (SFML_LOCATION "C:/SFML/SFML-2.6.1")
-set (SFML_DIR "${SFML_LOCATION}/lib/cmake/SFML")
+set(SFML_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/external/SFML/SFML-2.6.1")
+set(SFML_DIR "${SFML_LOCATION}/lib/cmake/SFML")
 
 find_package (SFML 2.6 COMPONENTS graphics REQUIRED)
 
