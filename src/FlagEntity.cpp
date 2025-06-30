@@ -19,7 +19,7 @@ void FlagEntity::setupComponents(b2World& world, float x, float y, TextureManage
     physics->setPosition(x + TILE_SIZE / 2.f, y + TILE_SIZE / 2.f);
 
     auto* render = addComponent<RenderComponent>();
-    render->setTexture(textures.getResource("redflag.png"));
+    render->setTexture(textures.getResource("redFlag.png"));
     render->getSprite().setPosition(x, y);
 
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Collectible);
