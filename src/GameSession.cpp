@@ -10,6 +10,7 @@
 #include "Constants.h"
 #include <iostream>
 #include <RenderComponent.h>
+#include <PhysicsComponent.h>
 
 GameSession::GameSession()
     : m_physicsWorld(b2Vec2(0.0f, 9.8f)) {
@@ -93,7 +94,23 @@ void GameSession::loadLevel(const std::string& levelPath) {
                 if (auto* enemy = dynamic_cast<EnemyEntity*>(entity)) {
                     if (auto* ai = enemy->getComponent<AIComponent>()) {
                         ai->setTarget(m_player);
-                        std::cout << "[GameSession] Set AI target for enemy " << enemy->getId() << std::endl;
+                        std::cout << "[GameSession] Set AI target for enemy " << enemy->getId()
+                            << " Type: " << (int)enemy->getEnemyType() << std::endl;
+                    }
+                    // Force initial movement for testing
+                    if (auto* physics = enemy->getComponent<PhysicsComponent>()) {
+                        if (auto* body = physics->getBody()) {
+                            // Wake up the body
+                            body->SetAwake(true);
+
+                            // Give it a small initial velocity
+                            if (enemy->getEnemyType() == EnemyEntity::EnemyType::Square) {
+                                // Convert speed to meters/sec for Box2D
+                                physics->setVelocity(50.0f / PPM, 0.0f); // Start moving right
+                                std::cout << "[GameSession] Gave initial velocity to Square enemy "
+                                    << enemy->getId() << std::endl;
+                            }
+                        }
                     }
                 }
             }

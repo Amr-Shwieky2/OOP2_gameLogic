@@ -6,6 +6,7 @@
 #include "PhysicsComponent.h"
 #include "EventSystem.h"
 #include "GameEvents.h"
+#include "Constants.h"
 #include <iostream>
 
 GuardStrategy::GuardStrategy(float guardRadius, float attackRange)
@@ -53,12 +54,13 @@ void GuardStrategy::update(Entity& entity, float dt, PlayerEntity* player) {
     // If player is within guard radius, move towards them
     else if (distanceToPlayer <= m_guardRadius) {
         sf::Vector2f direction = getDirectionToPlayer(entityPos, playerPos);
-        physics->setVelocity(direction.x * 80.0f, physics->getVelocity().y);
+        // Convert speeds to Box2D meters/sec
+        physics->setVelocity(direction.x * (80.0f / PPM), physics->getVelocity().y);
     }
     // Otherwise, return to guard position
     else if (distanceToGuardPos > 10.0f) {
         sf::Vector2f direction = getDirectionToPlayer(entityPos, m_guardPosition);
-        physics->setVelocity(direction.x * 50.0f, physics->getVelocity().y);
+        physics->setVelocity(direction.x * (50.0f / PPM), physics->getVelocity().y);
     }
     else {
         // At guard position, stand still
