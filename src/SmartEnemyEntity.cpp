@@ -16,6 +16,9 @@
 
 SmartEnemyEntity::SmartEnemyEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : EnemyEntity(id, EnemyType::Smart, world, x, y, textures) {
+    std::cout << "[SMART ENEMY] Constructor called, now calling setupComponents" << std::endl;
+    // Call setup here where virtual dispatch works correctly
+    setupComponents(world, x, y, textures);
 }
 
 void SmartEnemyEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
@@ -30,11 +33,12 @@ void SmartEnemyEntity::setupComponents(b2World& world, float x, float y, Texture
     auto* render = addComponent<RenderComponent>();
     render->setTexture(textures.getResource("SquareEnemy.png")); // Could use different texture
     auto& sprite = render->getSprite();
+
     sprite.setScale(0.12f, 0.12f); // Slightly larger
     sprite.setColor(sf::Color(255, 200, 200)); // Reddish tint
     auto bounds = sprite.getLocalBounds();
     sprite.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
-
+    std::cout << "x: " << sprite.getPosition().x << ", y:" << sprite.getPosition().y;
     // Start with patrol strategy
     auto* ai = addComponent<AIComponent>(std::make_unique<PatrolStrategy>(150.0f, 75.0f));
 
@@ -55,6 +59,7 @@ void SmartEnemyEntity::update(float dt) {
         updateStrategy();
         m_strategyTimer = 0.0f;
     }
+    
 }
 
 void SmartEnemyEntity::updateStrategy() {

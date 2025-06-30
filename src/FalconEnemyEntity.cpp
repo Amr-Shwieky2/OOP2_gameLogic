@@ -1,20 +1,34 @@
 // FalconEnemyEntity.cpp
+#include "GameCollisionSetup.h"
+#include "MultiMethodCollisionSystem.h"
+#include "PlayerEntity.h"
+#include "EnemyEntity.h"
 #include "FalconEnemyEntity.h"
-#include "Transform.h"
+#include "GiftEntity.h"
+#include "CoinEntity.h"
+#include "EntityFactory.h"
+#include "HealthComponent.h"
 #include "PhysicsComponent.h"
 #include "RenderComponent.h"
-#include "HealthComponent.h"
 #include "CollisionComponent.h"
-#include "AIComponent.h"
-#include "ProjectileEntity.h"
-#include "GameSession.h"
-#include "Constants.h"
+#include "GroundEntity.h"
+#include "SeaEntity.h"
+#include "FlagEntity.h"
+#include "CactusEntity.h"
+#include "BoxEntity.h"
+#include "EventSystem.h"
+#include "GameEvents.h"
 #include <iostream>
+#include <SmartEnemyEntity.h>
+#include <Constants.h>
 
 extern int g_nextEntityId;
 
 FalconEnemyEntity::FalconEnemyEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : EnemyEntity(id, EnemyType::Falcon, world, x, y, textures) {
+    std::cout << "[FALCON ENEMY] Constructor called, now calling setupComponents" << std::endl;
+    // Call setup here where virtual dispatch works correctly
+    setupComponents(world, x, y, textures);
 }
 
 void FalconEnemyEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
