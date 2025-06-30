@@ -28,7 +28,7 @@ void EnemyEntity::setupComponents(b2World&, float x, float y, TextureManager& te
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Enemy);
 }
 
-// Add update method to sync physics with rendering
+// Add this to EnemyEntity class update method
 void EnemyEntity::update(float dt) {
     Entity::update(dt); // Call base update
 
@@ -41,6 +41,19 @@ void EnemyEntity::update(float dt) {
         sf::Vector2f pos = physics->getPosition();
         transform->setPosition(pos);
         render->getSprite().setPosition(pos);
+
+        // Check if enemy is on ground (simple check)
+        sf::Vector2f velocity = physics->getVelocity();
+        bool onGround = std::abs(velocity.y) < 0.1f;
+
+        // Debug output every 60 frames
+        static int debugFrame = 0;
+        debugFrame++;
+        if (debugFrame % 60 == 0) {
+            std::cout << "[ENEMY " << getId() << "] Pos: (" << pos.x << ", " << pos.y
+                << ") Vel: (" << velocity.x << ", " << velocity.y << ")"
+                << " OnGround: " << onGround << std::endl;
+        }
     }
 }
 
@@ -74,18 +87,33 @@ void SquareEnemyEntity::setupComponents(b2World& world, float x, float y, Textur
         std::cout << "[ERROR] Failed to get Transform component!" << std::endl;
     }
 
-    // Add physics with larger size for visibility
+    // Add physics - MAKE SURE IT'S AT THE RIGHT HEIGHT
     auto* physics = addComponent<PhysicsComponent>(world, b2_dynamicBody);
     if (physics) {
-        physics->createBoxShape(TILE_SIZE * 0.8f, TILE_SIZE * 0.8f); // 80% of tile size
+        // Create a box that's visible
+        physics->createBoxShape(TILE_SIZE * 0.8f, TILE_SIZE * 0.8f,
+            1.0f,    // density
+            0.3f,    // friction - important for movement!
+            0.0f);   // restitution
         physics->setPosition(centerX, centerY);
-        std::cout << "[DEBUG] Physics component created with size: " << (TILE_SIZE * 0.8f) << std::endl;
+        std::cout << "[DEBUG] Physics component created at (" << centerX << ", " << centerY << ")" << std::endl;
 
-        // Prevent falling through ground
+        // Configure physics body
         if (auto* body = physics->getBody()) {
             body->SetFixedRotation(true);
-            body->SetGravityScale(1.0f); // Normal gravity
-            std::cout << "[DEBUG] Physics body configured successfully" << std::endl;
+            body->SetGravityScale(1.0f);
+
+            // IMPORTANT: Set linear damping to allow movement
+            body->SetLinearDamping(0.0f); // No damping
+
+            // Ensure the body is awake
+            body->SetAwake(true);
+
+            // Add user data for debugging
+            body->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
+
+            std::cout << "[DEBUG] Physics body configured - Awake: " << body->IsAwake()
+                << " Type: " << body->GetType() << std::endl;
         }
     }
     else {
@@ -123,7 +151,7 @@ void SquareEnemyEntity::setupComponents(b2World& world, float x, float y, Textur
     }
 
     // Add AI with follow strategy by default
-    auto* ai = addComponent<AIComponent>(std::make_unique<FollowPlayerStrategy>(100.0f, 500.0f));
+    auto* ai = addComponent<AIComponent>(std::make_unique<PatrolStrategy>(300.0f, 80.0f)); // Patrol 300 pixels at speed 80
     if (ai) {
         std::cout << "[DEBUG] AI component added with FollowPlayer strategy" << std::endl;
     }

@@ -64,32 +64,37 @@ void SmartEnemyEntity::update(float dt) {
 
 void SmartEnemyEntity::updateStrategy() {
     auto* ai = getComponent<AIComponent>();
-    if (!ai || !ai->getOwner()) return;
+    if (!ai || !ai->getStrategy()) {
+        std::cout << "[SMART ENEMY] No AI component or strategy!" << std::endl;
+        return;
+    }
 
-    // Get player reference (this is a simplified approach)
-    // In a real implementation, you'd get this from GameSession
-    PlayerEntity* player = nullptr;
     auto* transform = getComponent<Transform>();
-
     if (!transform) return;
 
-    // For now, we'll just cycle through strategies
-    // In a real implementation, you'd check player distance
+    // Check if we have a player target
+    PlayerEntity* player = nullptr;
+    if (ai->getStrategy()) {
+        // Assume player is set in AI component's target
+        // For now, we'll just cycle through strategies
+    }
+
+    // Cycle through strategies for demonstration
     switch (m_currentStrategy) {
     case CurrentStrategy::Patrol:
-        std::cout << "[SmartEnemy] Switching to Follow strategy" << std::endl;
+        std::cout << "[SmartEnemy " << getId() << "] Switching to Follow strategy" << std::endl;
         ai->setStrategy(std::make_unique<FollowPlayerStrategy>(120.0f, 400.0f));
         m_currentStrategy = CurrentStrategy::Follow;
         break;
 
     case CurrentStrategy::Follow:
-        std::cout << "[SmartEnemy] Switching to Guard strategy" << std::endl;
+        std::cout << "[SmartEnemy " << getId() << "] Switching to Guard strategy" << std::endl;
         ai->setStrategy(std::make_unique<GuardStrategy>(200.0f, 150.0f));
         m_currentStrategy = CurrentStrategy::Guard;
         break;
 
     case CurrentStrategy::Guard:
-        std::cout << "[SmartEnemy] Switching to Patrol strategy" << std::endl;
+        std::cout << "[SmartEnemy " << getId() << "] Switching to Patrol strategy" << std::endl;
         ai->setStrategy(std::make_unique<PatrolStrategy>(200.0f, 80.0f));
         m_currentStrategy = CurrentStrategy::Patrol;
         break;
