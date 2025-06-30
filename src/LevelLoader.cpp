@@ -20,7 +20,7 @@ bool LevelLoader::loadFromFile(const std::string& path,
     }
 
     // Make sure entities are registered
-    registerGameEntities(world, textures);
+    //registerGameEntities(world, textures);
 
     entityManager.clear();
 
@@ -47,21 +47,34 @@ std::unique_ptr<Entity> LevelLoader::createEntityForChar(char tileChar, float x,
 
     EntityFactory& factory = EntityFactory::instance();
 
+    std::cout << "[LEVEL DEBUG] Processing tile '" << tileChar << "' at grid position ("
+        << (x / TILE_SIZE) << ", " << ((WINDOW_HEIGHT - y) / TILE_SIZE)
+        << ") world position (" << x << ", " << y << ")" << std::endl;
+
     switch (tileChar) {
         // Collectibles and entities
     case 'C': // Coin
+        std::cout << "[LEVEL DEBUG] Creating Coin" << std::endl;
         return factory.create("C", x + TILE_SIZE / 4.f, y + TILE_SIZE / 4.f);
 
     case 'z': // Square Enemy
+        std::cout << "[LEVEL DEBUG] Creating Square Enemy at (" << x << ", " << y << ")" << std::endl;
         return factory.create("z", x, y);
 
     case 'Z': // Smart Enemy
+        std::cout << "[LEVEL DEBUG] Creating Smart Enemy at (" << x << ", " << y << ")" << std::endl;
         return factory.create("Z", x, y);
 
+    case 'F': // Falcon Enemy
+        std::cout << "[LEVEL DEBUG] Creating Falcon Enemy at (" << x << ", " << y << ")" << std::endl;
+        return factory.create("F", x, y);
+
     case 's': // Speed Gift
+        std::cout << "[LEVEL DEBUG] Creating Speed Gift" << std::endl;
         return factory.create("s", x, y);
 
     case 'h': // Life Heart Gift
+        std::cout << "[LEVEL DEBUG] Creating Life Heart Gift" << std::endl;
         return factory.create("h", x, y);
 
     case 'r': // Reverse Movement Gift
@@ -92,19 +105,27 @@ std::unique_ptr<Entity> LevelLoader::createEntityForChar(char tileChar, float x,
     case 'E': // Edge
         return factory.create("E", x, y);
     case 'B': // Box
+        std::cout << "[LEVEL DEBUG] Creating Box at (" << x << ", " << y << ")" << std::endl;
         return factory.create("B", x, y);
     case 'S': // Sea
         return factory.create("S", x, y);
     case 'X': // Flag
+        std::cout << "[LEVEL DEBUG] Creating Flag" << std::endl;
         return factory.create("X", x, y);
     case 'c': // Cactus
+        std::cout << "[LEVEL DEBUG] Creating Cactus" << std::endl;
         return factory.create("c", x, y);
 
+    case ' ':
+    case '-':
+        // Empty space - no debug output to reduce spam
+        return nullptr;
+
     default:
+        std::cout << "[LEVEL WARNING] Unknown tile character: '" << tileChar << "'" << std::endl;
         return nullptr;
     }
 }
-
 std::vector<std::string> LevelLoader::readLevelFile(const std::string& path) const {
     std::vector<std::string> lines;
     std::ifstream file(path);

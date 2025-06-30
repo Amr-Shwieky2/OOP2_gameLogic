@@ -9,6 +9,7 @@
 #include "Transform.h"
 #include "Constants.h"
 #include <iostream>
+#include <RenderComponent.h>
 
 GameSession::GameSession()
     : m_physicsWorld(b2Vec2(0.0f, 9.8f)) {
@@ -108,6 +109,34 @@ void GameSession::loadLevel(const std::string& levelPath) {
 }
 
 void GameSession::update(float deltaTime) {
+    static int updateFrame = 0;
+    updateFrame++;
+
+    // Debug every 60 frames
+    if (updateFrame % 60 == 0) {
+        std::cout << "\n[GAME SESSION DEBUG] Update frame " << updateFrame << std::endl;
+
+        // Check enemy status
+        int activeEnemies = 0;
+        for (auto* entity : m_entityManager.getAllEntities()) {
+            if (auto* enemy = dynamic_cast<EnemyEntity*>(entity)) {
+                if (entity->isActive()) {
+                    activeEnemies++;
+                    auto* transform = enemy->getComponent<Transform>();
+                    auto* render = enemy->getComponent<RenderComponent>();
+                    if (transform) {
+                        sf::Vector2f pos = transform->getPosition();
+                        std::cout << "[GAME SESSION] Enemy ID " << enemy->getId()
+                            << " at (" << pos.x << ", " << pos.y << ")"
+                            << " Active: " << entity->isActive()
+                            << " Has Render: " << (render != nullptr) << std::endl;
+                    }
+                }
+            }
+        }
+        std::cout << "[GAME SESSION] Total active enemies: " << activeEnemies << std::endl;
+    }
+
     // Update physics
     m_physicsWorld.Step(deltaTime, 8, 3);
 

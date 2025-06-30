@@ -26,9 +26,11 @@ public:
     EnemyEntity(IdType id, EnemyType type, b2World& world, float x, float y, TextureManager& textures);
 
     EnemyType getEnemyType() const { return m_enemyType; }
+    void update(float dt) override;
 
 protected:
     virtual void setupComponents(b2World& world, float x, float y, TextureManager& textures);
+
 
     EnemyType m_enemyType;
     TextureManager& m_textures;

@@ -193,10 +193,7 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
         return entity;  // Always return, regardless of render component
         });
 
-    // Register Square Enemy
-    factory.registerCreator("z", [&](float x, float y) -> std::unique_ptr<Entity> {
-        return std::make_unique<SquareEnemyEntity>(g_nextEntityId++, world, x, y, textures);
-        });
+    
 
     // Register Gifts with level file characters - FIXED: Explicit return type
     auto registerGift = [&](const std::string& levelChar, GiftEntity::GiftType type) {
@@ -243,18 +240,28 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
         return std::make_unique<BoxEntity>(g_nextEntityId++, world, x, y, textures);
         });
 
+
     // Register Square Enemy
     factory.registerCreator("z", [&](float x, float y) -> std::unique_ptr<Entity> {
-        return std::make_unique<SquareEnemyEntity>(g_nextEntityId++, world, x, y, textures);
+        std::cout << "[FACTORY] Creating SquareEnemyEntity at (" << x << ", " << y << ")" << std::endl;
+        auto enemy = std::make_unique<SquareEnemyEntity>(g_nextEntityId++, world, x, y, textures);
+        std::cout << "[FACTORY] SquareEnemyEntity created with ID: " << enemy->getId() << std::endl;
+        return enemy;
         });
 
     // Register Smart Enemy (use 'Z' for smart enemy in level files)
     factory.registerCreator("Z", [&](float x, float y) -> std::unique_ptr<Entity> {
-        return std::make_unique<SmartEnemyEntity>(g_nextEntityId++, world, x, y, textures);
+        std::cout << "[FACTORY] Creating SmartEnemyEntity at (" << x << ", " << y << ")" << std::endl;
+        auto enemy = std::make_unique<SmartEnemyEntity>(g_nextEntityId++, world, x, y, textures);
+        std::cout << "[FACTORY] SmartEnemyEntity created with ID: " << enemy->getId() << std::endl;
+        return enemy;
         });
 
     // Register Falcon Enemy (use 'F' for falcon enemy in level files)
     factory.registerCreator("F", [&](float x, float y) -> std::unique_ptr<Entity> {
-        return std::make_unique<FalconEnemyEntity>(g_nextEntityId++, world, x, y, textures);
+        std::cout << "[FACTORY] Creating FalconEnemyEntity at (" << x << ", " << y << ")" << std::endl;
+        auto enemy = std::make_unique<FalconEnemyEntity>(g_nextEntityId++, world, x, y, textures);
+        std::cout << "[FACTORY] FalconEnemyEntity created with ID: " << enemy->getId() << std::endl;
+        return enemy;
         });
 }
