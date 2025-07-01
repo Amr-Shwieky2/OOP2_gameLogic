@@ -17,6 +17,9 @@
 #include <memory>
 #include <iostream>
 #include <cmath>
+#include <MagneticState.h>
+#include <ReversedState.h>
+#include <HeadwindState.h>
 
 PlayerEntity::PlayerEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : Entity(id)
@@ -155,6 +158,21 @@ void PlayerEntity::applySpeedBoost(float duration) {
 
 void PlayerEntity::applyShield(float duration) {
     changeState(ShieldedState::getInstance());
+}
+
+void PlayerEntity::applyMagneticEffect(float duration)
+{
+    changeState(MagneticState::getInstance());
+}
+
+void PlayerEntity::applyReverseEffect(float duration)
+{
+    changeState(ReversedState::getInstance());
+}
+
+void PlayerEntity::applyHeadwindEffect(float duration)
+{
+    changeState(HeadwindState::getInstance());
 }
 
 sf::Vector2f PlayerEntity::getPosition() const {

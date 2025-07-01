@@ -39,6 +39,9 @@ public:
     // Effects (now trigger state changes)
     void applySpeedBoost(float duration);
     void applyShield(float duration);
+    void applyMagneticEffect(float duration);
+    void applyReverseEffect(float duration);
+    void applyHeadwindEffect(float duration);
 
     // Getters
     sf::Vector2f getPosition() const;

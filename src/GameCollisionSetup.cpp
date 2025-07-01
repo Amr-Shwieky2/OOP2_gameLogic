@@ -20,6 +20,9 @@
 #include <iostream>
 #include <SmartEnemyEntity.h>
 #include <FalconEnemyEntity.h>
+#include <MagneticState.h>
+#include <HeadwindState.h>
+#include <ReversedState.h>
 
 // For entity ID generation
 // This needs external linkage so other modules (like SurpriseBoxManager)
@@ -37,12 +40,17 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             player.addScore(10);
             coin.onCollect(&player);
 
-            // Publish item collected event
+            // Get current coin count (you may need to track this in PlayerEntity)
+            static int totalCoins = 0;
+            totalCoins++;
+
+            // Publish coin collected event with total coins
             EventSystem::getInstance().publish(
-                ItemCollectedEvent(player.getId(), coin.getId(), ItemCollectedEvent::ItemType::Coin)
+                CoinCollectedEvent(player.getId(), totalCoins)
             );
 
-            std::cout << "Player collected coin! Score: " << player.getScore() << std::endl;
+            std::cout << "Player collected coin! Score: " << player.getScore()
+                << " Total coins: " << totalCoins << std::endl;
         }
     );
 
@@ -88,39 +96,79 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
     );
 
     // Player vs Gift
+    // In GameCollisionSetup.cpp:
     collisionSystem.registerHandler<PlayerEntity, GiftEntity>(
         [](PlayerEntity& player, GiftEntity& gift) {
             if (!gift.isActive() || gift.isCollected()) return;
 
+            std::cout << "[Collision] Player collecting gift type: "
+                << static_cast<int>(gift.getGiftType()) << std::endl;
+
             switch (gift.getGiftType()) {
             case GiftEntity::GiftType::LifeHeart: {
                 auto* health = player.getComponent<HealthComponent>();
-                if (health) health->heal(1);
-                std::cout << "Player collected Life Heart!" << std::endl;
+                if (health) {
+                    health->heal(1);
+                    std::cout << "Player collected Life Heart! Health: "
+                        << health->getHealth() << "/" << health->getMaxHealth() << std::endl;
+                }
                 break;
             }
 
             case GiftEntity::GiftType::SpeedBoost:
-                player.applySpeedBoost(5.0f);
+                player.applySpeedBoost(8.0f);  // 8 seconds
                 std::cout << "Player collected Speed Boost!" << std::endl;
                 break;
 
             case GiftEntity::GiftType::Shield:
-                player.applyShield(7.0f);
+                player.applyShield(7.0f);  // 7 seconds
                 std::cout << "Player collected Shield!" << std::endl;
                 break;
 
             case GiftEntity::GiftType::RareCoin:
                 player.addScore(50);
-                std::cout << "Player collected Rare Coin!" << std::endl;
+                std::cout << "Player collected Rare Coin! +50 points" << std::endl;
                 break;
 
-                // TODO: Implement other gift effects
-            default:
+            case GiftEntity::GiftType::ReverseMovement:
+                // BAD GIFT - Reverses player controls!
+                player.changeState(ReversedState::getInstance());
+                std::cout << "[WARNING] Player collected Reverse Movement! Controls inverted!" << std::endl;
+
+                // Notify player this is bad
+                EventSystem::getInstance().publish(
+                    PlayerStateChangedEvent("Normal", "Reversed")
+                );
+                break;
+
+            case GiftEntity::GiftType::HeadwindStorm:
+                // BAD GIFT - Slows player movement!
+                player.changeState(HeadwindState::getInstance());
+                std::cout << "[WARNING] Player collected Headwind Storm! Movement slowed!" << std::endl;
+
+                // Notify player this is bad
+                EventSystem::getInstance().publish(
+                    PlayerStateChangedEvent("Normal", "Headwind")
+                );
+                break;
+
+            case GiftEntity::GiftType::Magnetic:
+                // GOOD GIFT - Attracts coins
+                player.changeState(MagneticState::getInstance());
+                std::cout << "Player collected Magnetic! Coins will be attracted!" << std::endl;
+
+                EventSystem::getInstance().publish(
+                    PlayerStateChangedEvent("Normal", "Magnetic")
+                );
                 break;
             }
 
             gift.collect();
+
+            // Publish gift collected event
+            EventSystem::getInstance().publish(
+                ItemCollectedEvent(player.getId(), gift.getId(), ItemCollectedEvent::ItemType::Gift)
+            );
         }
     );
 

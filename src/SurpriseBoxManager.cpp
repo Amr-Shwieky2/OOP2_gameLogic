@@ -5,6 +5,7 @@
 #include "PlayerEntity.h"
 #include "GiftEntity.h"
 #include "Transform.h"
+#include "PhysicsComponent.h"
 #include "RenderComponent.h"
 #include "CollisionComponent.h"
 #include "Constants.h"
@@ -23,24 +24,24 @@ SurpriseBoxManager::SurpriseBoxManager(TextureManager& textures, sf::RenderWindo
     // Create surprise box screen
     m_surpriseScreen = std::make_unique<SurpriseBoxScreen>(window, textures);
 
-    EventSystem::getInstance().subscribe<ItemCollectedEvent>(
-        [this](const ItemCollectedEvent& event) {
-            if (event.type == ItemCollectedEvent::ItemType::Coin) {
-                this->onCoinCollected();
-            }
+    // Subscribe to coin collected events
+    EventSystem::getInstance().subscribe<CoinCollectedEvent>(
+        [this](const CoinCollectedEvent& event) {
+            this->onCoinCollected();
         }
     );
 }
 
 bool SurpriseBoxManager::shouldTriggerSurprise() const {
-    return m_coinsCollected >= (m_lastTriggerCoin + COINS_FOR_SURPRISE);
+    // Changed to 5 coins as requested
+    return m_coinsCollected >= 5 && m_coinsCollected > m_lastTriggerCoin;
 }
 
 void SurpriseBoxManager::onCoinCollected() {
     m_coinsCollected++;
 
     std::cout << "[SurpriseBox] Coins collected: " << m_coinsCollected
-        << "/" << (m_lastTriggerCoin + COINS_FOR_SURPRISE) << std::endl;
+        << "/5 for next surprise" << std::endl;
 
     if (shouldTriggerSurprise()) {
         triggerSurprise();
@@ -65,17 +66,23 @@ void SurpriseBoxManager::triggerSurprise() {
         return;
     }
 
-    // Calculate spawn position - slightly to the right of the player and on
-    // the same vertical level so the gift appears on the ground
+    // Calculate spawn position - above and slightly to the right of the player
     sf::Vector2f playerPos = playerTransform->getPosition();
 
-    sf::Vector2f spawnPos = playerPos + sf::Vector2f(50.0f, 0.0f);
+    // Spawn gift above player so it falls down
+    sf::Vector2f spawnPos = playerPos + sf::Vector2f(100.0f, -150.0f);
 
     // Spawn the selected gift
     spawnGiftEntity(selectedGift, spawnPos);
 
-    // Update counter
+    // Update counter - reset after 5 coins
     m_lastTriggerCoin = m_coinsCollected;
+
+    // Optional: Reset coin counter every 5 coins
+    if (m_coinsCollected % 5 == 0) {
+        std::cout << "[SurpriseBox] Ready for next surprise box at "
+            << (m_coinsCollected + 5) << " coins" << std::endl;
+    }
 }
 
 void SurpriseBoxManager::spawnGiftEntity(SurpriseGiftType giftType, const sf::Vector2f& position) {
@@ -124,7 +131,7 @@ void SurpriseBoxManager::spawnGiftEntity(SurpriseGiftType giftType, const sf::Ve
     }
 
     try {
-        // Create gift entity
+        // Create gift entity with physics so it falls
         auto giftEntity = std::make_unique<GiftEntity>(
             g_nextEntityId++,
             entityGiftType,
@@ -133,23 +140,22 @@ void SurpriseBoxManager::spawnGiftEntity(SurpriseGiftType giftType, const sf::Ve
             m_textures
         );
 
-        // Add physics if needed (optional - gifts might just be static)
-        // You could add a PhysicsComponent here if you want gifts to fall
+        // Add physics component to make it fall
+        auto* physics = giftEntity->addComponent<PhysicsComponent>(*m_world, b2_dynamicBody);
+        physics->createBoxShape(30.0f, 30.0f, 0.5f, 0.3f, 0.1f);
+        physics->setPosition(position.x, position.y);
+
+        // Make it fall slowly
+        if (auto* body = physics->getBody()) {
+            body->SetGravityScale(0.5f);
+            body->SetLinearDamping(0.5f);
+        }
 
         std::cout << "[SurpriseBox] Spawning " << giftName << " at position ("
             << position.x << ", " << position.y << ")" << std::endl;
 
         // Add to entity manager
         m_entityManager->addEntity(std::move(giftEntity));
-
-        // Publish event for UI notification
-        EventSystem::getInstance().publish(
-            ItemCollectedEvent(
-                m_player->getId(),
-                g_nextEntityId - 1,  // The gift's ID
-                ItemCollectedEvent::ItemType::Gift
-            )
-        );
 
     }
     catch (const std::exception& e) {

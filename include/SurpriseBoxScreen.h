@@ -7,10 +7,9 @@
 #include "ResourceManager.h"
 
 // Forward declarations
-class GameObject;
 using TextureManagerType = ResourceManager<sf::Texture>;
 
-// تعريف SurpriseGiftType هنا بدلاً من الاستيراد
+// Gift types that can be obtained from surprise box
 enum class SurpriseGiftType {
     LifeHeart,
     SpeedBoost,
@@ -21,7 +20,7 @@ enum class SurpriseGiftType {
     Magnetic
 };
 
-// جسيم الانفجار
+// Particle for explosion effect
 struct ExplosionParticle {
     sf::Vector2f position;
     sf::Vector2f velocity;
@@ -36,35 +35,41 @@ public:
     SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerType& textures);
     ~SurpriseBoxScreen() = default;
 
-    // عرض شاشة الصندوق
+    // Show the surprise box screen and return the selected gift
     SurpriseGiftType showSurpriseBox();
 
-    // callback لإنشاء الهدايا
-    void setGiftCallback(std::function<void(std::unique_ptr<GameObject>)> callback);
-
 private:
+    // Event handling
     void handleEvents();
     void update(float deltaTime);
     void render();
 
-    // رسوم متحركة
+    // Animation updates
     void updateBoxAnimation(float deltaTime);
     void updateParticles(float deltaTime);
     void createParticles();
 
-    // اختيار هدية عشوائية
+    // Gift selection
     SurpriseGiftType getRandomGiftType();
+    std::string getGiftName(SurpriseGiftType type) const;
+    sf::Color getGiftColor(SurpriseGiftType type) const;
 
-    // الأعضاء
+    // Drawing helpers
+    void drawInstructions();
+    void drawGiftInfo();
+
+    // Member variables
     sf::RenderWindow& m_window;
     TextureManagerType& m_textures;
 
-    // حالة الشاشة
+    // Screen state
     bool m_isRunning = false;
     bool m_boxOpened = false;
+    bool m_showingGift = false;
+    bool m_canContinue = false;
     SurpriseGiftType m_selectedGift;
 
-    // الرسوم المتحركة
+    // Animation state
     sf::Sprite m_boxSprite;
     sf::RectangleShape m_fallbackBox;
     sf::Sprite m_giftSprite;
@@ -72,18 +77,32 @@ private:
     bool m_useSprite = true;
 
     float m_animationTimer = 0.0f;
-    float m_boxScale = 0.0f;
+    float m_boxScale = 1.0f;
+    float m_giftScale = 0.0f;
     sf::Vector2f m_boxPosition;
+    sf::Vector2f m_giftPosition;
 
-    // الجسيمات
+    // Particles
     std::vector<ExplosionParticle> m_particles;
 
-    // خلفية
+    // UI elements
     sf::RectangleShape m_background;
+    sf::RectangleShape m_overlay;
+    sf::Font m_font;
+    sf::Text m_instructionText;
+    sf::Text m_giftNameText;
+    sf::Text m_giftDescriptionText;
 
-    // مولد عشوائي
+    // Random generator
     std::mt19937 m_gen;
 
-    // callback
-    std::function<void(std::unique_ptr<GameObject>)> m_giftCallback;
+    // Animation phases
+    enum class AnimationPhase {
+        WaitingToOpen,
+        Opening,
+        Exploding,
+        ShowingGift,
+        WaitingToContinue
+    };
+    AnimationPhase m_phase = AnimationPhase::WaitingToOpen;
 };
