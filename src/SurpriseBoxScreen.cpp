@@ -11,19 +11,19 @@ SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerTyp
 {
     // Set box position at center of screen
     m_boxPosition = sf::Vector2f(m_window.getSize().x / 2.0f, m_window.getSize().y / 2.0f);
-    m_giftPosition = sf::Vector2f(m_boxPosition.x, m_boxPosition.y - 100.0f);
+    m_giftPosition = sf::Vector2f(m_boxPosition.x, m_boxPosition.y - 230.f);
 
     // Try to load box texture
     bool textureLoaded = false;
     try {
         // Try both possible texture names
         try {
-            m_boxSprite.setTexture(m_textures.getResource("CloseBox.png"));
+            m_boxSprite.setTexture(m_textures.getResource("OpenBox.png"));
             textureLoaded = true;
         }
         catch (...) {
             // Try alternative name
-            m_boxSprite.setTexture(m_textures.getResource("OpenBox.png"));
+            m_boxSprite.setTexture(m_textures.getResource("CloseBox.png"));
             textureLoaded = true;
         }
 
@@ -225,7 +225,7 @@ void SurpriseBoxScreen::update(float deltaTime) {
     case AnimationPhase::WaitingToContinue:
         updateParticles(deltaTime);
         // Add floating animation to gift
-        m_giftPosition.y = (m_boxPosition.y - 100.0f) + std::sin(m_animationTimer * 2.0f) * 10.0f;
+        m_giftPosition.y = (m_boxPosition.y - 230.0f) + std::sin(m_animationTimer * 2.0f) * 10.0f;
         if (m_giftImageLoaded) {
             m_giftSprite.setPosition(m_giftPosition);
         }
@@ -411,7 +411,7 @@ void SurpriseBoxScreen::drawInstructions() {
     // Center the text
     sf::FloatRect bounds = m_instructionText.getLocalBounds();
     m_instructionText.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
-    m_instructionText.setPosition(m_window.getSize().x / 2.0f, m_window.getSize().y - 100.0f);
+    m_instructionText.setPosition(m_window.getSize().x / 2.0f, m_window.getSize().y - 50.0f);
 
     m_window.draw(m_instructionText);
 }

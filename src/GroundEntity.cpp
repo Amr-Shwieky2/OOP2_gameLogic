@@ -1,5 +1,4 @@
-// GroundEntity.cpp
-#include "GroundEntity.h"
+﻿#include "GroundEntity.h"
 #include "Transform.h"
 #include "PhysicsComponent.h"
 #include "RenderComponent.h"
@@ -14,31 +13,38 @@ GroundEntity::GroundEntity(IdType id, TileType type, b2World& world, float x, fl
 }
 
 void GroundEntity::setupComponents(TileType type, b2World& world, float x, float y, TextureManager& textures) {
-    float heightOffset = (type == TileType::Edge) ? EDGE_HEIGHT_OFFSET : 0.f;
-    // Use the tile centre as the logical position so physics and rendering
-    // remain in sync when the PhysicsComponent updates the Transform.
-    float centerX = x + TILE_SIZE / 2.f;
-    float centerY = y + TILE_SIZE / (2.f - heightOffset);
+    std::string textureName = getTextureNameForType(type);
+    sf::Texture& texture = textures.getResource(textureName);
+    sf::Vector2u texSize = texture.getSize();
+    float texWidth = static_cast<float>(texSize.x);
+    float texHeight = static_cast<float>(texSize.y);
 
-    // Add transform at the centre of the tile
+    float boxWidth = TILE_SIZE;
+    float boxHeight = TILE_SIZE;
+    float centerX = x + TILE_SIZE / 2.f;
+    float centerY = y + TILE_SIZE / 2.f;
+
+    if (type == TileType::Edge) {
+        boxWidth = texWidth;
+        boxHeight = texHeight;
+
+        centerX = x + boxWidth / 2.f;
+        centerY = y + TILE_SIZE - (boxHeight / 2.f);
+    }
+
     addComponent<Transform>(sf::Vector2f(centerX, centerY));
 
-    // Add physics (static body for ground)
     auto* physics = addComponent<PhysicsComponent>(world, b2_staticBody);
-    physics->createBoxShape(TILE_SIZE, TILE_SIZE);
+    physics->createBoxShape(boxWidth, boxHeight);
     physics->setPosition(centerX, centerY);
 
-    // Add rendering
     auto* render = addComponent<RenderComponent>();
-    std::string textureName = getTextureNameForType(type);
-    render->setTexture(textures.getResource(textureName));
+    render->setTexture(texture);
     auto& sprite = render->getSprite();
-    // Centre the sprite so that it matches the transform location
     auto bounds = sprite.getLocalBounds();
     sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
     sprite.setPosition(centerX, centerY);
 
-    // Add collision
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Ground);
 }
 

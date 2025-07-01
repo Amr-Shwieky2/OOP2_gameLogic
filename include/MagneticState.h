@@ -1,5 +1,9 @@
-#pragma once
+﻿#pragma once
 #include "PlayerState.h"
+#include <set>
+
+// Forward declaration
+class CoinEntity;
 
 class MagneticState : public PlayerState {
 public:
@@ -16,4 +20,6 @@ private:
     static std::unique_ptr<MagneticState> s_instance;
     float m_duration = 0.0f;
     float m_attractTimer = 0.0f;
+
+    std::set<CoinEntity*> m_attractedCoins;
 };

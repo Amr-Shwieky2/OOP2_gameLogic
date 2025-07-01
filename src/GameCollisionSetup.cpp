@@ -1,4 +1,4 @@
-#include "GameCollisionSetup.h"
+﻿#include "GameCollisionSetup.h"
 #include "MultiMethodCollisionSystem.h"
 #include "PlayerEntity.h"
 #include "EnemyEntity.h"
@@ -23,6 +23,7 @@
 #include <MagneticState.h>
 #include <HeadwindState.h>
 #include <ReversedState.h>
+#include <Constants.h>
 
 // For entity ID generation
 // This needs external linkage so other modules (like SurpriseBoxManager)
@@ -243,7 +244,25 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
     // Register Coin - FIXED: Always returns an entity
     factory.registerCreator("C", [&](float x, float y) -> std::unique_ptr<Entity> {
         auto entity = std::make_unique<CoinEntity>(g_nextEntityId++);
-        entity->addComponent<Transform>(sf::Vector2f(x, y));
+
+        // تعيين الموقع الأولي
+        sf::Vector2f coinPosition(x + TILE_SIZE / 4.f, y + TILE_SIZE / 4.f);
+        entity->addComponent<Transform>(coinPosition);
+
+        // إضافة Physics للمغناطيس (جسم ديناميكي خفيف)
+        auto* physics = entity->addComponent<PhysicsComponent>(world, b2_dynamicBody);
+        physics->createCircleShape(15.0f); // دائرة صغيرة
+        physics->setPosition(coinPosition.x, coinPosition.y);
+
+        // إعدادات خاصة للكوين
+        if (auto* body = physics->getBody()) {
+            body->SetGravityScale(0.0f); // لا تتأثر بالجاذبية
+            body->SetLinearDamping(5.0f); // مقاومة عالية للحركة
+            body->SetFixedRotation(true); // لا تدور
+        }
+
+        // إعداد الحركة الدائرية
+        entity->setupCircularMotion(coinPosition);
 
         auto* render = entity->addComponent<RenderComponent>();
         if (render) {
@@ -252,12 +271,12 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
             sprite.setScale(0.08f, 0.08f);
             auto bounds = sprite.getLocalBounds();
             sprite.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
+            sprite.setPosition(coinPosition);
         }
 
         entity->addComponent<CollisionComponent>(CollisionComponent::CollisionType::Collectible);
-        return entity;  // Always return, regardless of render component
+        return entity;
         });
-
     
 
     // Register Gifts with level file characters - FIXED: Explicit return type
