@@ -1,4 +1,4 @@
-#include "GameSession.h"
+﻿#include "GameSession.h"
 #include "GameCollisionSetup.h"
 #include "EntityFactory.h"
 #include "LevelLoader.h"
@@ -95,7 +95,7 @@ void GameSession::loadLevel(const std::string& levelPath) {
         std::cout << "  - Gifts: " << giftCount << std::endl;
         std::cout << "  - Other: " << otherCount << std::endl;
         std::cout << "  - Total entities: " << m_entityManager.getAllEntities().size() << std::endl;
-    
+
         // Set player as target for all enemy AI
         if (m_player) {
             for (auto* entity : m_entityManager.getAllEntities()) {
@@ -122,6 +122,20 @@ void GameSession::loadLevel(const std::string& levelPath) {
                     }
                 }
             }
+
+            std::cout << "[GameSession] Setting up circular motion for coins..." << std::endl;
+            for (auto* entity : m_entityManager.getAllEntities()) {
+                if (auto* coin = dynamic_cast<CoinEntity*>(entity)) {
+                    auto* transform = coin->getComponent<Transform>();
+                    if (transform) {
+                        sf::Vector2f currentPos = transform->getPosition();
+                        coin->setupCircularMotion(currentPos);
+                        std::cout << "[GameSession] Applied circular motion to coin at ("
+                            << currentPos.x << ", " << currentPos.y << ")" << std::endl;
+                    }
+                }
+            }
+
             if (m_player && m_surpriseBoxManager) {
                 m_surpriseBoxManager->setPlayer(m_player);
                 m_surpriseBoxManager->reset(); // Reset coin counter for new level
@@ -209,14 +223,12 @@ void GameSession::checkCollisions() {
         }
     }
 }
-
 bool GameSession::areColliding(Entity& a, Entity& b) {
     auto* collA = a.getComponent<CollisionComponent>();
     auto* collB = b.getComponent<CollisionComponent>();
 
     if (!collA || !collB) return false;
 
-    // Check layer mask
     if ((collA->getLayer() & collB->getMask()) == 0) return false;
 
     // Get positions
@@ -225,7 +237,7 @@ bool GameSession::areColliding(Entity& a, Entity& b) {
 
     if (!transA || !transB) return false;
 
-    // Simple distance check - increased radius for better detection
+    // Simple distance check
     sf::Vector2f posA = transA->getPosition();
     sf::Vector2f posB = transB->getPosition();
 
@@ -233,6 +245,5 @@ bool GameSession::areColliding(Entity& a, Entity& b) {
     float dy = posA.y - posB.y;
     float distSq = dx * dx + dy * dy;
 
-    // Increased collision radius for better gift pickup
-    return distSq < (80.0f * 80.0f); // 80 pixel collision radius
+    return distSq < (80.0f * 80.0f);
 }
