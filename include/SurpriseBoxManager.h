@@ -18,7 +18,7 @@ class PlayerEntity;
 class SurpriseBoxManager {
 public:
 
-    static constexpr int COINS_FOR_SURPRISE = 10;
+    static constexpr int COINS_FOR_SURPRISE = 1;
 
     SurpriseBoxManager(TextureManager& textures, sf::RenderWindow& window);
     ~SurpriseBoxManager() = default;

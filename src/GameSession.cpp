@@ -35,12 +35,12 @@ void GameSession::initialize(TextureManager& textures, sf::RenderWindow& window)
     // Setup collision handlers
     setupGameCollisionHandlers(m_collisionSystem);
 
-    // Initialize surprise box manager
-    if (sf::RenderWindow* window1 = &window) { // You'll need to pass window reference
-        m_surpriseBoxManager = std::make_unique<SurpriseBoxManager>(textures, *window1);
-        m_surpriseBoxManager->setEntityManager(&m_entityManager);
-        m_surpriseBoxManager->setPhysicsWorld(&m_physicsWorld);
-    }
+    // Initialize surprise box manager - FIX: pass window reference properly
+    m_surpriseBoxManager = std::make_unique<SurpriseBoxManager>(textures, window);
+    m_surpriseBoxManager->setEntityManager(&m_entityManager);
+    m_surpriseBoxManager->setPhysicsWorld(&m_physicsWorld);
+
+    std::cout << "[GameSession] SurpriseBoxManager initialized with window" << std::endl;
 }
 
 void GameSession::loadLevel(const std::string& levelPath) {
@@ -225,7 +225,7 @@ bool GameSession::areColliding(Entity& a, Entity& b) {
 
     if (!transA || !transB) return false;
 
-    // Simple distance check (you can improve this with proper bounds)
+    // Simple distance check - increased radius for better detection
     sf::Vector2f posA = transA->getPosition();
     sf::Vector2f posB = transB->getPosition();
 
@@ -233,5 +233,6 @@ bool GameSession::areColliding(Entity& a, Entity& b) {
     float dy = posA.y - posB.y;
     float distSq = dx * dx + dy * dy;
 
-    return distSq < (50.0f * 50.0f); // 50 pixel collision radius
+    // Increased collision radius for better gift pickup
+    return distSq < (80.0f * 80.0f); // 80 pixel collision radius
 }
