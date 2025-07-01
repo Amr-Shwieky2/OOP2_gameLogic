@@ -3,6 +3,7 @@
 #include "PlayerEntity.h"
 #include "PhysicsComponent.h"
 #include "RenderComponent.h"
+#include "Constants.h"
 #include <iostream>
 
 std::unique_ptr<BoostedState> BoostedState::s_instance = nullptr;

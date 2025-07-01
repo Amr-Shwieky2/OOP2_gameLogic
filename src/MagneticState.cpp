@@ -6,6 +6,7 @@
 #include "Transform.h"
 #include "CoinEntity.h"
 #include "GameSession.h"
+#include "Constants.h"
 #include <cmath>
 #include <iostream>
 

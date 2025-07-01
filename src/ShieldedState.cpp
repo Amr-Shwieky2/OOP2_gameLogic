@@ -4,6 +4,7 @@
 #include "PhysicsComponent.h"
 #include "RenderComponent.h"
 #include "HealthComponent.h"
+#include "Constants.h"
 #include <iostream>
 
 std::unique_ptr<ShieldedState> ShieldedState::s_instance = nullptr;
