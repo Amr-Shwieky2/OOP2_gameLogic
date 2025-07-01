@@ -3,6 +3,7 @@
 #include "PlayerEntity.h"
 #include "PhysicsComponent.h"
 #include "RenderComponent.h"
+#include "Constants.h"
 #include <cmath>
 #include <iostream>
 
