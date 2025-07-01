@@ -125,6 +125,12 @@ void GameSession::loadLevel(const std::string& levelPath) {
             if (m_player && m_surpriseBoxManager) {
                 m_surpriseBoxManager->setPlayer(m_player);
                 m_surpriseBoxManager->reset(); // Reset coin counter for new level
+
+                // Make sure entity manager and world are set
+                m_surpriseBoxManager->setEntityManager(&m_entityManager);
+                m_surpriseBoxManager->setPhysicsWorld(&m_physicsWorld);
+
+                std::cout << "[GameSession] SurpriseBoxManager initialized for player" << std::endl;
             }
         }
     }
