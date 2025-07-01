@@ -19,7 +19,7 @@ Assets from `resources/` are copied to the build directory at configure time.
 - **Entity & Components** – `Entity` is the base class for all objects in the game. Entities own components such as `PhysicsComponent`, `RenderComponent`, `InputComponent` and `AIComponent` to implement behavior.
 - **EntityManager** – Keeps track of all entities and updates them every frame.
 - **GameSession** – Manages the Box2D world, entity manager, collision system and loading of levels.
-- **PlayerEntity** – Represents the player. It uses a State pattern (`PlayerState`) with concrete states `NormalState`, `ShieldedState` and `BoostedState` located in `PlayerStates.cpp`.
+ - **PlayerEntity** – Represents the player. It uses a State pattern (`PlayerState`) with concrete states `NormalState`, `ShieldedState` and `BoostedState` implemented in separate source files such as `NormalState.cpp`.
 - **EnemyEntity** – Base class for enemies. Derived classes include `SquareEnemyEntity`, `FalconEnemyEntity` and `SmartEnemyEntity` which use different AI strategies.
 - **CollectibleEntity** – Base for collectible items. `CoinEntity` and `GiftEntity` inherit from it and trigger events on collection.
 - **SurpriseBoxManager** – After collecting a certain number of coins it opens a bonus screen (`SurpriseBoxScreen`) that spawns special gifts.
