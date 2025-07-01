@@ -239,6 +239,7 @@ void MagneticState::enter(PlayerEntity& player) {
     // Add visual effect - purple/orange glow
     auto* render = player.getComponent<RenderComponent>();
     if (render) {
+        render->setTexture(player.getTextures().getResource("MagneticBall.png"));
         render->getSprite().setColor(sf::Color(255, 200, 150)); // Orange tint
     }
 }
