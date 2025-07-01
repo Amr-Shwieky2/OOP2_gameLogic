@@ -33,15 +33,15 @@ SurpriseBoxManager::SurpriseBoxManager(TextureManager& textures, sf::RenderWindo
 }
 
 bool SurpriseBoxManager::shouldTriggerSurprise() const {
-    // Changed to 5 coins as requested
-    return m_coinsCollected >= 5 && m_coinsCollected > m_lastTriggerCoin;
+    // Trigger every 5 coins
+    return (m_coinsCollected > 0) && (m_coinsCollected % 5 == 0) && (m_coinsCollected != m_lastTriggerCoin);
 }
 
 void SurpriseBoxManager::onCoinCollected() {
     m_coinsCollected++;
 
     std::cout << "[SurpriseBox] Coins collected: " << m_coinsCollected
-        << "/5 for next surprise" << std::endl;
+        << " (Need " << (5 - (m_coinsCollected % 5)) << " more for surprise)" << std::endl;
 
     if (shouldTriggerSurprise()) {
         triggerSurprise();
@@ -49,12 +49,19 @@ void SurpriseBoxManager::onCoinCollected() {
 }
 
 void SurpriseBoxManager::triggerSurprise() {
-    if (!m_player || !m_entityManager || !m_world) {
+    if (!m_player || !m_entityManager || !m_world || !m_window) {
         std::cerr << "[SurpriseBox] Cannot trigger - missing dependencies" << std::endl;
+        std::cerr << "  Player: " << (m_player ? "OK" : "NULL") << std::endl;
+        std::cerr << "  EntityManager: " << (m_entityManager ? "OK" : "NULL") << std::endl;
+        std::cerr << "  World: " << (m_world ? "OK" : "NULL") << std::endl;
+        std::cerr << "  Window: " << (m_window ? "OK" : "NULL") << std::endl;
         return;
     }
 
-    std::cout << "[SurpriseBox] Triggering surprise box!" << std::endl;
+    std::cout << "[SurpriseBox] Triggering surprise box after " << m_coinsCollected << " coins!" << std::endl;
+
+    // Mark this trigger point
+    m_lastTriggerCoin = m_coinsCollected;
 
     // Show surprise box screen
     SurpriseGiftType selectedGift = m_surpriseScreen->showSurpriseBox();
@@ -75,14 +82,7 @@ void SurpriseBoxManager::triggerSurprise() {
     // Spawn the selected gift
     spawnGiftEntity(selectedGift, spawnPos);
 
-    // Update counter - reset after 5 coins
-    m_lastTriggerCoin = m_coinsCollected;
-
-    // Optional: Reset coin counter every 5 coins
-    if (m_coinsCollected % 5 == 0) {
-        std::cout << "[SurpriseBox] Ready for next surprise box at "
-            << (m_coinsCollected + 5) << " coins" << std::endl;
-    }
+    std::cout << "[SurpriseBox] Next surprise at " << (m_coinsCollected + 5) << " coins" << std::endl;
 }
 
 void SurpriseBoxManager::spawnGiftEntity(SurpriseGiftType giftType, const sf::Vector2f& position) {
@@ -149,6 +149,8 @@ void SurpriseBoxManager::spawnGiftEntity(SurpriseGiftType giftType, const sf::Ve
         if (auto* body = physics->getBody()) {
             body->SetGravityScale(0.5f);
             body->SetLinearDamping(0.5f);
+            // Store entity pointer for collision detection
+            body->GetUserData().pointer = reinterpret_cast<uintptr_t>(giftEntity.get());
         }
 
         std::cout << "[SurpriseBox] Spawning " << giftName << " at position ("
@@ -156,6 +158,8 @@ void SurpriseBoxManager::spawnGiftEntity(SurpriseGiftType giftType, const sf::Ve
 
         // Add to entity manager
         m_entityManager->addEntity(std::move(giftEntity));
+
+        std::cout << "[SurpriseBox] Gift spawned successfully!" << std::endl;
 
     }
     catch (const std::exception& e) {

@@ -33,6 +33,7 @@ int g_nextEntityId = 1;
 void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
     // Player vs Coin
+    // In GameCollisionSetup.cpp, fix the Player vs Coin handler:
     collisionSystem.registerHandler<PlayerEntity, CoinEntity>(
         [](PlayerEntity& player, CoinEntity& coin) {
             if (!coin.isActive()) return;
@@ -40,17 +41,13 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             player.addScore(10);
             coin.onCollect(&player);
 
-            // Get current coin count (you may need to track this in PlayerEntity)
-            static int totalCoins = 0;
-            totalCoins++;
-
-            // Publish coin collected event with total coins
+            // Track coins properly - don't use static variable
+            // Instead, publish event with incremental count
             EventSystem::getInstance().publish(
-                CoinCollectedEvent(player.getId(), totalCoins)
+                CoinCollectedEvent(player.getId(), 1)  // Just send 1 for increment
             );
 
-            std::cout << "Player collected coin! Score: " << player.getScore()
-                << " Total coins: " << totalCoins << std::endl;
+            std::cout << "Player collected coin! Score: " << player.getScore() << std::endl;
         }
     );
 

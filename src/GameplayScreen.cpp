@@ -30,9 +30,6 @@ void GameplayScreen::initializeComponents() {
     // Initialize camera
     m_cameraManager->initialize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-    // Initialize game session
-    m_gameSession->initialize(m_textures, *m_window);
-
     std::cout << "[OK] GameplayScreen components initialized with ECS" << std::endl;
 }
 
@@ -54,6 +51,9 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
 
     // One-time initialization
     if (!m_initialized) {
+        // Initialize game session with window NOW
+        m_gameSession->initialize(m_textures, window);
+
         // Load initial level
         m_gameSession->loadLevel(m_currentLevel);
 
