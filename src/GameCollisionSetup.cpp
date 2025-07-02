@@ -258,6 +258,107 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             proj.setActive(false);
         }
     );
+
+    // Enemy Projectile vs Player 
+    collisionSystem.registerHandler<ProjectileEntity, PlayerEntity>(
+        [](ProjectileEntity& proj, PlayerEntity& player) {
+            // Only handle enemy projectiles hitting player
+            if (proj.isFromPlayer() || !proj.isActive()) return;
+
+            std::cout << "[Collision] Enemy projectile hit player!" << std::endl;
+
+            auto* playerHealth = player.getComponent<HealthComponent>();
+            auto* playerPhysics = player.getComponent<PhysicsComponent>();
+
+            if (playerHealth && !playerHealth->isInvulnerable()) {
+                // Player takes damage
+                playerHealth->takeDamage(1);
+
+                // Add knockback effect
+                if (playerPhysics) {
+                    // Knockback upward and slightly away from projectile
+                    playerPhysics->applyImpulse(0.5f, -1.5f);
+                }
+
+                // Visual feedback - flash player red briefly
+                auto* playerRender = player.getComponent<RenderComponent>();
+                if (playerRender) {
+                    playerRender->getSprite().setColor(sf::Color(255, 150, 150)); // Light red tint
+                }
+
+                // Check if player died
+                if (!playerHealth->isAlive()) {
+                    std::cout << "[GAME] Player killed by enemy projectile!" << std::endl;
+                    EventSystem::getInstance().publish(
+                        PlayerDiedEvent(player.getId())
+                    );
+                }
+            }
+            else if (playerHealth && playerHealth->isInvulnerable()) {
+                std::cout << "[Shield] Player is protected by shield!" << std::endl;
+            }
+
+            // Destroy the projectile
+            proj.setActive(false);
+        }
+    );
+
+    // Player vs Falcon direct contact 
+    collisionSystem.registerHandler<PlayerEntity, FalconEnemyEntity>(
+        [](PlayerEntity& player, FalconEnemyEntity& falcon) {
+            if (!falcon.isActive()) return;
+
+            auto* playerHealth = player.getComponent<HealthComponent>();
+            auto* playerPhysics = player.getComponent<PhysicsComponent>();
+            auto* falconPhysics = falcon.getComponent<PhysicsComponent>();
+
+            if (!playerHealth || !playerPhysics || !falconPhysics) return;
+
+            std::cout << "[Collision] Player touched flying falcon!" << std::endl;
+
+            // Check if player is jumping on falcon (attacking from above)
+            sf::Vector2f playerPos = playerPhysics->getPosition();
+            sf::Vector2f falconPos = falconPhysics->getPosition();
+
+            if (playerPos.y < falconPos.y - 30.0f) {
+                // Player is above falcon - kill falcon
+                auto* falconHealth = falcon.getComponent<HealthComponent>();
+                if (falconHealth) {
+                    falconHealth->takeDamage(999); // Instant kill
+                    falcon.setActive(false);
+
+                    // Bounce player upward
+                    playerPhysics->applyImpulse(0, -4.0f);
+                    player.addScore(200); // Higher score for flying enemy
+
+                    std::cout << "Player defeated flying falcon! +200 points" << std::endl;
+
+                    // Publish enemy killed event
+                    EventSystem::getInstance().publish(
+                        EnemyKilledEvent(falcon.getId(), player.getId())
+                    );
+                }
+            }
+            else {
+                // Falcon hurts player (side contact)
+                if (!playerHealth->isInvulnerable()) {
+                    playerHealth->takeDamage(1);
+                    std::cout << "Player hit by flying falcon! Health: "
+                        << playerHealth->getHealth() << std::endl;
+
+                    // Strong knockback from flying enemy
+                    float knockbackDir = (playerPos.x > falconPos.x) ? 1.0f : -1.0f;
+                    playerPhysics->applyImpulse(knockbackDir * 4.0f, -3.0f);
+
+                    // Visual feedback
+                    auto* playerRender = player.getComponent<RenderComponent>();
+                    if (playerRender) {
+                        playerRender->getSprite().setColor(sf::Color(255, 100, 100));
+                    }
+                }
+            }
+        }
+    );
 }
 
 // FIXED: All lambdas now have explicit return types and proper return statements
@@ -277,19 +378,15 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
         sf::Vector2f coinPosition(x + TILE_SIZE / 4.f, y + TILE_SIZE / 4.f);
         entity->addComponent<Transform>(coinPosition);
 
-        // إضافة Physics للمغناطيس (جسم ديناميكي خفيف)
         auto* physics = entity->addComponent<PhysicsComponent>(world, b2_dynamicBody);
-        physics->createCircleShape(15.0f); // دائرة صغيرة
+        physics->createCircleShape(15.0f); 
         physics->setPosition(coinPosition.x, coinPosition.y);
 
-        // إعدادات خاصة للكوين
         if (auto* body = physics->getBody()) {
-            body->SetGravityScale(0.0f); // لا تتأثر بالجاذبية
-            body->SetLinearDamping(5.0f); // مقاومة عالية للحركة
-            body->SetFixedRotation(true); // لا تدور
+            body->SetGravityScale(0.0f); 
+            body->SetLinearDamping(5.0f);
+            body->SetFixedRotation(true); 
         }
-
-        // إعداد الحركة الدائرية
         entity->setupCircularMotion(coinPosition);
 
         auto* render = entity->addComponent<RenderComponent>();

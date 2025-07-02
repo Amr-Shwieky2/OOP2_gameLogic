@@ -28,9 +28,11 @@ public:
     EnemyType getEnemyType() const { return m_enemyType; }
     void update(float dt) override;
 
+    // Make textures accessible to derived classes
+    TextureManager& getTextures() { return m_textures; }
+
 protected:
     virtual void setupComponents(b2World& world, float x, float y, TextureManager& textures);
-
 
     EnemyType m_enemyType;
     TextureManager& m_textures;
