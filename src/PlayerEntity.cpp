@@ -1,4 +1,4 @@
-// PlayerEntity.cpp - Implementation with State Pattern
+﻿// PlayerEntity.cpp - Implementation with State Pattern
 #include "PlayerEntity.h"
 #include "Transform.h"
 #include "PhysicsComponent.h"
@@ -76,6 +76,22 @@ void PlayerEntity::update(float dt) {
     // Update visuals and physics
     updateVisuals();
     updatePhysics();
+    if (m_damageTimer > 0.0f) {
+        m_damageTimer -= dt;
+
+        auto* render = getComponent<RenderComponent>();
+        if (render) {
+            int flicker = static_cast<int>(m_damageTimer * 10) % 2;
+            sf::Uint8 alpha = flicker ? 150 : 255;
+            render->getSprite().setColor(sf::Color(255, 255, 255, alpha));
+        }
+    }
+    else {
+        auto* render = getComponent<RenderComponent>();
+        if (render) {
+            render->getSprite().setColor(sf::Color::White);
+        }
+    }
 }
 
 void PlayerEntity::changeState(PlayerState* newState) {

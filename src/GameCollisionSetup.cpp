@@ -198,12 +198,13 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
         }
     );
 
-    // Player vs Cactus (damage)
     collisionSystem.registerHandler<PlayerEntity, CactusEntity>(
         [](PlayerEntity& player, CactusEntity& cactus) {
             auto* health = player.getComponent<HealthComponent>();
-            if (health && !health->isInvulnerable()) {
+            if (health && !health->isInvulnerable() && player.canTakeDamage()) {
+
                 health->takeDamage(1);
+                player.startDamageCooldown();
 
                 // Knockback
                 auto* playerPhysics = player.getComponent<PhysicsComponent>();
@@ -211,12 +212,9 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                 if (playerPhysics && cactusTransform) {
                     sf::Vector2f playerPos = playerPhysics->getPosition();
                     sf::Vector2f cactusPos = cactusTransform->getPosition();
-
                     float knockbackDir = (playerPos.x > cactusPos.x) ? 1.0f : -1.0f;
-                    playerPhysics->applyImpulse(knockbackDir * 2.0f, -1.0f);
+                    playerPhysics->applyImpulse(knockbackDir * 4.0f, -2.0f);
                 }
-
-                std::cout << "Player hit cactus! Health: " << health->getHealth() << std::endl;
             }
         }
     );
