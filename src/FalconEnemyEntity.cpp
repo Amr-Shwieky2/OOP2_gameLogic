@@ -1,143 +1,129 @@
-// FalconEnemyEntity.cpp
-#include "GameCollisionSetup.h"
-#include "MultiMethodCollisionSystem.h"
-#include "PlayerEntity.h"
-#include "EnemyEntity.h"
-#include "FalconEnemyEntity.h"
-#include "GiftEntity.h"
-#include "CoinEntity.h"
-#include "EntityFactory.h"
-#include "HealthComponent.h"
+﻿#include "FalconEnemyEntity.h"
+#include "Transform.h"
 #include "PhysicsComponent.h"
 #include "RenderComponent.h"
+#include "HealthComponent.h"
 #include "CollisionComponent.h"
-#include "GroundEntity.h"
-#include "SeaEntity.h"
-#include "FlagEntity.h"
-#include "CactusEntity.h"
-#include "BoxEntity.h"
-#include "EventSystem.h"
-#include "GameEvents.h"
+#include "ProjectileEntity.h"
+#include "GameSession.h"
+#include "Constants.h"
 #include <iostream>
-#include <SmartEnemyEntity.h>
-#include <Constants.h>
+#include <cmath>
 
 extern int g_nextEntityId;
+extern GameSession* g_currentSession;
 
 FalconEnemyEntity::FalconEnemyEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : EnemyEntity(id, EnemyType::Falcon, world, x, y, textures) {
-    std::cout << "[FALCON ENEMY] Constructor called, now calling setupComponents" << std::endl;
-    // Call setup here where virtual dispatch works correctly
+    std::cout << "[FALCON ENEMY] Constructor called" << std::endl;
     setupComponents(world, x, y, textures);
 }
 
 void FalconEnemyEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
+    // Call base setup
     EnemyEntity::setupComponents(world, x, y, textures);
 
-    // Start off-screen above the level
-    float startY = -200.0f; // Above screen
+    // Position high in the sky
+    float centerX = x + TILE_SIZE / 2.f;
+    float skyY = 150.0f; // Flying altitude
 
-    // Add transform at spawn position
+    // Update transform position
     auto* transform = getComponent<Transform>();
     if (transform) {
-        transform->setPosition(x + TILE_SIZE / 2.f, startY);
+        transform->setPosition(centerX, skyY);
     }
 
-    // Add physics - flying enemy with no gravity
+    // Add physics - flying enemy
     auto* physics = addComponent<PhysicsComponent>(world, b2_dynamicBody);
-    physics->createBoxShape(TILE_SIZE * 1.2f, TILE_SIZE * 0.8f); // Wider for wings
-    physics->setPosition(x + TILE_SIZE / 2.f, startY);
+    physics->createBoxShape(TILE_SIZE * 0.8f, TILE_SIZE * 0.6f);
+    physics->setPosition(centerX, skyY);
 
     if (auto* body = physics->getBody()) {
-        body->SetGravityScale(0.0f); // No gravity - flying enemy
+        body->SetGravityScale(0.0f); // No gravity
         body->SetFixedRotation(true);
+        body->SetLinearDamping(0.2f); // Slight air resistance
+        body->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
     }
 
-    // Add rendering with animation
+    // Load wing animation textures
+    try {
+        m_texture1 = &textures.getResource("FalconEnemy.png");
+        m_texture2 = &textures.getResource("FalconEnemy2.png");
+        std::cout << "[FALCON] Loaded both wing textures" << std::endl;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "[FALCON] Error loading textures: " << e.what() << std::endl;
+        m_texture1 = m_texture2 = &textures.getResource("FalconEnemy.png");
+    }
+
+    // Setup rendering
     auto* render = addComponent<RenderComponent>();
-
-    // Load both textures
-    m_texture1 = &textures.getResource("FalconEnemy.png");
-    m_texture2 = &textures.getResource("FalconEnemy2.png");
-
     render->setTexture(*m_texture1);
     auto& sprite = render->getSprite();
-    sprite.setScale(0.4f, 0.4f); // Larger than ground enemies
-    sprite.setColor(sf::Color(255, 255, 255, 0)); // Start invisible
+    sprite.setScale(0.2f, 0.2f);
+    sprite.setColor(sf::Color::White);
 
     auto bounds = sprite.getLocalBounds();
     sprite.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
+    sprite.setPosition(centerX, skyY);
 
-    // Add stronger health
+    // Enhanced health
     auto* health = getComponent<HealthComponent>();
     if (health) {
-        health->setHealth(5); // 5 hits to kill
+        health->setHealth(3);
     }
 
-    // No AI component initially - we'll control movement manually
-
-    // Add collision
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Enemy);
+    std::cout << "[FALCON] Setup complete at altitude " << skyY << std::endl;
 }
 
 void FalconEnemyEntity::update(float dt) {
     EnemyEntity::update(dt);
 
-    // Handle spawn delay
-    if (!m_spawned) {
-        m_spawnTimer += dt;
-
-        if (m_spawnTimer >= SPAWN_DELAY) {
-            m_spawned = true;
-
-            // Make visible and move to play area
-            auto* render = getComponent<RenderComponent>();
-            if (render) {
-                render->getSprite().setColor(sf::Color::White);
-            }
-
-            // Move down into view
-            auto* physics = getComponent<PhysicsComponent>();
-            if (physics) {
-                sf::Vector2f currentPos = physics->getPosition();
-                physics->setPosition(currentPos.x, 200.0f); // Move to sky position
-            }
-
-            std::cout << "[FalconEnemy] Spawned after 30 seconds!" << std::endl;
-        }
-        return; // Don't update anything else until spawned
-    }
-
-    // Update animation
     updateAnimation(dt);
+    updateFlightPattern(dt);
+    updateShooting(dt);
 
-    // Flying pattern - move in sine wave
+    // Sync visual position
     auto* physics = getComponent<PhysicsComponent>();
-    if (physics) {
-        static float waveTimer = 0.0f;
-        waveTimer += dt;
-
-        // Horizontal movement with sine wave vertical movement
-        float vx = 50.0f; // Slow horizontal movement
-        float vy = std::sin(waveTimer * 2.0f) * 30.0f; // Sine wave
-
-        physics->setVelocity(vx, vy);
-    }
-
-    // Handle shooting
-    m_shootTimer += dt;
-    if (m_shootTimer >= m_shootCooldown) {
-        shootProjectile();
-        m_shootTimer = 0.0f;
+    auto* render = getComponent<RenderComponent>();
+    if (physics && render) {
+        sf::Vector2f pos = physics->getPosition();
+        render->getSprite().setPosition(pos);
     }
 }
 
 void FalconEnemyEntity::updateAnimation(float dt) {
     m_animationTimer += dt;
-
     if (m_animationTimer >= m_animationSpeed) {
         switchTexture();
         m_animationTimer = 0.0f;
+    }
+}
+
+void FalconEnemyEntity::updateFlightPattern(float dt) {
+    auto* physics = getComponent<PhysicsComponent>();
+    if (!physics) return;
+
+    sf::Vector2f currentPos = physics->getPosition();
+
+    float horizontalSpeed = 5.0f;
+    float vx = horizontalSpeed;
+    float vy = 0.0f; 
+
+    physics->setVelocity(vx, vy);
+
+    if (currentPos.x > WINDOW_WIDTH + 200.0f) {
+        physics->setPosition(-200.0f, currentPos.y);
+    }
+}
+
+
+void FalconEnemyEntity::updateShooting(float dt) {
+    m_shootTimer += dt;
+    if (m_shootTimer >= m_shootCooldown) {
+        shootProjectile();
+        m_shootTimer = 0.0f;
     }
 }
 
@@ -154,28 +140,54 @@ void FalconEnemyEntity::switchTexture() {
         render->setTexture(*m_texture2);
     }
 
-    // Re-center origin after texture switch
     auto& sprite = render->getSprite();
     auto bounds = sprite.getLocalBounds();
     sprite.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
 }
 
 void FalconEnemyEntity::shootProjectile() {
+    if (!g_currentSession) {
+        std::cerr << "[FALCON] No game session for shooting" << std::endl;
+        return;
+    }
+
     auto* transform = getComponent<Transform>();
-    if (!transform) return;
+    auto* physics = getComponent<PhysicsComponent>();
 
-    sf::Vector2f pos = transform->getPosition();
+    if (!transform || !physics) {
+        std::cerr << "[FALCON] Missing components for shooting" << std::endl;
+        return;
+    }
 
-    // Shoot downward
-    sf::Vector2f shootDirection(0.0f, 1.0f);
+    b2Body* body = physics->getBody();
+    if (!body) {
+        std::cerr << "[FALCON] Physics body is null" << std::endl;
+        return;
+    }
 
-    // Create projectile
-    // Note: This needs access to the game session to spawn the projectile
-    // For now, just log it
-    std::cout << "[FalconEnemy] Shooting projectile from ("
-        << pos.x << ", " << pos.y << ")" << std::endl;
+    b2World& world = *body->GetWorld();
 
-    // TODO: Access EntityManager to spawn projectile
-    // EntityManager would need to be accessible, perhaps through a singleton
-    // or by storing a reference in the enemy
+    sf::Vector2f falconPos = transform->getPosition();
+    sf::Vector2f shootDirection(0.0f, 1.0f); 
+    sf::Vector2f bulletSpawnPos = falconPos + sf::Vector2f(0.0f, 30.0f);
+
+    try {
+        // إنشاء المقذوف
+        auto projectile = std::make_unique<ProjectileEntity>(
+            g_nextEntityId++,
+            world,
+            bulletSpawnPos.x,
+            bulletSpawnPos.y,
+            shootDirection,
+            getTextures(),  
+            false          
+        );
+
+        g_currentSession->spawnEntity(std::move(projectile));
+        std::cout << "[FALCON] Shot projectile downward" << std::endl;
+
+    }
+    catch (const std::exception& e) {
+        std::cerr << "[FALCON] Error shooting: " << e.what() << std::endl;
+    }
 }
