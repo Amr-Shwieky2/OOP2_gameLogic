@@ -60,4 +60,10 @@ private:
     // Level management
     std::string m_currentLevel = "level1.txt";
     bool m_initialized = false;
+
+    // Game Over
+    bool m_showingGameOver = false;
+    sf::Text m_gameOverText;
+    sf::Sprite m_gameOverSprite;
+    sf::RectangleShape m_gameOverBackground;
 };

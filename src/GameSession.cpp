@@ -13,6 +13,7 @@
 #include <PhysicsComponent.h>
 #include <FlagEntity.h>
 #include <cmath> 
+#include <SeaEntity.h>
 
 // Global pointer to the current active session
 GameSession* g_currentSession = nullptr;
@@ -175,10 +176,10 @@ bool GameSession::areColliding(Entity& a, Entity& b) {
     auto* collB = b.getComponent<CollisionComponent>();
 
     if (!collA || !collB) return false;
-
     if (!a.isActive() || !b.isActive()) return false;
 
-    if ((collA->getLayer() & collB->getMask()) == 0) return false;
+    bool isPlayerSea = (dynamic_cast<PlayerEntity*>(&a) && dynamic_cast<SeaEntity*>(&b)) ||
+        (dynamic_cast<SeaEntity*>(&a) && dynamic_cast<PlayerEntity*>(&b));
 
     // Get positions
     auto* transA = a.getComponent<Transform>();
@@ -186,7 +187,6 @@ bool GameSession::areColliding(Entity& a, Entity& b) {
 
     if (!transA || !transB) return false;
 
-    // Simple distance check
     sf::Vector2f posA = transA->getPosition();
     sf::Vector2f posB = transB->getPosition();
 
@@ -194,15 +194,18 @@ bool GameSession::areColliding(Entity& a, Entity& b) {
     float dy = posA.y - posB.y;
     float distSq = dx * dx + dy * dy;
 
-    bool isPlayerFlag = (dynamic_cast<PlayerEntity*>(&a) && dynamic_cast<FlagEntity*>(&b)) ||
-        (dynamic_cast<FlagEntity*>(&a) && dynamic_cast<PlayerEntity*>(&b));
+    float collisionDistance = 100.0f; 
 
-    if (isPlayerFlag) {
+    if (isPlayerSea) {
+        collisionDistance = 150.0f; 
         float distance = std::sqrt(distSq);
-        return distSq < (150.0f * 150.0f); 
+
+        if (distance < collisionDistance) {
+            return true;
+        }
     }
 
-    return distSq < (80.0f * 80.0f);
+    return distSq < (collisionDistance * collisionDistance);
 }
 
 void GameSession::setupEventHandlers() {

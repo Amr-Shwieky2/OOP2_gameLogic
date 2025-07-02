@@ -94,7 +94,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
     );
 
     // Player vs Gift
-    // In GameCollisionSetup.cpp:
     collisionSystem.registerHandler<PlayerEntity, GiftEntity>(
         [](PlayerEntity& player, GiftEntity& gift) {
             if (!gift.isActive() || gift.isCollected()) return;
@@ -170,13 +169,31 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
         }
     );
 
-    // Player vs Sea (instant death)
+    // Player vs Sea 
     collisionSystem.registerHandler<PlayerEntity, SeaEntity>(
         [](PlayerEntity& player, SeaEntity& sea) {
+
             auto* health = player.getComponent<HealthComponent>();
+            auto* physics = player.getComponent<PhysicsComponent>();
+            auto* render = player.getComponent<RenderComponent>();
+
             if (health && !health->isInvulnerable()) {
-                health->setHealth(0); // Instant death
-                std::cout << "Player fell in the sea!" << std::endl;
+                health->setHealth(0);
+
+                if (render) {
+                    render->getSprite().setColor(sf::Color(100, 150, 255, 180));
+                    render->getSprite().rotate(45.0f);
+                }
+
+                if (physics) {
+                    physics->setVelocity(0, 0);
+                    if (auto* body = physics->getBody()) {
+                        body->SetGravityScale(0);
+                    }
+                }
+                EventSystem::getInstance().publish(
+                    PlayerDiedEvent(player.getId())
+                );
             }
         }
     );

@@ -1,4 +1,4 @@
-// UIObserver.cpp
+﻿// UIObserver.cpp
 #include "UIObserver.h"
 #include <sstream>
 
@@ -33,6 +33,11 @@ void UIObserver::initialize() {
 
     eventSystem.subscribe<EnemyKilledEvent>(
         [this](const EnemyKilledEvent& event) { onEnemyKilled(event); }
+    );
+
+    eventSystem.subscribe<PlayerDiedEvent>(
+        [this](const PlayerDiedEvent& event) {
+        }
     );
 }
 
