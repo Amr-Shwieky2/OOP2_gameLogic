@@ -8,6 +8,7 @@
 #include "EventSystem.h"
 #include "GameEvents.h"
 #include <iostream>
+#include <RenderComponent.h>
 
 GameplayScreen::GameplayScreen() {
     initializeComponents();
@@ -48,6 +49,28 @@ void GameplayScreen::initializeComponents() {
     m_messageBackground.setPosition(0, WINDOW_HEIGHT / 2 - 100);
 
     std::cout << "[OK] GameplayScreen components initialized with ECS" << std::endl;
+    // إعداد Game Over
+    m_gameOverText.setFont(m_font);
+    m_gameOverText.setCharacterSize(32);
+    m_gameOverText.setFillColor(sf::Color::White);
+    m_gameOverText.setOutlineThickness(2.0f);
+    m_gameOverText.setOutlineColor(sf::Color::Black);
+    m_gameOverText.setString("Press SPACE to restart");
+
+    // إعداد خلفية Game Over
+    m_gameOverBackground.setSize(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
+    m_gameOverBackground.setFillColor(sf::Color(0, 0, 0, 150)); // شفاف أسود
+
+    // محاولة تحميل صورة Game Over
+    try {
+        m_gameOverSprite.setTexture(m_textures.getResource("GameOver.png"));
+        sf::Vector2u texSize = m_gameOverSprite.getTexture()->getSize();
+        m_gameOverSprite.setOrigin(texSize.x / 2.0f, texSize.y / 2.0f);
+        m_gameOverSprite.setPosition(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f - 50.0f);
+    }
+    catch (const std::exception& e) {
+        std::cout << "[WARNING] Could not load GameOver.png: " << e.what() << std::endl;
+    }
 }
 
 void GameplayScreen::initializeUIObserver() {
@@ -107,13 +130,19 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
                     std::cout << "[OK] Manually switched to next level" << std::endl;
                 }
             }
+            else if (event.key.code == sf::Keyboard::Space && m_showingGameOver) {
+                // إعادة تشغيل المستوى عند الضغط على SPACE
+                std::cout << "[GameplayScreen] Restarting level after Game Over..." << std::endl;
+                m_showingGameOver = false;
+                m_gameSession->reloadCurrentLevel();
+            }
+
             else if (event.key.code == sf::Keyboard::Escape) {
                 window.close();
             }
         }
     }
 }
-
 void GameplayScreen::update(float deltaTime) {
     if (m_ui->isPaused()) return;
 
@@ -124,6 +153,15 @@ void GameplayScreen::update(float deltaTime) {
             m_showingGameComplete = false;
             m_messageTimer = 0.0f;
         }
+    }
+
+    if (m_showingGameOver) {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+            std::cout << "[GameplayScreen] Space pressed! Restarting level..." << std::endl;
+            m_showingGameOver = false;
+            m_gameSession->reloadCurrentLevel();
+        }
+        return; 
     }
 
     PlayerEntity* player = m_gameSession->getPlayer();
@@ -146,10 +184,16 @@ void GameplayScreen::update(float deltaTime) {
     }
 
     auto* health = player ? player->getComponent<HealthComponent>() : nullptr;
-    if (health && !health->isAlive()) {
+    if (health && !health->isAlive() && !m_showingGameOver) {
+        // إظهار شاشة Game Over
+        m_showingGameOver = true;
+
+        // "Press SPACE to restart"
+        sf::FloatRect bounds = m_gameOverText.getLocalBounds();
+        m_gameOverText.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
+        m_gameOverText.setPosition(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f + 320.0f);
+
         EventSystem::getInstance().publish(PlayerDiedEvent(player->getId()));
-        std::cout << "[GAME OVER] Player died, restarting level..." << std::endl;
-        m_gameSession->reloadCurrentLevel();
     }
 }
 
@@ -190,6 +234,13 @@ void GameplayScreen::render(sf::RenderWindow& window) {
     if (m_showingGameComplete) {
         window.draw(m_messageBackground);
         window.draw(m_gameCompleteText);
+    }
+
+    // Game Over
+    if (m_showingGameOver) {
+        window.draw(m_gameOverBackground);
+        window.draw(m_gameOverSprite);
+        window.draw(m_gameOverText);
     }
 }
 

@@ -57,7 +57,7 @@ void FalconEnemyEntity::setupComponents(b2World& world, float x, float y, Textur
     auto* render = addComponent<RenderComponent>();
 
     // Load both textures
-    m_texture1 = &textures.getResource("FalconEnemy1.png");
+    m_texture1 = &textures.getResource("FalconEnemy.png");
     m_texture2 = &textures.getResource("FalconEnemy2.png");
 
     render->setTexture(*m_texture1);
