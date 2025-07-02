@@ -9,8 +9,6 @@
 #include "Entity.h"
 #include <box2d/b2_body.h>
  
-
-
 // Forward declarations  
 class EntityManager;
 class PlayerEntity;
@@ -34,7 +32,7 @@ public:
     void setPlayer(PlayerEntity* player) { m_player = player; }
 
     // Reset coin counter (for new levels)
-    void reset() { m_coinsCollected = 0; m_lastTriggerCoin = 0; }
+    void reset();
 
 private:
     void triggerSurprise();

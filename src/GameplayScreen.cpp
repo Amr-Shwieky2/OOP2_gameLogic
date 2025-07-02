@@ -16,7 +16,6 @@ GameplayScreen::GameplayScreen() {
 GameplayScreen::~GameplayScreen() = default;
 
 void GameplayScreen::initializeComponents() {
-    // Initialize core components with new ECS system
     m_gameSession = std::make_unique<GameSession>();
     m_cameraManager = std::make_unique<CameraManager>();
     m_backgroundRenderer = std::make_unique<BackgroundRenderer>(m_textures);
@@ -29,6 +28,24 @@ void GameplayScreen::initializeComponents() {
 
     // Initialize camera
     m_cameraManager->initialize(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    m_levelCompleteText.setFont(m_font);
+    m_levelCompleteText.setCharacterSize(48);
+    m_levelCompleteText.setFillColor(sf::Color::Yellow);
+    m_levelCompleteText.setOutlineThickness(3.0f);
+    m_levelCompleteText.setOutlineColor(sf::Color::Black);
+    m_levelCompleteText.setString("Level Complete!");
+
+    m_gameCompleteText.setFont(m_font);
+    m_gameCompleteText.setCharacterSize(54);
+    m_gameCompleteText.setFillColor(sf::Color::Yellow);
+    m_gameCompleteText.setOutlineThickness(3.0f);
+    m_gameCompleteText.setOutlineColor(sf::Color::Black);
+    m_gameCompleteText.setString("Game Complete! Congratulations!");
+
+    m_messageBackground.setSize(sf::Vector2f(WINDOW_WIDTH, 200.0f));
+    m_messageBackground.setFillColor(sf::Color(0, 0, 0, 180));
+    m_messageBackground.setPosition(0, WINDOW_HEIGHT / 2 - 100);
 
     std::cout << "[OK] GameplayScreen components initialized with ECS" << std::endl;
 }
@@ -54,14 +71,16 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
         // Initialize game session with window NOW
         m_gameSession->initialize(m_textures, window);
 
-        // Load initial level
-        m_gameSession->loadLevel(m_currentLevel);
+        // Load initial level 
+        m_gameSession->loadLevel(m_gameSession->getLevelManager().getCurrentLevelPath());
 
         // Initialize UI Observer after level is loaded
         initializeUIObserver();
 
+        setupLevelEventHandlers();
+
         m_initialized = true;
-        std::cout << "[OK] Level loaded: " << m_currentLevel << std::endl;
+        std::cout << "[OK] Level loaded with level management" << std::endl;
     }
 
     // Update input service
@@ -79,12 +98,14 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
         // Handle level switching for testing
         if (event.type == sf::Event::KeyPressed) {
             if (event.key.code == sf::Keyboard::F1) {
-                m_gameSession->loadLevel("level1.txt");
-                std::cout << "[OK] Switched to level1.txt" << std::endl;
+                m_gameSession->getLevelManager().resetToFirstLevel();
+                m_gameSession->loadLevel(m_gameSession->getLevelManager().getCurrentLevelPath());
+                std::cout << "[OK] Reset to first level" << std::endl;
             }
             else if (event.key.code == sf::Keyboard::F2) {
-                m_gameSession->loadLevel("level2.txt");
-                std::cout << "[OK] Switched to level2.txt" << std::endl;
+                if (m_gameSession->loadNextLevel()) {
+                    std::cout << "[OK] Manually switched to next level" << std::endl;
+                }
             }
             else if (event.key.code == sf::Keyboard::Escape) {
                 window.close();
@@ -96,43 +117,42 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
 void GameplayScreen::update(float deltaTime) {
     if (m_ui->isPaused()) return;
 
-    // Get player from new system
+    if (m_showingLevelComplete || m_showingGameComplete) {
+        m_messageTimer += deltaTime;
+        if (m_messageTimer >= m_messageDuration) {
+            m_showingLevelComplete = false;
+            m_showingGameComplete = false;
+            m_messageTimer = 0.0f;
+        }
+    }
+
     PlayerEntity* player = m_gameSession->getPlayer();
     if (!player) {
         std::cout << "[WARNING] No player found in GameSession" << std::endl;
         return;
     }
 
-    // Handle player input with component system
     handlePlayerInput(*player);
-
-    // Update game session (all entities and systems)
     m_gameSession->update(deltaTime);
 
-    // Update camera to follow player
-    updateCameraForPlayer(*player);
+    player = m_gameSession->getPlayer();
+    if (player && player->hasComponent<Transform>()) {
+        updateCameraForPlayer(*player);
+        updateUI(*player);
+    }
 
-    // Update UI
-    updateUI(*player);
-
-    // Update UI Observer notifications
     if (m_uiObserver) {
         m_uiObserver->update(deltaTime);
     }
 
-    // Check for game over condition
-    auto* health = player->getComponent<HealthComponent>();
+    auto* health = player ? player->getComponent<HealthComponent>() : nullptr;
     if (health && !health->isAlive()) {
-        // Publish player died event
-        EventSystem::getInstance().publish(
-            PlayerDiedEvent(player->getId())
-        );
-
-        // Reset level
+        EventSystem::getInstance().publish(PlayerDiedEvent(player->getId()));
         std::cout << "[GAME OVER] Player died, restarting level..." << std::endl;
-        m_gameSession->loadLevel(m_currentLevel);
+        m_gameSession->reloadCurrentLevel();
     }
 }
+
 
 void GameplayScreen::render(sf::RenderWindow& window) {
     // Set camera view
@@ -154,6 +174,22 @@ void GameplayScreen::render(sf::RenderWindow& window) {
     // Render UI notifications
     if (m_uiObserver) {
         m_uiObserver->render(window);
+    }
+
+    if (m_showingLevelComplete) {
+        window.draw(m_messageBackground);
+
+        float alpha = 0.8f + 0.2f * std::sin(m_messageTimer * 8.0f);
+        sf::Color color = m_levelCompleteText.getFillColor();
+        color.a = static_cast<sf::Uint8>(255 * alpha);
+        m_levelCompleteText.setFillColor(color);
+
+        window.draw(m_levelCompleteText);
+    }
+
+    if (m_showingGameComplete) {
+        window.draw(m_messageBackground);
+        window.draw(m_gameCompleteText);
     }
 }
 
@@ -207,4 +243,59 @@ void GameplayScreen::updateUI(PlayerEntity& player) {
     }
 
     m_ui->update(score, lives);
+}
+
+void GameplayScreen::setupLevelEventHandlers() {
+    // الاشتراك في أحداث انتقال المستوى
+    EventSystem::getInstance().subscribe<LevelTransitionEvent>(
+        [this](const LevelTransitionEvent& event) {
+            this->onLevelTransition(event);
+        }
+    );
+
+    EventSystem::getInstance().subscribe<FlagReachedEvent>(
+        [this](const FlagReachedEvent& event) {
+            this->showLevelCompleteMessage();
+        }
+    );
+}
+
+void GameplayScreen::onLevelTransition(const LevelTransitionEvent& event) {
+    if (event.isGameComplete) {
+        showGameCompleteMessage();
+    }
+    else {
+        std::cout << "[GameplayScreen] Transitioning to: " << event.toLevel << std::endl;
+    }
+}
+
+void GameplayScreen::showLevelCompleteMessage() {
+    m_showingLevelComplete = true;
+    m_messageTimer = 0.0f;
+
+    std::string levelText = "Level " + std::to_string(m_gameSession->getLevelManager().getCurrentIndex() + 1) + " Complete!";
+    m_levelCompleteText.setString(levelText);
+
+    sf::FloatRect bounds = m_levelCompleteText.getLocalBounds();
+    m_levelCompleteText.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
+    m_levelCompleteText.setPosition(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
+
+    std::cout << "[GameplayScreen] Showing level complete message" << std::endl;
+}
+
+void GameplayScreen::showGameCompleteMessage() {
+    m_showingGameComplete = true;
+    m_messageTimer = 0.0f;
+
+    PlayerEntity* player = m_gameSession->getPlayer();
+    if (player) {
+        std::string completeText = "Game Complete!\nFinal Score: " + std::to_string(player->getScore());
+        m_gameCompleteText.setString(completeText);
+    }
+
+    sf::FloatRect bounds = m_gameCompleteText.getLocalBounds();
+    m_gameCompleteText.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
+    m_gameCompleteText.setPosition(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
+
+    std::cout << "[GameplayScreen] Showing game complete message" << std::endl;
 }

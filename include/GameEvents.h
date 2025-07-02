@@ -113,3 +113,35 @@ public:
     Entity::IdType playerId;
     int totalCoins;
 };
+
+/**
+ * Flag reached event 
+ */
+class FlagReachedEvent : public Event {
+public:
+    FlagReachedEvent(Entity::IdType playerId, Entity::IdType flagId, const std::string& currentLevel)
+        : playerId(playerId), flagId(flagId), currentLevel(currentLevel) {
+    }
+
+    const char* getName() const override { return "FlagReached"; }
+
+    Entity::IdType playerId;
+    Entity::IdType flagId;
+    std::string currentLevel;
+};
+
+/**
+ * Level transition event -
+ */
+class LevelTransitionEvent : public Event {
+public:
+    LevelTransitionEvent(const std::string& fromLevel, const std::string& toLevel, bool isGameComplete = false)
+        : fromLevel(fromLevel), toLevel(toLevel), isGameComplete(isGameComplete) {
+    }
+
+    const char* getName() const override { return "LevelTransition"; }
+
+    std::string fromLevel;
+    std::string toLevel;
+    bool isGameComplete;
+};

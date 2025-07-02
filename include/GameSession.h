@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <memory>
 #include <Box2D/Box2D.h>
 #include "EntityManager.h"
@@ -7,7 +7,8 @@
 #include "ResourceManager.h"
 #include "LevelLoader.h"
 #include <SurpriseBoxManager.h>
-
+#include "LevelManager.h"
+#include <GameEvents.h>
 
 class PlayerEntity;
 
@@ -37,6 +38,11 @@ public:
     void spawnEntity(std::unique_ptr<Entity> entity);
 
     SurpriseBoxManager* getSurpriseBoxManager() { return m_surpriseBoxManager.get(); }
+    bool loadNextLevel();
+    void reloadCurrentLevel();
+
+    LevelManager& getLevelManager() { return m_levelManager; }
+    const std::string& getCurrentLevelName() const;
 
 private:
     void checkCollisions();
@@ -54,4 +60,17 @@ private:
 
     std::unique_ptr<SurpriseBoxManager> m_surpriseBoxManager;
 
+    void setupEventHandlers();
+    void onFlagReached(const FlagReachedEvent& event);
+    void onLevelTransition(const LevelTransitionEvent& event);
+
+    LevelManager m_levelManager; 
+
+    // إضافة جديدة - متغيرات لإدارة الانتقال بين المستويات
+    bool m_levelTransitionPending = false;
+    float m_transitionDelay = 2.0f; // ثانيتان قبل الانتقال
+    float m_transitionTimer = 0.0f;
+
+    bool m_needLevelSwitch = false;
+    std::string m_nextLevelPath;
 };

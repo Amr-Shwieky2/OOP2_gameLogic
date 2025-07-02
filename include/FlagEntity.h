@@ -1,4 +1,4 @@
-// FlagEntity.h
+﻿// FlagEntity.h
 #pragma once
 #include "Entity.h"
 #include <Box2D/Box2D.h>
@@ -13,6 +13,11 @@ public:
 
     void onPlayerReach();
 
+    bool isCompleted() const;
+    void setCompleted(bool completed);
+
 private:
     void setupComponents(b2World& world, float x, float y, TextureManager& textures);
+
+    bool m_completed = false;
 };

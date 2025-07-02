@@ -1,5 +1,4 @@
-﻿// GameplayScreen.h - FULLY INTEGRATED with GameSession
-#pragma once
+﻿#pragma once
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include "IScreen.h"
@@ -30,6 +29,11 @@ private:
     void updateUI(PlayerEntity& player);
     void initializeUIObserver();
 
+    void setupLevelEventHandlers();
+    void onLevelTransition(const LevelTransitionEvent& event);
+    void showLevelCompleteMessage();
+    void showGameCompleteMessage();
+
     // Core components - Using new ECS system
     std::unique_ptr<GameSession> m_gameSession;
     std::unique_ptr<CameraManager> m_cameraManager;
@@ -39,6 +43,14 @@ private:
 
     // Input handling
     InputService m_inputService;  // Direct input service instead of InputManager
+
+    bool m_showingLevelComplete = false;
+    bool m_showingGameComplete = false;
+    float m_messageTimer = 0.0f;
+    float m_messageDuration = 3.0f;
+    sf::Text m_levelCompleteText;
+    sf::Text m_gameCompleteText;
+    sf::RectangleShape m_messageBackground;
 
     // Resources
     ResourceManager<sf::Texture> m_textures;
