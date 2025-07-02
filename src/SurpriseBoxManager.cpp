@@ -166,3 +166,13 @@ void SurpriseBoxManager::spawnGiftEntity(SurpriseGiftType giftType, const sf::Ve
         std::cerr << "[SurpriseBox] Error spawning gift: " << e.what() << std::endl;
     }
 }
+
+void SurpriseBoxManager::reset() {
+    m_player = nullptr;
+    m_entityManager = nullptr;
+    m_world = nullptr;
+    m_lastTriggerCoin = -1;
+    m_coinsCollected = 0;
+
+    std::cout << "[SurpriseBox] Reset completed." << std::endl;
+}

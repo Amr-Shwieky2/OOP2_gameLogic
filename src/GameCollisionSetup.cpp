@@ -207,8 +207,19 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
     // Player vs Flag (level complete)
     collisionSystem.registerHandler<PlayerEntity, FlagEntity>(
         [](PlayerEntity& player, FlagEntity& flag) {
+            if (flag.isCompleted()) {
+                return; 
+            }
+            std::cout << "[Collision] Player reached the flag!" << std::endl;
+
+            flag.setCompleted(true);
+
+            EventSystem::getInstance().publish(
+                FlagReachedEvent(player.getId(), flag.getId(), "current_level")
+            );
+            player.addScore(500); 
+
             std::cout << "Level Complete! Player reached the flag!" << std::endl;
-            // TODO: Trigger level complete event
         }
     );
 

@@ -1,5 +1,4 @@
-// FlagEntity.cpp
-#include "FlagEntity.h"
+﻿#include "FlagEntity.h"
 #include "Transform.h"
 #include "PhysicsComponent.h"
 #include "RenderComponent.h"
@@ -7,7 +6,7 @@
 #include "Constants.h"
 
 FlagEntity::FlagEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
-    : Entity(id) {
+    : Entity(id), m_completed(false) {  // إضافة تهيئة m_completed
     setupComponents(world, x, y, textures);
 }
 
@@ -35,3 +34,10 @@ void FlagEntity::onPlayerReach() {
     // Level complete - handled in collision system
 }
 
+bool FlagEntity::isCompleted() const {
+    return m_completed;
+}
+
+void FlagEntity::setCompleted(bool completed) {
+    m_completed = completed;
+}
