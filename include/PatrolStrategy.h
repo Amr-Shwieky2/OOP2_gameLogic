@@ -11,6 +11,8 @@ public:
 
     void update(Entity& entity, float dt, PlayerEntity* player) override;
     const char* getName() const override { return "Patrol"; }
+    bool requiresPlayer() const override { return false; }
+
 
 private:
     float m_patrolDistance;

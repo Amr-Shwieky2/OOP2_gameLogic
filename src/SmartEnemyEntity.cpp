@@ -1,4 +1,4 @@
-#include "SmartEnemyEntity.h"
+﻿#include "SmartEnemyEntity.h"
 #include "Transform.h"
 #include "PhysicsComponent.h"
 #include "RenderComponent.h"

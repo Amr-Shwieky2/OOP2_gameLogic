@@ -36,20 +36,25 @@ public:
     virtual void update(float dt);
     virtual void onDestroy();
 
+    // NEW: Add virtual onDeath method for entities to override
+    virtual void onDeath(Entity* killer) {
+        // Default implementation does nothing
+        // Derived classes can override for special death behavior
+    }
+
 protected:
     IdType m_id;
     bool m_active = true;
     std::unordered_map<std::type_index, std::unique_ptr<Component>> m_components;
 };
 
-// ---- Template Method Definitions ----
-
+// Template implementations remain the same...
 template <typename T, typename... Args>
 T* Entity::addComponent(Args&&... args) {
     static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
     auto comp = std::make_unique<T>(std::forward<Args>(args)...);
     T* ptr = comp.get();
-    comp->setOwner(this);  // Set the owner of the component
+    comp->setOwner(this);
     m_components[typeid(T)] = std::move(comp);
     return ptr;
 }

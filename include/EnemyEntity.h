@@ -10,10 +10,9 @@
 #include <functional>
 #include "ResourceManager.h"
 
-
 /**
  * EnemyEntity - Base class for all enemies
- * Replaces SquareEnemy, FalconEnemy, etc.
+ * Now includes onDeath virtual method for special death behaviors
  */
 class EnemyEntity : public Entity {
 public:
@@ -31,20 +30,15 @@ public:
     // Make textures accessible to derived classes
     TextureManager& getTextures() { return m_textures; }
 
+    // NEW: Virtual onDeath method for special death behaviors
+    virtual void onDeath(Entity* killer) override {
+        // Default enemy death behavior
+        // Derived classes can override for special effects (like splitting)
+    }
+
 protected:
     virtual void setupComponents(b2World& world, float x, float y, TextureManager& textures);
 
     EnemyType m_enemyType;
     TextureManager& m_textures;
-};
-
-/**
- * SquareEnemyEntity - Walking enemy
- */
-class SquareEnemyEntity : public EnemyEntity {
-public:
-    SquareEnemyEntity(IdType id, b2World& world, float x, float y, TextureManager& textures);
-
-protected:
-    void setupComponents(b2World& world, float x, float y, TextureManager& textures) override;
 };

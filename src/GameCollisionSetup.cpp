@@ -24,6 +24,7 @@
 #include <HeadwindState.h>
 #include <ReversedState.h>
 #include <Constants.h>
+#include <SquareEnemyEntity.h>
 
 // For entity ID generation
 int g_nextEntityId = 1;
@@ -86,31 +87,60 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             auto* playerPhysics = player.getComponent<PhysicsComponent>();
             auto* enemyPhysics = enemy.getComponent<PhysicsComponent>();
 
-            if (!playerHealth || !enemyHealth) return;
+            if (!playerHealth || !enemyHealth || !playerPhysics || !enemyPhysics) return;
 
-            // Check if player is jumping on enemy
             sf::Vector2f playerPos = playerPhysics->getPosition();
             sf::Vector2f enemyPos = enemyPhysics->getPosition();
 
             if (playerPos.y < enemyPos.y - 20.0f) { // Player is above enemy
-                // Player kills enemy
+                std::cout << "[COLLISION] Player jumping on " << (int)enemy.getSizeType()
+                    << " size square enemy!" << std::endl;
+
+                // تحديد نوع الانقسام والنقاط
+                int scoreBonus = 0;
+                std::string splitMessage = "";
+
+                switch (enemy.getSizeType()) {
+                case SquareEnemyEntity::SizeType::Large:
+                    scoreBonus = 150; // نقاط أكثر لأنه سينتج أعداء متوسطة
+                    splitMessage = "Large enemy → 3 Medium enemies";
+                    break;
+                case SquareEnemyEntity::SizeType::Medium:
+                    scoreBonus = 200; // نقاط أكثر لأنه سينتج أعداء أذكياء!
+                    splitMessage = "Medium enemy → 3 SMART enemies! 🧠";
+                    break;
+                case SquareEnemyEntity::SizeType::Small:
+                    scoreBonus = 100; // هذا لن يحدث عادة
+                    splitMessage = "Small enemy defeated";
+                    break;
+                }
+
+                std::cout << "[SCORE] " << splitMessage << " +" << scoreBonus << " points" << std::endl;
+
+                // استدعاء onDeath قبل التعطيل لتفعيل الانقسام
+                enemy.onDeath(&player);
+
+                // قتل العدو الأصلي
                 enemyHealth->takeDamage(999);
                 enemy.setActive(false);
 
-                // Bounce player
+                // نطّ اللاعب
                 playerPhysics->applyImpulse(0, -5.0f);
-                player.addScore(100);
 
-                std::cout << "Player killed regular enemy!" << std::endl;
+                // إضافة النقاط
+                player.addScore(scoreBonus);
+
+                // نشر الحدث
+                EventSystem::getInstance().publish(
+                    EnemyKilledEvent(enemy.getId(), player.getId())
+                );
             }
             else {
-                // Enemy hurts player
+                // العدو يؤذي اللاعب
                 if (!playerHealth->isInvulnerable() && player.canTakeDamage()) {
                     playerHealth->takeDamage(1);
                     player.startDamageCooldown();
-                    std::cout << "Player took damage from regular enemy! Health: " << playerHealth->getHealth() << std::endl;
 
-                    // Knockback
                     float knockbackDir = (playerPos.x > enemyPos.x) ? 1.0f : -1.0f;
                     playerPhysics->applyImpulse(knockbackDir * 3.0f, -2.0f);
                 }
@@ -529,11 +559,18 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
 
     // Register Square Enemy
     factory.registerCreator("z", [&](float x, float y) -> std::unique_ptr<Entity> {
-        std::cout << "[FACTORY] Creating SquareEnemyEntity at (" << x << ", " << y << ")" << std::endl;
-        auto enemy = std::make_unique<SquareEnemyEntity>(g_nextEntityId++, world, x, y, textures);
+        std::cout << "[FACTORY] Creating Large SquareEnemyEntity at (" << x << ", " << y << ")" << std::endl;
+        auto enemy = std::make_unique<SquareEnemyEntity>(
+            g_nextEntityId++,
+            world, // You'll need access to the physics world here
+            x, y,
+            textures,
+            SquareEnemyEntity::SizeType::Large
+        );
         std::cout << "[FACTORY] SquareEnemyEntity created with ID: " << enemy->getId() << std::endl;
         return enemy;
-        });
+        }
+    );
 
     // Register Smart Enemy
     factory.registerCreator("Z", [&](float x, float y) -> std::unique_ptr<Entity> {

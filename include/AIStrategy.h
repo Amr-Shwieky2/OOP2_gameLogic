@@ -13,6 +13,8 @@ class AIStrategy {
 public:
     virtual ~AIStrategy() = default;
 
+    virtual bool requiresPlayer() const { return true; }
+
     // Update AI behavior
     virtual void update(Entity& entity, float dt, PlayerEntity* player) = 0;
 
