@@ -1,4 +1,3 @@
-// AIComponent.cpp
 #include "AIComponent.h"
 #include "AIStrategy.h"
 #include "Entity.h"
@@ -21,13 +20,16 @@ void AIComponent::update(float dt) {
         return;
     }
 
-    if (!m_targetPlayer) {
-        std::cout << "[AI COMPONENT] No target player!" << std::endl;
-        return;
+    if (m_strategy->requiresPlayer()) {
+        if (!m_targetPlayer) {
+            std::cout << "[AI COMPONENT] No target player!" << std::endl;
+            return;
+        }
+        m_strategy->update(*m_owner, dt, m_targetPlayer);
     }
-
-    // Update the strategy
-    m_strategy->update(*m_owner, dt, m_targetPlayer);
+    else {
+        m_strategy->update(*m_owner, dt, nullptr);
+    }
 }
 
 void AIComponent::setStrategy(std::unique_ptr<AIStrategy> strategy) {
