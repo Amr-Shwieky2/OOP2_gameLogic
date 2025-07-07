@@ -244,3 +244,10 @@ void PlayerEntity::applyRollRotation(float dt) {
         render->getSprite().rotate(deltaAngle);
     }
 }
+
+sf::Keyboard::Key PlayerEntity::getJumpKey() const {
+    if (m_currentState == ReversedState::getInstance()) {
+        return sf::Keyboard::Down;
+    }
+    return sf::Keyboard::Up;
+}

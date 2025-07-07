@@ -76,7 +76,7 @@ void ReversedState::handleInput(PlayerEntity& player, const InputService& input)
         physics->setVelocity(0, vel.y);
     }
 
-    if (input.isKeyPressed(sf::Keyboard::Up) && player.isOnGround()) {
+    if (input.isKeyPressed(player.getJumpKey()) && player.isOnGround()) {
         physics->applyImpulse(0, -PLAYER_JUMP_IMPULSE);
     }
 

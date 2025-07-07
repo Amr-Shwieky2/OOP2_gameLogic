@@ -1,4 +1,4 @@
-#include "HeadwindState.h"
+﻿#include "HeadwindState.h"
 #include "NormalState.h"
 #include "PlayerEntity.h"
 #include "PhysicsComponent.h"
@@ -63,7 +63,7 @@ void HeadwindState::handleInput(PlayerEntity& player, const InputService& input)
     auto* physics = player.getComponent<PhysicsComponent>();
     if (!physics) return;
 
-    float moveSpeed = PLAYER_MOVE_SPEED * 0.3f;
+    float moveSpeed = PLAYER_MOVE_SPEED * 0.1f;
     auto vel = physics->getVelocity();
 
     if (input.isKeyDown(sf::Keyboard::Left)) {
@@ -77,7 +77,7 @@ void HeadwindState::handleInput(PlayerEntity& player, const InputService& input)
     }
 
     if (input.isKeyPressed(sf::Keyboard::Up) && player.isOnGround()) {
-        physics->applyImpulse(0, -PLAYER_JUMP_IMPULSE * 0.7f);
+        physics->applyImpulse(0, -PLAYER_JUMP_IMPULSE * 0.5f);
     }
 
     if (input.isKeyPressed(sf::Keyboard::C)) {

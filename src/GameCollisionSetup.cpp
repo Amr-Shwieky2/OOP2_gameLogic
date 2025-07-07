@@ -280,8 +280,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
         }
     );
 
-    // ===== PROJECTILE HANDLERS =====
-
     // Projectile vs Regular Enemy (EXCLUDES Smart and Falcon enemies)
     collisionSystem.registerHandler<ProjectileEntity, EnemyEntity>(
         [](ProjectileEntity& proj, EnemyEntity& enemy) {

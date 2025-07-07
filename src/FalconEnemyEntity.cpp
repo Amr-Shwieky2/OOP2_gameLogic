@@ -16,7 +16,6 @@ extern GameSession* g_currentSession;
 
 FalconEnemyEntity::FalconEnemyEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : EnemyEntity(id, EnemyType::Falcon, world, x, y, textures) {
-    std::cout << "[FALCON ENEMY] Constructor called" << std::endl;
     setupComponents(world, x, y, textures);
 }
 
@@ -47,7 +46,6 @@ void FalconEnemyEntity::setupComponents(b2World& world, float x, float y, Textur
     try {
         m_texture1 = &textures.getResource("FalconEnemy.png");
         m_texture2 = &textures.getResource("FalconEnemy2.png");
-        std::cout << "[FALCON] Loaded both wing textures" << std::endl;
     }
     catch (const std::exception& e) {
         std::cerr << "[FALCON] Error loading textures: " << e.what() << std::endl;
@@ -74,8 +72,6 @@ void FalconEnemyEntity::setupComponents(b2World& world, float x, float y, Textur
     m_readyToShoot = false;
     m_shootTimer = 0.0f;
     m_hasEnteredScreen = false;
-
-    std::cout << "[FALCON] Setup complete - shooting starts when visible" << std::endl;
 }
 
 void FalconEnemyEntity::updateFlightPattern(float dt) {
@@ -95,7 +91,7 @@ void FalconEnemyEntity::updateFlightPattern(float dt) {
     float cameraRight = playerPos.x + WINDOW_WIDTH / 2.0f;
 
     // Move falcon to the right
-    physics->setVelocity(5.0f, 0.0f);
+    physics->setVelocity(3.0f, 0.0f);
 
     // STABLE LOGIC: Wider margins to prevent flickering
     bool inShootingZone = (currentPos.x >= cameraLeft - 200.0f && currentPos.x <= cameraRight + 200.0f);
@@ -107,14 +103,11 @@ void FalconEnemyEntity::updateFlightPattern(float dt) {
         m_readyToShoot = true;
         m_hasEnteredScreen = true;
         m_shootTimer = 0.0f;
-        std::cout << "[FALCON] *** SHOOTING ZONE ENTERED ***" << std::endl;
     }
-
 
     // Disable shooting only when FAR outside
     if ((farLeft || farRight) && m_readyToShoot) {
         m_readyToShoot = false;
-        std::cout << "[FALCON] *** SHOOTING ZONE EXITED ***" << std::endl;
     }
 
     // Loop back when very far off-screen
@@ -124,7 +117,6 @@ void FalconEnemyEntity::updateFlightPattern(float dt) {
         m_shootTimer = 0.0f;
         m_readyToShoot = false;
         m_hasEnteredScreen = false;
-        std::cout << "[FALCON] *** LOOPED BACK - New X: " << newX << " ***" << std::endl;
     }
 
     // Force active always
@@ -137,11 +129,6 @@ void FalconEnemyEntity::updateFlightPattern(float dt) {
     posDebugTimer += dt;
     if (posDebugTimer >= 3.0f) {
         posDebugTimer = 0.0f;
-        std::cout << "[FALCON] X: " << currentPos.x
-            << " | Zones: Left[" << (cameraLeft - 300.0f) << "] "
-            << "Shoot[" << (cameraLeft - 200.0f) << " to " << (cameraRight + 200.0f) << "] "
-            << "Right[" << (cameraRight + 300.0f) << "]"
-            << " | Shooting: " << (m_readyToShoot ? "YES" : "NO") << std::endl;
     }
 }
 
@@ -158,9 +145,6 @@ void FalconEnemyEntity::updateShooting(float dt) {
         // Remove spam - only print occasionally
         static int shotCount = 0;
         shotCount++;
-        if (shotCount % 3 == 0) { // Every 3rd shot
-            std::cout << "[FALCON] Shot #" << shotCount << std::endl;
-        }
     }
 }
 
@@ -174,9 +158,6 @@ void FalconEnemyEntity::update(float dt) {
         auto* physics = getComponent<PhysicsComponent>();
         if (physics) {
             sf::Vector2f pos = physics->getPosition();
-            std::cout << "[FALCON STATUS] ID " << getId() << " Active: YES"
-                << " Pos: (" << pos.x << ", " << pos.y << ")"
-                << " Shooting: " << (m_readyToShoot ? "YES" : "NO") << std::endl;
         }
     }
 
@@ -239,11 +220,7 @@ void FalconEnemyEntity::shootProjectile() {
             bulletSpawnPos.x, bulletSpawnPos.y,
             shootDir, getTextures(), false // false = enemy projectile
         );
-        std::cout << "[DEBUG] Projectile spawned at: (" 
-          << bulletSpawnPos.x << ", " << bulletSpawnPos.y << ")" << std::endl;
-
         g_currentSession->spawnEntity(std::move(projectile));
-        std::cout << "[FALCON] Shot projectile downward" << std::endl;
     }
     catch (const std::exception& e) {
         std::cerr << "[FALCON] Error shooting: " << e.what() << std::endl;
