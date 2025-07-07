@@ -36,6 +36,8 @@ public:
     std::vector<Entity*> getAllEntities();
     // Add this method to EntityManager class
     void addEntity(std::unique_ptr<Entity> entity);
+    void removeInactiveEntities();
+
 
 private:
     std::unordered_map<IdType, std::unique_ptr<Entity>> m_entities;

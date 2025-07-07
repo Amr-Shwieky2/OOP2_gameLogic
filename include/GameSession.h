@@ -44,6 +44,8 @@ public:
     LevelManager& getLevelManager() { return m_levelManager; }
     const std::string& getCurrentLevelName() const;
 
+    void cleanupInactiveEntities();
+
 private:
     void checkCollisions();
     bool areColliding(Entity& a, Entity& b);

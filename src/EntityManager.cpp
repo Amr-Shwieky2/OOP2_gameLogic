@@ -50,6 +50,13 @@ void EntityManager::addEntity(std::unique_ptr<Entity> entity)
     }
 }
 
-// Template method must be implemented in header
-// template <typename T, typename... Args>
-// T* EntityManager::createEntity(Args&&... args) { ... }
+void EntityManager::removeInactiveEntities() {
+    for (auto it = m_entities.begin(); it != m_entities.end(); ) {
+        if (!it->second->isActive()) {
+            it = m_entities.erase(it);
+        }
+        else {
+            ++it;
+        }
+    }
+}

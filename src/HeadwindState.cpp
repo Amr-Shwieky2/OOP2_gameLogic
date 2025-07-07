@@ -17,7 +17,7 @@ PlayerState* HeadwindState::getInstance() {
 
 void HeadwindState::enter(PlayerEntity& player) {
     std::cout << "[State] Entering Headwind state - Movement slowed!" << std::endl;
-    m_duration = 12.0f;
+    m_duration = 8.0f;
 
     auto* render = player.getComponent<RenderComponent>();
     if (render) {
@@ -63,7 +63,7 @@ void HeadwindState::handleInput(PlayerEntity& player, const InputService& input)
     auto* physics = player.getComponent<PhysicsComponent>();
     if (!physics) return;
 
-    float moveSpeed = PLAYER_MOVE_SPEED * 0.1f;
+    float moveSpeed = PLAYER_MOVE_SPEED * 0.3f;
     auto vel = physics->getVelocity();
 
     if (input.isKeyDown(sf::Keyboard::Left)) {

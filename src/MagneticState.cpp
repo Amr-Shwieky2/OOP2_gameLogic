@@ -23,7 +23,7 @@ PlayerState* MagneticState::getInstance() {
 
 void MagneticState::enter(PlayerEntity& player) {
     std::cout << "[State] Entering Magnetic state" << std::endl;
-    m_duration = 15.0f;
+    m_duration = 6.0f;
     m_attractedCoins.clear(); 
 
     auto* render = player.getComponent<RenderComponent>();
