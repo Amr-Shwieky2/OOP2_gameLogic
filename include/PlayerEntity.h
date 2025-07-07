@@ -51,6 +51,7 @@ public:
 
     bool canTakeDamage() const { return m_damageTimer <= 0.0f; }
     void startDamageCooldown() { m_damageTimer = m_damageCooldown; }
+    sf::Keyboard::Key getJumpKey() const;
 
 private:
     void setupComponents(b2World& world, float x, float y, TextureManager& textures);

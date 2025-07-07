@@ -47,9 +47,6 @@ void ProjectileEntity::setupComponents(b2World& world, float x, float y,
         body->SetAwake(true);               // مستيقظة دائماً
 
         body->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
-
-        std::cout << "[Projectile] Created KINEMATIC projectile with velocity: ("
-            << direction.x * speed << ", " << direction.y * speed << ")" << std::endl;
     }
 
     // Rendering
@@ -96,10 +93,4 @@ void ProjectileEntity::update(float dt) {
             setActive(false);
         }
     }
-    std::cout << "[PROJECTILE] Pos = ("
-        << getComponent<Transform>()->getPosition().x
-        << ", "
-        << getComponent<Transform>()->getPosition().y
-        << ")\n";
-
 }
