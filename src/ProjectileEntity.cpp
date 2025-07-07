@@ -26,6 +26,16 @@ void ProjectileEntity::setupComponents(b2World& world, float x, float y,
     physics->createCircleShape(projectileSize);
     physics->setPosition(x, y);
 
+    if (auto* body = physics->getBody()) {
+        b2Fixture* fixture = body->GetFixtureList();
+        if (fixture) {
+            b2Filter filter;
+            filter.categoryBits = 0x0002; // فئة Projectile
+            filter.maskBits = 0xFFFF & ~0x0004; // لا يتصادم مع فئة Enemy
+            fixture->SetFilterData(filter);
+        }
+    }
+
     // Set velocity for kinematic body
     float speed = 5.0f; 
     physics->setVelocity(direction.x * speed, direction.y * speed);
@@ -86,4 +96,10 @@ void ProjectileEntity::update(float dt) {
             setActive(false);
         }
     }
+    std::cout << "[PROJECTILE] Pos = ("
+        << getComponent<Transform>()->getPosition().x
+        << ", "
+        << getComponent<Transform>()->getPosition().y
+        << ")\n";
+
 }

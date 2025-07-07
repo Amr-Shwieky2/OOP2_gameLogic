@@ -9,6 +9,7 @@
 #include "Constants.h"
 #include <iostream>
 #include <cmath>
+#include "PlayerEntity.h"
 
 extern int g_nextEntityId;
 extern GameSession* g_currentSession;
@@ -20,28 +21,25 @@ FalconEnemyEntity::FalconEnemyEntity(IdType id, b2World& world, float x, float y
 }
 
 void FalconEnemyEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
-    // Call base setup
     EnemyEntity::setupComponents(world, x, y, textures);
 
-    // Position high in the sky
     float centerX = x + TILE_SIZE / 2.f;
-    float skyY = 150.0f; // Flying altitude
 
-    // Update transform position
+    // Set transform position
     auto* transform = getComponent<Transform>();
     if (transform) {
-        transform->setPosition(centerX, skyY);
+        transform->setPosition(centerX, m_flightAltitude);
     }
 
-    // Add physics - flying enemy
+    // Add physics - flying enemy with no gravity
     auto* physics = addComponent<PhysicsComponent>(world, b2_dynamicBody);
     physics->createBoxShape(TILE_SIZE * 0.8f, TILE_SIZE * 0.6f);
-    physics->setPosition(centerX, skyY);
+    physics->setPosition(centerX, m_flightAltitude);
 
     if (auto* body = physics->getBody()) {
-        body->SetGravityScale(0.0f); // No gravity
+        body->SetGravityScale(0.0f); // No gravity for flying
         body->SetFixedRotation(true);
-        body->SetLinearDamping(0.2f); // Slight air resistance
+        body->SetLinearDamping(0.2f);
         body->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
     }
 
@@ -62,24 +60,132 @@ void FalconEnemyEntity::setupComponents(b2World& world, float x, float y, Textur
     auto& sprite = render->getSprite();
     sprite.setScale(0.2f, 0.2f);
     sprite.setColor(sf::Color::White);
+    sprite.setOrigin(sprite.getLocalBounds().width / 2.0f, sprite.getLocalBounds().height / 2.0f);
+    sprite.setPosition(centerX, m_flightAltitude);
 
-    auto bounds = sprite.getLocalBounds();
-    sprite.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
-    sprite.setPosition(centerX, skyY);
-
-    // Enhanced health
-    auto* health = getComponent<HealthComponent>();
-    if (health) {
+    // Set health
+    if (auto* health = getComponent<HealthComponent>()) {
         health->setHealth(3);
     }
 
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Enemy);
-    std::cout << "[FALCON] Setup complete at altitude " << skyY << std::endl;
+
+    // Initialize shooting state - starts disabled until visible
+    m_readyToShoot = false;
+    m_shootTimer = 0.0f;
+    m_hasEnteredScreen = false;
+
+    std::cout << "[FALCON] Setup complete - shooting starts when visible" << std::endl;
 }
 
-void FalconEnemyEntity::update(float dt) {
-    EnemyEntity::update(dt);
+void FalconEnemyEntity::updateFlightPattern(float dt) {
+    auto* physics = getComponent<PhysicsComponent>();
+    if (!physics || !g_currentSession) return;
 
+    sf::Vector2f currentPos = physics->getPosition();
+
+    PlayerEntity* player = g_currentSession->getPlayer();
+    if (!player) return;
+
+    auto* playerTransform = player->getComponent<Transform>();
+    if (!playerTransform) return;
+
+    sf::Vector2f playerPos = playerTransform->getPosition();
+    float cameraLeft = playerPos.x - WINDOW_WIDTH / 2.0f;
+    float cameraRight = playerPos.x + WINDOW_WIDTH / 2.0f;
+
+    // Move falcon to the right
+    physics->setVelocity(5.0f, 0.0f);
+
+    // STABLE LOGIC: Wider margins to prevent flickering
+    bool inShootingZone = (currentPos.x >= cameraLeft - 200.0f && currentPos.x <= cameraRight + 200.0f);
+    bool farLeft = (currentPos.x < cameraLeft - 300.0f);
+    bool farRight = (currentPos.x > cameraRight + 300.0f);
+
+    // Enable shooting when entering the zone (simplified condition)
+    if (inShootingZone && !m_readyToShoot) {
+        m_readyToShoot = true;
+        m_hasEnteredScreen = true;
+        m_shootTimer = 0.0f;
+        std::cout << "[FALCON] *** SHOOTING ZONE ENTERED ***" << std::endl;
+    }
+
+
+    // Disable shooting only when FAR outside
+    if ((farLeft || farRight) && m_readyToShoot) {
+        m_readyToShoot = false;
+        std::cout << "[FALCON] *** SHOOTING ZONE EXITED ***" << std::endl;
+    }
+
+    // Loop back when very far off-screen
+    if (currentPos.x > cameraRight + 400.0f) {
+        float newX = cameraLeft - 300.0f;
+        physics->setPosition(newX, m_flightAltitude);
+        m_shootTimer = 0.0f;
+        m_readyToShoot = false;
+        m_hasEnteredScreen = false;
+        std::cout << "[FALCON] *** LOOPED BACK - New X: " << newX << " ***" << std::endl;
+    }
+
+    // Force active always
+    if (!isActive()) {
+        setActive(true);
+    }
+
+    // Debug position every 3 seconds (less spam)
+    static float posDebugTimer = 0.0f;
+    posDebugTimer += dt;
+    if (posDebugTimer >= 3.0f) {
+        posDebugTimer = 0.0f;
+        std::cout << "[FALCON] X: " << currentPos.x
+            << " | Zones: Left[" << (cameraLeft - 300.0f) << "] "
+            << "Shoot[" << (cameraLeft - 200.0f) << " to " << (cameraRight + 200.0f) << "] "
+            << "Right[" << (cameraRight + 300.0f) << "]"
+            << " | Shooting: " << (m_readyToShoot ? "YES" : "NO") << std::endl;
+    }
+}
+
+// Simplified shooting - less debug spam
+void FalconEnemyEntity::updateShooting(float dt) {
+    if (!m_readyToShoot) {
+        return;
+    }
+
+    m_shootTimer += dt;
+    if (m_shootTimer >= m_shootCooldown) {
+        shootProjectile();
+        m_shootTimer = 0.0f;
+        // Remove spam - only print occasionally
+        static int shotCount = 0;
+        shotCount++;
+        if (shotCount % 3 == 0) { // Every 3rd shot
+            std::cout << "[FALCON] Shot #" << shotCount << std::endl;
+        }
+    }
+}
+
+// Clean up the update method
+void FalconEnemyEntity::update(float dt) {
+    // Debug every 3 seconds instead of 1
+    static float debugTimer = 0.0f;
+    debugTimer += dt;
+    if (debugTimer >= 3.0f) {
+        debugTimer = 0.0f;
+        auto* physics = getComponent<PhysicsComponent>();
+        if (physics) {
+            sf::Vector2f pos = physics->getPosition();
+            std::cout << "[FALCON STATUS] ID " << getId() << " Active: YES"
+                << " Pos: (" << pos.x << ", " << pos.y << ")"
+                << " Shooting: " << (m_readyToShoot ? "YES" : "NO") << std::endl;
+        }
+    }
+
+    // Force active always
+    if (!isActive()) {
+        setActive(true);
+    }
+
+    EnemyEntity::update(dt);
     updateAnimation(dt);
     updateFlightPattern(dt);
     updateShooting(dt);
@@ -88,8 +194,7 @@ void FalconEnemyEntity::update(float dt) {
     auto* physics = getComponent<PhysicsComponent>();
     auto* render = getComponent<RenderComponent>();
     if (physics && render) {
-        sf::Vector2f pos = physics->getPosition();
-        render->getSprite().setPosition(pos);
+        render->getSprite().setPosition(physics->getPosition());
     }
 }
 
@@ -101,91 +206,44 @@ void FalconEnemyEntity::updateAnimation(float dt) {
     }
 }
 
-void FalconEnemyEntity::updateFlightPattern(float dt) {
-    auto* physics = getComponent<PhysicsComponent>();
-    if (!physics) return;
-
-    sf::Vector2f currentPos = physics->getPosition();
-
-    float horizontalSpeed = 5.0f;
-    float vx = horizontalSpeed;
-    float vy = 0.0f; 
-
-    physics->setVelocity(vx, vy);
-
-    if (currentPos.x > WINDOW_WIDTH + 200.0f) {
-        physics->setPosition(-200.0f, currentPos.y);
-    }
-}
-
-
-void FalconEnemyEntity::updateShooting(float dt) {
-    m_shootTimer += dt;
-    if (m_shootTimer >= m_shootCooldown) {
-        shootProjectile();
-        m_shootTimer = 0.0f;
-    }
-}
-
 void FalconEnemyEntity::switchTexture() {
     auto* render = getComponent<RenderComponent>();
     if (!render || !m_texture1 || !m_texture2) return;
 
     m_currentFrame = (m_currentFrame + 1) % 2;
-
-    if (m_currentFrame == 0) {
-        render->setTexture(*m_texture1);
-    }
-    else {
-        render->setTexture(*m_texture2);
-    }
+    render->setTexture(m_currentFrame == 0 ? *m_texture1 : *m_texture2);
 
     auto& sprite = render->getSprite();
-    auto bounds = sprite.getLocalBounds();
-    sprite.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
+    sprite.setOrigin(sprite.getLocalBounds().width / 2.0f, sprite.getLocalBounds().height / 2.0f);
 }
 
 void FalconEnemyEntity::shootProjectile() {
-    if (!g_currentSession) {
-        std::cerr << "[FALCON] No game session for shooting" << std::endl;
-        return;
-    }
+    if (!g_currentSession) return;
 
     auto* transform = getComponent<Transform>();
     auto* physics = getComponent<PhysicsComponent>();
-
-    if (!transform || !physics) {
-        std::cerr << "[FALCON] Missing components for shooting" << std::endl;
-        return;
-    }
+    if (!transform || !physics) return;
 
     b2Body* body = physics->getBody();
-    if (!body) {
-        std::cerr << "[FALCON] Physics body is null" << std::endl;
-        return;
-    }
+    if (!body) return;
 
     b2World& world = *body->GetWorld();
-
     sf::Vector2f falconPos = transform->getPosition();
-    sf::Vector2f shootDirection(0.0f, 1.0f); 
-    sf::Vector2f bulletSpawnPos = falconPos + sf::Vector2f(0.0f, 30.0f);
+    sf::Vector2f bulletSpawnPos = falconPos + sf::Vector2f(0.0f, 60.0f);
+    sf::Vector2f shootDir(0.0f, 1.0f); // Shoot downward
 
     try {
-        // إنشاء المقذوف
+        // Create enemy projectile
         auto projectile = std::make_unique<ProjectileEntity>(
-            g_nextEntityId++,
-            world,
-            bulletSpawnPos.x,
-            bulletSpawnPos.y,
-            shootDirection,
-            getTextures(),  
-            false          
+            g_nextEntityId++, world,
+            bulletSpawnPos.x, bulletSpawnPos.y,
+            shootDir, getTextures(), false // false = enemy projectile
         );
+        std::cout << "[DEBUG] Projectile spawned at: (" 
+          << bulletSpawnPos.x << ", " << bulletSpawnPos.y << ")" << std::endl;
 
         g_currentSession->spawnEntity(std::move(projectile));
         std::cout << "[FALCON] Shot projectile downward" << std::endl;
-
     }
     catch (const std::exception& e) {
         std::cerr << "[FALCON] Error shooting: " << e.what() << std::endl;
