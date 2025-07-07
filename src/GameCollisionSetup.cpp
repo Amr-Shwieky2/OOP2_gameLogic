@@ -78,6 +78,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
 
     // Player vs Regular Square Enemy
+    // Player vs Regular Square Enemy
     collisionSystem.registerHandler<PlayerEntity, SquareEnemyEntity>(
         [](PlayerEntity& player, SquareEnemyEntity& enemy) {
             if (!enemy.isActive()) return;
@@ -92,51 +93,27 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             sf::Vector2f playerPos = playerPhysics->getPosition();
             sf::Vector2f enemyPos = enemyPhysics->getPosition();
 
-            if (playerPos.y < enemyPos.y - 20.0f) { // Player is above enemy
+            // ✨ تعديل الشرط حسب حجم العدو
+            float sizeFactor = enemy.getSizeMultiplier();
+            float verticalThreshold = TILE_SIZE * sizeFactor * 0.4f;
+
+            if (playerPos.y < enemyPos.y - verticalThreshold) {
                 std::cout << "[COLLISION] Player jumping on " << (int)enemy.getSizeType()
                     << " size square enemy!" << std::endl;
 
-                // تحديد نوع الانقسام والنقاط
-                int scoreBonus = 0;
-                std::string splitMessage = "";
+                int scoreBonus = (enemy.getSizeType() == SquareEnemyEntity::SizeType::Large) ? 150 : 100;
 
-                switch (enemy.getSizeType()) {
-                case SquareEnemyEntity::SizeType::Large:
-                    scoreBonus = 150; // نقاط أكثر لأنه سينتج أعداء متوسطة
-                    splitMessage = "Large enemy → 3 Medium enemies";
-                    break;
-                case SquareEnemyEntity::SizeType::Medium:
-                    scoreBonus = 200; // نقاط أكثر لأنه سينتج أعداء أذكياء!
-                    splitMessage = "Medium enemy → 3 SMART enemies! 🧠";
-                    break;
-                case SquareEnemyEntity::SizeType::Small:
-                    scoreBonus = 100; // هذا لن يحدث عادة
-                    splitMessage = "Small enemy defeated";
-                    break;
-                }
-
-                std::cout << "[SCORE] " << splitMessage << " +" << scoreBonus << " points" << std::endl;
-
-                // استدعاء onDeath قبل التعطيل لتفعيل الانقسام
                 enemy.onDeath(&player);
-
-                // قتل العدو الأصلي
                 enemyHealth->takeDamage(999);
                 enemy.setActive(false);
-
-                // نطّ اللاعب
                 playerPhysics->applyImpulse(0, -5.0f);
-
-                // إضافة النقاط
                 player.addScore(scoreBonus);
 
-                // نشر الحدث
                 EventSystem::getInstance().publish(
                     EnemyKilledEvent(enemy.getId(), player.getId())
                 );
             }
             else {
-                // العدو يؤذي اللاعب
                 if (!playerHealth->isInvulnerable() && player.canTakeDamage()) {
                     playerHealth->takeDamage(1);
                     player.startDamageCooldown();
@@ -147,6 +124,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             }
         }
     );
+
 
     // Player vs Gift
     collisionSystem.registerHandler<PlayerEntity, GiftEntity>(
@@ -168,12 +146,12 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             }
 
             case GiftEntity::GiftType::SpeedBoost:
-                player.applySpeedBoost(8.0f);
+                player.applySpeedBoost(5.0f);
                 std::cout << "Player collected Speed Boost!" << std::endl;
                 break;
 
             case GiftEntity::GiftType::Shield:
-                player.applyShield(7.0f);
+                player.applyShield(6.0f);
                 std::cout << "Player collected Shield!" << std::endl;
                 break;
 
@@ -438,7 +416,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                 }
 
                 // Bounce player
-                playerPhysics->applyImpulse(0, -6.0f);
+                playerPhysics->applyImpulse(0, -4.0f);
             }
             else {
                 if (!playerHealth->isInvulnerable() && player.canTakeDamage()) {

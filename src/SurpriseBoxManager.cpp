@@ -76,8 +76,7 @@ void SurpriseBoxManager::triggerSurprise() {
     // Calculate spawn position - above and slightly to the right of the player
     sf::Vector2f playerPos = playerTransform->getPosition();
 
-    // Spawn gift above player so it falls down
-    sf::Vector2f spawnPos = playerPos + sf::Vector2f(100.0f, -150.0f);
+    sf::Vector2f spawnPos = playerPos + sf::Vector2f(170.0f, -200.0f);
 
     // Spawn the selected gift
     spawnGiftEntity(selectedGift, spawnPos);

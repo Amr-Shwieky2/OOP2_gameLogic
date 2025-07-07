@@ -130,6 +130,8 @@ void GameSession::update(float deltaTime) {
 
     // Check collisions
     checkCollisions();
+
+    cleanupInactiveEntities();
 }
 
 void GameSession::render(sf::RenderWindow& window) {
@@ -278,4 +280,8 @@ void GameSession::reloadCurrentLevel() {
 
 const std::string& GameSession::getCurrentLevelName() const {
     return m_levelManager.getCurrentLevelPath();
+}
+
+void GameSession::cleanupInactiveEntities() {
+    m_entityManager.removeInactiveEntities();
 }
