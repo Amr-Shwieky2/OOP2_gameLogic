@@ -1,73 +1,56 @@
-﻿// PlayerEntity.h - Enhanced with State Pattern
-#pragma once
+﻿#pragma once
 #include "Entity.h"
-#include <SFML/Graphics.hpp>
-#include <Box2D/Box2D.h>
-#include <memory>
 #include "ResourceManager.h"
-#include "InputService.h"
-
-class PlayerState;
+#include"PlayerStateManager.h"
+#include"PlayerInputHandler.h"
+#include"PlayerScoreManager.h"
+#include"PlayerVisualEffects.h"
+#include"PlayerWeaponSystem.h"
 
 /**
- * PlayerEntity - Enhanced with State Pattern
+ * PlayerEntity - Now only responsible for:
+ * - Being a player entity
+ * - Coordinating its subsystems
+ * - Basic entity lifecycle
  */
 class PlayerEntity : public Entity {
 public:
     PlayerEntity(IdType id, b2World& world, float x, float y, TextureManager& textures);
 
-    // Override update to use state
     void update(float dt) override;
 
-    // State management
-    void changeState(PlayerState* newState);
-    PlayerState* getCurrentState() const { return m_currentState; }
+    // System accessors
+    PlayerStateManager* getStateManager() const { return m_stateManager.get(); }
+    PlayerInputHandler* getInputHandler() const { return m_inputHandler.get(); }
+    PlayerScoreManager* getScoreManager() const { return m_scoreManager.get(); }
+    PlayerVisualEffects* getVisualEffects() const { return m_visualEffects.get(); }
+    PlayerWeaponSystem* getWeaponSystem() const { return m_weaponSystem.get(); }
 
-    // Input handling through state
+    // Convenience methods that delegate to appropriate systems
     void handleInput(const InputService& input);
-
-    // Movement methods (called by states)
-    void jump();
-    void moveLeft();
-    void moveRight();
-    void shoot();
-
-    // Score/Lives management
     void addScore(int points);
-    int getScore() const { return m_score; }
-
-    // Effects (now trigger state changes)
-    void applySpeedBoost(float duration);
-    void applyShield(float duration);
-    void applyMagneticEffect(float duration);
-    void applyReverseEffect(float duration);
-    void applyHeadwindEffect(float duration);
-
-    // Getters
+    int getScore() const;
     sf::Vector2f getPosition() const;
     sf::Vector2f getVelocity() const;
     bool isOnGround() const;
-    TextureManager& getTextures() { return m_textures; }
 
-    bool canTakeDamage() const { return m_damageTimer <= 0.0f; }
-    void startDamageCooldown() { m_damageTimer = m_damageCooldown; }
     sf::Keyboard::Key getJumpKey() const;
+
+    PlayerState* getCurrentState() const;
+
+    // Texture access for states that need to change player appearance
+    TextureManager& getTextures() { return m_textures; }
 
 private:
     void setupComponents(b2World& world, float x, float y, TextureManager& textures);
-    void updateVisuals();
-    void updatePhysics();
-    void applyRollRotation(float dt);
-    int m_score = 0;
+
+    // Specialized subsystems - each with single responsibility
+    std::unique_ptr<PlayerStateManager> m_stateManager;
+    std::unique_ptr<PlayerInputHandler> m_inputHandler;
+    std::unique_ptr<PlayerScoreManager> m_scoreManager;
+    std::unique_ptr<PlayerVisualEffects> m_visualEffects;
+    std::unique_ptr<PlayerWeaponSystem> m_weaponSystem;
+
     TextureManager& m_textures;
     b2World& m_world;
-
-    // State Pattern
-    PlayerState* m_currentState = nullptr;
-
-    // Ground detection
-    int m_groundContacts = 0;
-
-    float m_damageTimer = 0.0f;      // وقت الحماية المؤقتة
-    float m_damageCooldown = 1.0f;   // ثانية واحدة بين كل ضرر
 };

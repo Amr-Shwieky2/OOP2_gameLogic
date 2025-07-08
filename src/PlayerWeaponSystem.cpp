@@ -1,0 +1,83 @@
+#include "PlayerWeaponSystem.h"
+#include "PlayerEntity.h"
+#include "ProjectileEntity.h"
+#include "GameSession.h"
+#include <iostream>
+
+// External references
+extern int g_nextEntityId;
+extern GameSession* g_currentSession;
+
+PlayerWeaponSystem::PlayerWeaponSystem(PlayerEntity& player, b2World& world, TextureManager& textures)
+    : m_player(player), m_world(world), m_textures(textures),
+    m_lastShotTime(0.0f), m_shotCooldown(0.3f), m_weaponType(WeaponType::Basic) {
+}
+
+void PlayerWeaponSystem::update(float dt) {
+    m_lastShotTime += dt;
+}
+
+void PlayerWeaponSystem::shoot() {
+    if (!canShoot()) {
+        return;
+    }
+
+    if (!g_currentSession) {
+        std::cerr << "[WeaponSystem] No active game session for shooting" << std::endl;
+        return;
+    }
+
+    sf::Vector2f playerPos = m_player.getPosition();
+    sf::Vector2f playerVel = m_player.getVelocity();
+
+    // Determine shoot direction based on velocity
+    sf::Vector2f direction = playerVel.x >= 0 ? sf::Vector2f(1.f, 0.f) : sf::Vector2f(-1.f, 0.f);
+
+    createProjectile(playerPos, direction);
+
+    // Reset shot timer
+    m_lastShotTime = 0.0f;
+
+    std::cout << "[WeaponSystem] Shot fired! Type: " << static_cast<int>(m_weaponType) << std::endl;
+}
+
+bool PlayerWeaponSystem::canShoot() const {
+    return m_lastShotTime >= getCooldownForWeapon(m_weaponType);
+}
+
+void PlayerWeaponSystem::setWeaponType(WeaponType type) {
+    if (m_weaponType != type) {
+        m_weaponType = type;
+        m_shotCooldown = getCooldownForWeapon(type);
+        std::cout << "[WeaponSystem] Weapon changed to type: " << static_cast<int>(type) << std::endl;
+    }
+}
+
+void PlayerWeaponSystem::createProjectile(const sf::Vector2f& position, const sf::Vector2f& direction) {
+    try {
+        auto projectile = std::make_unique<ProjectileEntity>(
+            g_nextEntityId++,
+            m_world,
+            position.x,
+            position.y,
+            direction,
+            m_textures,
+            true // fromPlayer = true
+        );
+
+        g_currentSession->spawnEntity(std::move(projectile));
+    }
+    catch (const std::exception& e) {
+        std::cerr << "[WeaponSystem] Error creating projectile: " << e.what() << std::endl;
+    }
+}
+
+float PlayerWeaponSystem::getCooldownForWeapon(WeaponType type)const {
+    switch (type) {
+    case WeaponType::Basic:  return 0.3f;
+    case WeaponType::Rapid:  return 0.1f;
+    case WeaponType::Spread: return 0.5f;
+    case WeaponType::Laser:  return 1.0f;
+    default:                 return 0.3f;
+    }
+}

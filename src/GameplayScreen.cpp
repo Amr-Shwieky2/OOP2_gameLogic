@@ -245,18 +245,18 @@ void GameplayScreen::render(sf::RenderWindow& window) {
 }
 
 void GameplayScreen::handlePlayerInput(PlayerEntity& player) {
-    // Pass input service to player for handling
+    // Use the player's input handler
     player.handleInput(m_inputService);
 
-    // Additional debug keys
+    // Debug keys that affect subsystems directly
     if (m_inputService.isKeyPressed(sf::Keyboard::F3)) {
-        // Debug: Add score
-        player.addScore(100);
-        std::cout << "[DEBUG] Added 100 score" << std::endl;
+        if (auto* scoreManager = player.getScoreManager()) {
+            scoreManager->addScore(100);
+            std::cout << "[DEBUG] Added 100 score" << std::endl;
+        }
     }
 
     if (m_inputService.isKeyPressed(sf::Keyboard::F4)) {
-        // Debug: Damage player
         auto* health = player.getComponent<HealthComponent>();
         if (health) {
             health->takeDamage(1);
@@ -265,15 +265,17 @@ void GameplayScreen::handlePlayerInput(PlayerEntity& player) {
     }
 
     if (m_inputService.isKeyPressed(sf::Keyboard::F5)) {
-        // Debug: Apply speed boost
-        player.applySpeedBoost(5.0f);
-        std::cout << "[DEBUG] Applied speed boost" << std::endl;
+        if (auto* stateManager = player.getStateManager()) {
+            stateManager->applySpeedBoost(5.0f);
+            std::cout << "[DEBUG] Applied speed boost" << std::endl;
+        }
     }
 
     if (m_inputService.isKeyPressed(sf::Keyboard::F6)) {
-        // Debug: Apply shield
-        player.applyShield(5.0f);
-        std::cout << "[DEBUG] Applied shield" << std::endl;
+        if (auto* stateManager = player.getStateManager()) {
+            stateManager->applyShield(5.0f);
+            std::cout << "[DEBUG] Applied shield" << std::endl;
+        }
     }
 }
 

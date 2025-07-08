@@ -1,6 +1,10 @@
-﻿#include "HeadwindState.h"
+﻿// HeadwindState.cpp - Fixed for refactored PlayerEntity
+#include "HeadwindState.h"
 #include "NormalState.h"
 #include "PlayerEntity.h"
+#include "PlayerStateManager.h"
+#include "PlayerVisualEffects.h"
+#include "PlayerWeaponSystem.h"
 #include "PhysicsComponent.h"
 #include "RenderComponent.h"
 #include "Constants.h"
@@ -19,11 +23,12 @@ void HeadwindState::enter(PlayerEntity& player) {
     std::cout << "[State] Entering Headwind state - Movement slowed!" << std::endl;
     m_duration = 8.0f;
 
-    auto* render = player.getComponent<RenderComponent>();
-    if (render) {
-        render->getSprite().setColor(sf::Color(150, 150, 255));
+    // Use visual effects system for color change
+    if (auto* visualEffects = player.getVisualEffects()) {
+        visualEffects->setStateColor(sf::Color(150, 150, 255));
     }
 
+    // Apply physics dampening for headwind effect
     auto* physics = player.getComponent<PhysicsComponent>();
     if (physics && physics->getBody()) {
         physics->getBody()->SetLinearDamping(2.0f);
@@ -33,11 +38,12 @@ void HeadwindState::enter(PlayerEntity& player) {
 void HeadwindState::exit(PlayerEntity& player) {
     std::cout << "[State] Exiting Headwind state - Movement normal" << std::endl;
 
-    auto* render = player.getComponent<RenderComponent>();
-    if (render) {
-        render->getSprite().setColor(sf::Color::White);
+    // Reset visual effects
+    if (auto* visualEffects = player.getVisualEffects()) {
+        visualEffects->setStateColor(sf::Color::White);
     }
 
+    // Reset physics dampening
     auto* physics = player.getComponent<PhysicsComponent>();
     if (physics && physics->getBody()) {
         physics->getBody()->SetLinearDamping(0.0f);
@@ -47,15 +53,19 @@ void HeadwindState::exit(PlayerEntity& player) {
 void HeadwindState::update(PlayerEntity& player, float dt) {
     m_duration -= dt;
 
-    auto* render = player.getComponent<RenderComponent>();
-    if (render) {
+    // Visual flickering effect during headwind
+    if (auto* visualEffects = player.getVisualEffects()) {
         int flicker = static_cast<int>(m_duration * 20) % 3;
         sf::Uint8 alpha = 200 + flicker * 20;
-        render->getSprite().setColor(sf::Color(150, 150, 255, alpha));
+        visualEffects->setStateColor(sf::Color(150, 150, 255, alpha));
     }
 
+    // Return to normal state when duration expires
     if (m_duration <= 0) {
-        player.changeState(NormalState::getInstance());
+        // FIXED: Use StateManager instead of direct changeState()
+        if (auto* stateManager = player.getStateManager()) {
+            stateManager->changeState(NormalState::getInstance());
+        }
     }
 }
 
@@ -63,6 +73,7 @@ void HeadwindState::handleInput(PlayerEntity& player, const InputService& input)
     auto* physics = player.getComponent<PhysicsComponent>();
     if (!physics) return;
 
+    // Reduced movement speed for headwind effect
     float moveSpeed = PLAYER_MOVE_SPEED * 0.3f;
     auto vel = physics->getVelocity();
 
@@ -76,11 +87,14 @@ void HeadwindState::handleInput(PlayerEntity& player, const InputService& input)
         physics->setVelocity(0, vel.y);
     }
 
+    // Reduced jumping power for headwind effect
     if (input.isKeyPressed(sf::Keyboard::Up) && player.isOnGround()) {
         physics->applyImpulse(0, -PLAYER_JUMP_IMPULSE * 0.5f);
     }
 
     if (input.isKeyPressed(sf::Keyboard::C)) {
-        player.shoot();
+        if (auto* weaponSystem = player.getWeaponSystem()) {
+            weaponSystem->shoot();
+        }
     }
 }
