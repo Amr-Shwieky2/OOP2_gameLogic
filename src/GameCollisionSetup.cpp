@@ -1,6 +1,10 @@
-﻿#include "GameCollisionSetup.h"
+﻿// GameCollisionSetup.cpp - Updated for refactored PlayerEntity
+#include "GameCollisionSetup.h"
 #include "MultiMethodCollisionSystem.h"
 #include "PlayerEntity.h"
+#include "PlayerScoreManager.h"
+#include "PlayerStateManager.h"
+#include "PlayerVisualEffects.h"
 #include "EnemyEntity.h"
 #include "GiftEntity.h"
 #include "CoinEntity.h"
@@ -20,9 +24,6 @@
 #include <iostream>
 #include <SmartEnemyEntity.h>
 #include <FalconEnemyEntity.h>
-#include <MagneticState.h>
-#include <HeadwindState.h>
-#include <ReversedState.h>
 #include <Constants.h>
 #include <SquareEnemyEntity.h>
 
@@ -31,108 +32,40 @@ int g_nextEntityId = 1;
 
 void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
-    // Player vs Coin
+    // ===== Player vs Coin =====
     collisionSystem.registerHandler<PlayerEntity, CoinEntity>(
         [](PlayerEntity& player, CoinEntity& coin) {
             if (!coin.isActive()) return;
 
-            player.addScore(10);
+            // Use ScoreManager subsystem
+            if (auto* scoreManager = player.getScoreManager()) {
+                scoreManager->addScore(10);
+                std::cout << "Player collected coin! Score: " << scoreManager->getScore() << std::endl;
+            }
+
             coin.onCollect(&player);
 
             EventSystem::getInstance().publish(
                 CoinCollectedEvent(player.getId(), 1)
             );
-
-            std::cout << "Player collected coin! Score: " << player.getScore() << std::endl;
         }
     );
 
-    // Player Projectile vs Smart Enemy - Specific handler
-    collisionSystem.registerHandler<ProjectileEntity, SmartEnemyEntity>(
-        [](ProjectileEntity& proj, SmartEnemyEntity& smartEnemy) {
-            if (!proj.isFromPlayer() || !smartEnemy.isActive()) return;
-
-            std::cout << "[PROJECTILE] Player projectile hit smart enemy!" << std::endl;
-
-            auto* health = smartEnemy.getComponent<HealthComponent>();
-            if (health) {
-                health->takeDamage(1);
-
-                if (!health->isAlive()) {
-                    smartEnemy.setActive(false);
-                    std::cout << "[PROJECTILE] Smart enemy killed by projectile! Health: 0" << std::endl;
-
-                    EventSystem::getInstance().publish(
-                        EnemyKilledEvent(smartEnemy.getId(), proj.getId())
-                    );
-                }
-                else {
-                    std::cout << "[PROJECTILE] Smart enemy hit by projectile! Health: "
-                        << health->getHealth() << std::endl;
-                }
-            }
-
-            proj.setActive(false);
-        }
-    );
-
-
-    // Player vs Regular Square Enemy
-    // Player vs Regular Square Enemy
-    collisionSystem.registerHandler<PlayerEntity, SquareEnemyEntity>(
-        [](PlayerEntity& player, SquareEnemyEntity& enemy) {
-            if (!enemy.isActive()) return;
-
-            auto* playerHealth = player.getComponent<HealthComponent>();
-            auto* enemyHealth = enemy.getComponent<HealthComponent>();
-            auto* playerPhysics = player.getComponent<PhysicsComponent>();
-            auto* enemyPhysics = enemy.getComponent<PhysicsComponent>();
-
-            if (!playerHealth || !enemyHealth || !playerPhysics || !enemyPhysics) return;
-
-            sf::Vector2f playerPos = playerPhysics->getPosition();
-            sf::Vector2f enemyPos = enemyPhysics->getPosition();
-
-            // ✨ تعديل الشرط حسب حجم العدو
-            float sizeFactor = enemy.getSizeMultiplier();
-            float verticalThreshold = TILE_SIZE * sizeFactor * 0.4f;
-
-            if (playerPos.y < enemyPos.y - verticalThreshold) {
-                std::cout << "[COLLISION] Player jumping on " << (int)enemy.getSizeType()
-                    << " size square enemy!" << std::endl;
-
-                int scoreBonus = (enemy.getSizeType() == SquareEnemyEntity::SizeType::Large) ? 150 : 100;
-
-                enemy.onDeath(&player);
-                enemyHealth->takeDamage(999);
-                enemy.setActive(false);
-                playerPhysics->applyImpulse(0, -5.0f);
-                player.addScore(scoreBonus);
-
-                EventSystem::getInstance().publish(
-                    EnemyKilledEvent(enemy.getId(), player.getId())
-                );
-            }
-            else {
-                if (!playerHealth->isInvulnerable() && player.canTakeDamage()) {
-                    playerHealth->takeDamage(1);
-                    player.startDamageCooldown();
-
-                    float knockbackDir = (playerPos.x > enemyPos.x) ? 1.0f : -1.0f;
-                    playerPhysics->applyImpulse(knockbackDir * 3.0f, -2.0f);
-                }
-            }
-        }
-    );
-
-
-    // Player vs Gift
+    // ===== Player vs Gift =====
     collisionSystem.registerHandler<PlayerEntity, GiftEntity>(
         [](PlayerEntity& player, GiftEntity& gift) {
             if (!gift.isActive() || gift.isCollected()) return;
 
             std::cout << "[Collision] Player collecting gift type: "
                 << static_cast<int>(gift.getGiftType()) << std::endl;
+
+            auto* stateManager = player.getStateManager();
+            auto* scoreManager = player.getScoreManager();
+
+            if (!stateManager || !scoreManager) {
+                std::cerr << "[Collision] Player missing subsystems!" << std::endl;
+                return;
+            }
 
             switch (gift.getGiftType()) {
             case GiftEntity::GiftType::LifeHeart: {
@@ -146,42 +79,33 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             }
 
             case GiftEntity::GiftType::SpeedBoost:
-                player.applySpeedBoost(5.0f);
+                stateManager->applySpeedBoost(5.0f);
                 std::cout << "Player collected Speed Boost!" << std::endl;
                 break;
 
             case GiftEntity::GiftType::Shield:
-                player.applyShield(6.0f);
+                stateManager->applyShield(6.0f);
                 std::cout << "Player collected Shield!" << std::endl;
                 break;
 
             case GiftEntity::GiftType::RareCoin:
-                player.addScore(50);
+                scoreManager->addScore(50);
                 std::cout << "Player collected Rare Coin! +50 points" << std::endl;
                 break;
 
             case GiftEntity::GiftType::ReverseMovement:
-                player.changeState(ReversedState::getInstance());
+                stateManager->applyReverseEffect(10.0f);
                 std::cout << "[WARNING] Player collected Reverse Movement! Controls inverted!" << std::endl;
-                EventSystem::getInstance().publish(
-                    PlayerStateChangedEvent("Normal", "Reversed")
-                );
                 break;
 
             case GiftEntity::GiftType::HeadwindStorm:
-                player.changeState(HeadwindState::getInstance());
+                stateManager->applyHeadwindEffect(8.0f);
                 std::cout << "[WARNING] Player collected Headwind Storm! Movement slowed!" << std::endl;
-                EventSystem::getInstance().publish(
-                    PlayerStateChangedEvent("Normal", "Headwind")
-                );
                 break;
 
             case GiftEntity::GiftType::Magnetic:
-                player.changeState(MagneticState::getInstance());
+                stateManager->applyMagneticEffect(6.0f);
                 std::cout << "Player collected Magnetic! Coins will be attracted!" << std::endl;
-                EventSystem::getInstance().publish(
-                    PlayerStateChangedEvent("Normal", "Magnetic")
-                );
                 break;
             }
 
@@ -192,19 +116,23 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
         }
     );
 
-    // Player vs Sea 
+    // ===== Player vs Sea =====
     collisionSystem.registerHandler<PlayerEntity, SeaEntity>(
         [](PlayerEntity& player, SeaEntity& sea) {
             auto* health = player.getComponent<HealthComponent>();
             auto* physics = player.getComponent<PhysicsComponent>();
-            auto* render = player.getComponent<RenderComponent>();
+            auto* visualEffects = player.getVisualEffects();
 
             if (health && !health->isInvulnerable()) {
                 health->setHealth(0);
 
-                if (render) {
-                    render->getSprite().setColor(sf::Color(100, 150, 255, 180));
-                    render->getSprite().rotate(45.0f);
+                // Use visual effects system for death effect
+                if (visualEffects) {
+                    auto* render = player.getComponent<RenderComponent>();
+                    if (render) {
+                        render->getSprite().setColor(sf::Color(100, 150, 255, 180));
+                        render->getSprite().rotate(45.0f);
+                    }
                 }
 
                 if (physics) {
@@ -213,6 +141,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                         body->SetGravityScale(0);
                     }
                 }
+
                 EventSystem::getInstance().publish(
                     PlayerDiedEvent(player.getId())
                 );
@@ -220,27 +149,37 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
         }
     );
 
-    // Player vs Cactus
+    // ===== Player vs Cactus =====
     collisionSystem.registerHandler<PlayerEntity, CactusEntity>(
         [](PlayerEntity& player, CactusEntity& cactus) {
             auto* health = player.getComponent<HealthComponent>();
-            if (health && !health->isInvulnerable() && player.canTakeDamage()) {
+            auto* visualEffects = player.getVisualEffects();
+
+            if (health && !health->isInvulnerable() &&
+                visualEffects && visualEffects->canTakeDamage()) {
+
                 health->takeDamage(1);
-                player.startDamageCooldown();
+                visualEffects->startDamageCooldown();
 
                 auto* playerPhysics = player.getComponent<PhysicsComponent>();
                 auto* cactusTransform = cactus.getComponent<Transform>();
+
                 if (playerPhysics && cactusTransform) {
                     sf::Vector2f playerPos = playerPhysics->getPosition();
                     sf::Vector2f cactusPos = cactusTransform->getPosition();
                     float knockbackDir = (playerPos.x > cactusPos.x) ? 1.0f : -1.0f;
                     playerPhysics->applyImpulse(knockbackDir * 4.0f, -2.0f);
                 }
+
+                // Use visual effects for damage indication
+                if (visualEffects) {
+                    visualEffects->startDamageEffect();
+                }
             }
         }
     );
 
-    // Player vs Flag
+    // ===== Player vs Flag =====
     collisionSystem.registerHandler<PlayerEntity, FlagEntity>(
         [](PlayerEntity& player, FlagEntity& flag) {
             if (flag.isCompleted()) {
@@ -252,25 +191,242 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             EventSystem::getInstance().publish(
                 FlagReachedEvent(player.getId(), flag.getId(), "current_level")
             );
-            player.addScore(500);
+
+            // Use score manager for flag bonus
+            if (auto* scoreManager = player.getScoreManager()) {
+                scoreManager->addScore(500);
+            }
 
             std::cout << "Level Complete! Player reached the flag!" << std::endl;
         }
     );
 
-    // Projectile vs Regular Enemy (EXCLUDES Smart and Falcon enemies)
+    // ===== Player vs Square Enemy =====
+    collisionSystem.registerHandler<PlayerEntity, SquareEnemyEntity>(
+        [](PlayerEntity& player, SquareEnemyEntity& enemy) {
+            if (!enemy.isActive()) return;
+
+            auto* playerHealth = player.getComponent<HealthComponent>();
+            auto* enemyHealth = enemy.getComponent<HealthComponent>();
+            auto* playerPhysics = player.getComponent<PhysicsComponent>();
+            auto* enemyPhysics = enemy.getComponent<PhysicsComponent>();
+            auto* visualEffects = player.getVisualEffects();
+            auto* scoreManager = player.getScoreManager();
+
+            if (!playerHealth || !enemyHealth || !playerPhysics || !enemyPhysics) return;
+
+            sf::Vector2f playerPos = playerPhysics->getPosition();
+            sf::Vector2f enemyPos = enemyPhysics->getPosition();
+
+            // Check jump attack based on enemy size
+            float sizeFactor = enemy.getSizeMultiplier();
+            float verticalThreshold = TILE_SIZE * sizeFactor * 0.4f;
+
+            if (playerPos.y < enemyPos.y - verticalThreshold) {
+                std::cout << "[Collision] Player jumping on " << (int)enemy.getSizeType()
+                    << " size square enemy!" << std::endl;
+
+                int scoreBonus = (enemy.getSizeType() == SquareEnemyEntity::SizeType::Large) ? 150 : 100;
+
+                enemy.onDeath(&player);
+                enemyHealth->takeDamage(999);
+                enemy.setActive(false);
+                playerPhysics->applyImpulse(0, -5.0f);
+
+                if (scoreManager) {
+                    scoreManager->addScore(scoreBonus);
+                }
+
+                EventSystem::getInstance().publish(
+                    EnemyKilledEvent(enemy.getId(), player.getId())
+                );
+            }
+            else {
+                // Player hit by enemy
+                if (!playerHealth->isInvulnerable() &&
+                    visualEffects && visualEffects->canTakeDamage()) {
+
+                    playerHealth->takeDamage(1);
+                    visualEffects->startDamageCooldown();
+
+                    float knockbackDir = (playerPos.x > enemyPos.x) ? 1.0f : -1.0f;
+                    playerPhysics->applyImpulse(knockbackDir * 3.0f, -2.0f);
+
+                    visualEffects->startDamageEffect();
+                }
+            }
+        }
+    );
+
+    // ===== Player vs Smart Enemy =====
+    collisionSystem.registerHandler<PlayerEntity, SmartEnemyEntity>(
+        [](PlayerEntity& player, SmartEnemyEntity& smartEnemy) {
+            if (!smartEnemy.isActive()) return;
+
+            auto* playerHealth = player.getComponent<HealthComponent>();
+            auto* enemyHealth = smartEnemy.getComponent<HealthComponent>();
+            auto* playerPhysics = player.getComponent<PhysicsComponent>();
+            auto* enemyPhysics = smartEnemy.getComponent<PhysicsComponent>();
+            auto* visualEffects = player.getVisualEffects();
+            auto* scoreManager = player.getScoreManager();
+
+            if (!playerHealth || !enemyHealth || !playerPhysics || !enemyPhysics) return;
+
+            sf::Vector2f playerPos = playerPhysics->getPosition();
+            sf::Vector2f enemyPos = enemyPhysics->getPosition();
+
+            float yDifference = playerPos.y - enemyPos.y;
+            float xDifference = std::abs(playerPos.x - enemyPos.x);
+
+            // Check if this is a jump attack (player is WELL ABOVE enemy)
+            if (yDifference < -50.0f && xDifference < 40.0f) {
+                enemyHealth->takeDamage(1);
+
+                if (!enemyHealth->isAlive()) {
+                    smartEnemy.setActive(false);
+                    if (scoreManager) {
+                        scoreManager->addScore(250);
+                    }
+
+                    EventSystem::getInstance().publish(
+                        EnemyKilledEvent(smartEnemy.getId(), player.getId())
+                    );
+                }
+                else {
+                    if (scoreManager) {
+                        scoreManager->addScore(50);
+                    }
+                }
+
+                // Bounce player
+                playerPhysics->applyImpulse(0, -4.0f);
+            }
+            else {
+                // Player hit by smart enemy
+                if (!playerHealth->isInvulnerable() &&
+                    visualEffects && visualEffects->canTakeDamage()) {
+
+                    playerHealth->takeDamage(1);
+                    visualEffects->startDamageCooldown();
+
+                    float knockbackDir = (playerPos.x > enemyPos.x) ? 1.0f : -1.0f;
+                    playerPhysics->applyImpulse(knockbackDir * 5.0f, -3.0f);
+
+                    visualEffects->startDamageEffect();
+
+                    if (!playerHealth->isAlive()) {
+                        EventSystem::getInstance().publish(
+                            PlayerDiedEvent(player.getId())
+                        );
+                    }
+
+                    // Visual feedback for smart enemy
+                    auto* enemyRender = smartEnemy.getComponent<RenderComponent>();
+                    if (enemyRender) {
+                        enemyRender->getSprite().setColor(sf::Color(255, 200, 100));
+                    }
+                }
+            }
+        }
+    );
+
+    // ===== Player vs Falcon Enemy =====
+    collisionSystem.registerHandler<PlayerEntity, FalconEnemyEntity>(
+        [](PlayerEntity& player, FalconEnemyEntity& falcon) {
+            if (!falcon.isActive()) return;
+
+            auto* playerHealth = player.getComponent<HealthComponent>();
+            auto* playerPhysics = player.getComponent<PhysicsComponent>();
+            auto* falconPhysics = falcon.getComponent<PhysicsComponent>();
+            auto* visualEffects = player.getVisualEffects();
+            auto* scoreManager = player.getScoreManager();
+
+            if (!playerHealth || !playerPhysics || !falconPhysics) return;
+
+            std::cout << "[Collision] Player touched flying falcon!" << std::endl;
+
+            sf::Vector2f playerPos = playerPhysics->getPosition();
+            sf::Vector2f falconPos = falconPhysics->getPosition();
+
+            if (playerPos.y < falconPos.y - 30.0f) {
+                // Player jumped on falcon
+                auto* falconHealth = falcon.getComponent<HealthComponent>();
+                if (falconHealth) {
+                    falconHealth->takeDamage(999);
+                    falcon.setActive(false);
+
+                    playerPhysics->applyImpulse(0, -4.0f);
+                    if (scoreManager) {
+                        scoreManager->addScore(200);
+                    }
+
+                    std::cout << "Player defeated flying falcon! +200 points" << std::endl;
+
+                    EventSystem::getInstance().publish(
+                        EnemyKilledEvent(falcon.getId(), player.getId())
+                    );
+                }
+            }
+            else {
+                // Player hit by falcon
+                if (!playerHealth->isInvulnerable() &&
+                    visualEffects && visualEffects->canTakeDamage()) {
+
+                    playerHealth->takeDamage(1);
+                    visualEffects->startDamageCooldown();
+
+                    std::cout << "Player hit by flying falcon! Health: "
+                        << playerHealth->getHealth() << std::endl;
+
+                    float knockbackDir = (playerPos.x > falconPos.x) ? 1.0f : -1.0f;
+                    playerPhysics->applyImpulse(knockbackDir * 4.0f, -3.0f);
+
+                    visualEffects->startDamageEffect();
+                }
+            }
+        }
+    );
+
+    // ===== Projectile vs Smart Enemy =====
+    collisionSystem.registerHandler<ProjectileEntity, SmartEnemyEntity>(
+        [](ProjectileEntity& proj, SmartEnemyEntity& smartEnemy) {
+            if (!proj.isFromPlayer() || !smartEnemy.isActive()) return;
+
+            std::cout << "[PROJECTILE] Player projectile hit smart enemy!" << std::endl;
+
+            auto* health = smartEnemy.getComponent<HealthComponent>();
+            if (health) {
+                health->takeDamage(1);
+
+                if (!health->isAlive()) {
+                    smartEnemy.setActive(false);
+                    std::cout << "[PROJECTILE] Smart enemy killed by projectile!" << std::endl;
+
+                    EventSystem::getInstance().publish(
+                        EnemyKilledEvent(smartEnemy.getId(), proj.getId())
+                    );
+                }
+                else {
+                    std::cout << "[PROJECTILE] Smart enemy hit! Health: "
+                        << health->getHealth() << std::endl;
+                }
+            }
+
+            proj.setActive(false);
+        }
+    );
+
+    // ===== Projectile vs Regular Enemy =====
     collisionSystem.registerHandler<ProjectileEntity, EnemyEntity>(
         [](ProjectileEntity& proj, EnemyEntity& enemy) {
             if (!proj.isFromPlayer() || !enemy.isActive()) return;
 
-            // IMPORTANT: Exclude specific enemy types that have their own handlers
+            // Exclude specific enemy types that have their own handlers
             if (dynamic_cast<SmartEnemyEntity*>(&enemy)) {
-                std::cout << "[DEBUG] Ignoring SmartEnemy in generic handler" << std::endl;
                 return;
             }
 
             if (dynamic_cast<FalconEnemyEntity*>(&enemy)) {
-                std::cout << "[DEBUG] Ignoring FalconEnemy in generic handler" << std::endl;
                 return;
             }
 
@@ -291,7 +447,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
         }
     );
 
-    // Enemy Projectile vs Player 
+    // ===== Enemy Projectile vs Player =====
     collisionSystem.registerHandler<ProjectileEntity, PlayerEntity>(
         [](ProjectileEntity& proj, PlayerEntity& player) {
             if (proj.isFromPlayer() || !proj.isActive()) return;
@@ -300,19 +456,19 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
             auto* playerHealth = player.getComponent<HealthComponent>();
             auto* playerPhysics = player.getComponent<PhysicsComponent>();
+            auto* visualEffects = player.getVisualEffects();
 
-            if (playerHealth && !playerHealth->isInvulnerable() && player.canTakeDamage()) {
+            if (playerHealth && !playerHealth->isInvulnerable() &&
+                visualEffects && visualEffects->canTakeDamage()) {
+
                 playerHealth->takeDamage(1);
-                player.startDamageCooldown();
+                visualEffects->startDamageCooldown();
 
                 if (playerPhysics) {
                     playerPhysics->applyImpulse(0.5f, -1.5f);
                 }
 
-                auto* playerRender = player.getComponent<RenderComponent>();
-                if (playerRender) {
-                    playerRender->getSprite().setColor(sf::Color(255, 150, 150));
-                }
+                visualEffects->startDamageEffect();
 
                 if (!playerHealth->isAlive()) {
                     std::cout << "[GAME] Player killed by enemy projectile!" << std::endl;
@@ -326,124 +482,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             }
 
             proj.setActive(false);
-        }
-    );
-
-    // Player vs Falcon direct contact 
-    collisionSystem.registerHandler<PlayerEntity, FalconEnemyEntity>(
-        [](PlayerEntity& player, FalconEnemyEntity& falcon) {
-            if (!falcon.isActive()) return;
-
-            auto* playerHealth = player.getComponent<HealthComponent>();
-            auto* playerPhysics = player.getComponent<PhysicsComponent>();
-            auto* falconPhysics = falcon.getComponent<PhysicsComponent>();
-
-            if (!playerHealth || !playerPhysics || !falconPhysics) return;
-
-            std::cout << "[Collision] Player touched flying falcon!" << std::endl;
-
-            sf::Vector2f playerPos = playerPhysics->getPosition();
-            sf::Vector2f falconPos = falconPhysics->getPosition();
-
-            if (playerPos.y < falconPos.y - 30.0f) {
-                auto* falconHealth = falcon.getComponent<HealthComponent>();
-                if (falconHealth) {
-                    falconHealth->takeDamage(999);
-                    falcon.setActive(false);
-
-                    playerPhysics->applyImpulse(0, -4.0f);
-                    player.addScore(200);
-
-                    std::cout << "Player defeated flying falcon! +200 points" << std::endl;
-
-                    EventSystem::getInstance().publish(
-                        EnemyKilledEvent(falcon.getId(), player.getId())
-                    );
-                }
-            }
-            else {
-                if (!playerHealth->isInvulnerable() && player.canTakeDamage()) {
-                    playerHealth->takeDamage(1);
-                    player.startDamageCooldown();
-                    std::cout << "Player hit by flying falcon! Health: "
-                        << playerHealth->getHealth() << std::endl;
-
-                    float knockbackDir = (playerPos.x > falconPos.x) ? 1.0f : -1.0f;
-                    playerPhysics->applyImpulse(knockbackDir * 4.0f, -3.0f);
-
-                    auto* playerRender = player.getComponent<RenderComponent>();
-                    if (playerRender) {
-                        playerRender->getSprite().setColor(sf::Color(255, 100, 100));
-                    }
-                }
-            }
-        }
-    );
-    // Player vs smart enemy
-    collisionSystem.registerHandler<PlayerEntity, SmartEnemyEntity>(
-        [](PlayerEntity& player, SmartEnemyEntity& smartEnemy) {
-            if (!smartEnemy.isActive()) return;
-
-            auto* playerHealth = player.getComponent<HealthComponent>();
-            auto* enemyHealth = smartEnemy.getComponent<HealthComponent>();
-            auto* playerPhysics = player.getComponent<PhysicsComponent>();
-            auto* enemyPhysics = smartEnemy.getComponent<PhysicsComponent>();
-
-            if (!playerHealth || !enemyHealth || !playerPhysics || !enemyPhysics) return;
-
-            // Get positions for collision detection
-            sf::Vector2f playerPos = playerPhysics->getPosition();
-            sf::Vector2f enemyPos = enemyPhysics->getPosition();
-
-            float yDifference = playerPos.y - enemyPos.y;
-            float xDifference = std::abs(playerPos.x - enemyPos.x);
-
-            // Check if this is a jump attack (player is WELL ABOVE enemy)
-            if (yDifference < -50.0f && xDifference < 40.0f) { 
-
-                enemyHealth->takeDamage(1);
-
-                if (!enemyHealth->isAlive()) {
-                    smartEnemy.setActive(false);
-                    player.addScore(250);
-
-                    EventSystem::getInstance().publish(
-                        EnemyKilledEvent(smartEnemy.getId(), player.getId())
-                    );
-                }
-                else {
-                    player.addScore(50);
-                }
-
-                // Bounce player
-                playerPhysics->applyImpulse(0, -4.0f);
-            }
-            else {
-                if (!playerHealth->isInvulnerable() && player.canTakeDamage()) {
-                    playerHealth->takeDamage(1);
-                    player.startDamageCooldown();
-           
-                    float knockbackDir = (playerPos.x > enemyPos.x) ? 1.0f : -1.0f;
-                    playerPhysics->applyImpulse(knockbackDir * 5.0f, -3.0f);
-
-                    auto* playerRender = player.getComponent<RenderComponent>();
-                    if (playerRender) {
-                        playerRender->getSprite().setColor(sf::Color(255, 100, 100));
-                    }
-
-                    if (!playerHealth->isAlive()) {
-                        EventSystem::getInstance().publish(
-                            PlayerDiedEvent(player.getId())
-                        );
-                    }
-
-                    // Visual feedback for smart enemy
-                    auto* enemyRender = smartEnemy.getComponent<RenderComponent>();
-                    if (enemyRender) {
-                        enemyRender->getSprite().setColor(sf::Color(255, 200, 100));
-                    }
-                }
-            }
         }
     );
 }
@@ -538,7 +576,7 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
         std::cout << "[FACTORY] Creating Large SquareEnemyEntity at (" << x << ", " << y << ")" << std::endl;
         auto enemy = std::make_unique<SquareEnemyEntity>(
             g_nextEntityId++,
-            world, // You'll need access to the physics world here
+            world,
             x, y,
             textures,
             SquareEnemyEntity::SizeType::Large

@@ -38,24 +38,10 @@ void ReversedState::exit(PlayerEntity& player) {
 void ReversedState::update(PlayerEntity& player, float dt) {
     m_duration -= dt;
 
-    auto* render = player.getComponent<RenderComponent>();
-    if (render) {
-        float wobble = std::sin(m_duration * 5.0f) * 5.0f;
-        render->getSprite().setRotation(wobble);
-    }
-
-    if (m_duration < 2.0f) {
-        int flash = static_cast<int>(m_duration * 10) % 2;
-        if (render) {
-            render->getSprite().setColor(flash ? sf::Color::White : sf::Color(200, 150, 255));
-        }
-    }
-
     if (m_duration <= 0) {
-        if (render) {
-            render->getSprite().setRotation(0);
+        if (auto* stateManager = player.getStateManager()) {
+            stateManager->changeState(NormalState::getInstance());
         }
-        player.changeState(NormalState::getInstance());
     }
 }
 
@@ -81,6 +67,8 @@ void ReversedState::handleInput(PlayerEntity& player, const InputService& input)
     }
 
     if (input.isKeyPressed(sf::Keyboard::C)) {
-        player.shoot();
+        if (auto* weaponSystem = player.getWeaponSystem()) {
+            weaponSystem->shoot();
+        }
     }
 }

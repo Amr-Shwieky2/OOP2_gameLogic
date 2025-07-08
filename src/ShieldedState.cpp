@@ -49,16 +49,11 @@ void ShieldedState::exit(PlayerEntity& player) {
 void ShieldedState::update(PlayerEntity& player, float dt) {
     m_duration -= dt;
 
-    if (m_duration < 2.0f) {
-        auto* render = player.getComponent<RenderComponent>();
-        if (render) {
-            int alpha = (static_cast<int>(m_duration * 10) % 2 == 0) ? 255 : 150;
-            render->getSprite().setColor(sf::Color(255, 255, 255, alpha));
-        }
-    }
-
     if (m_duration <= 0) {
-        player.changeState(NormalState::getInstance());
+        // FIXED:
+        if (auto* stateManager = player.getStateManager()) {
+            stateManager->changeState(NormalState::getInstance());
+        }
     }
 }
 

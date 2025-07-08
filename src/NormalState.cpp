@@ -1,5 +1,6 @@
 #include "NormalState.h"
 #include "PlayerEntity.h"
+#include "PlayerVisualEffects.h"
 #include "PhysicsComponent.h"
 #include "RenderComponent.h"
 #include "HealthComponent.h"
@@ -18,11 +19,16 @@ PlayerState* NormalState::getInstance() {
 void NormalState::enter(PlayerEntity& player) {
     std::cout << "[State] Entering Normal state" << std::endl;
 
-    auto* render = player.getComponent<RenderComponent>();
-    if (render) {
-        render->setTexture(player.getTextures().getResource("NormalBall.png"));
+    // Use visual effects system to set texture
+    if (auto* visualEffects = player.getVisualEffects()) {
+        auto* render = player.getComponent<RenderComponent>();
+        if (render) {
+            render->setTexture(player.getTextures().getResource("NormalBall.png"));
+            visualEffects->setStateColor(sf::Color::White);
+        }
     }
 
+    // Set health component to not invulnerable
     auto* health = player.getComponent<HealthComponent>();
     if (health) {
         health->setInvulnerable(false);
@@ -44,6 +50,7 @@ void NormalState::handleInput(PlayerEntity& player, const InputService& input) {
     float moveSpeed = PLAYER_MOVE_SPEED;
     auto vel = physics->getVelocity();
 
+    // Handle movement
     if (input.isKeyDown(sf::Keyboard::Left)) {
         physics->setVelocity(-moveSpeed, vel.y);
     }
@@ -54,12 +61,10 @@ void NormalState::handleInput(PlayerEntity& player, const InputService& input) {
         physics->setVelocity(0, vel.y);
     }
 
-    if (input.isKeyPressed(player.getJumpKey()) && player.isOnGround()) {
+    // Handle jumping
+    if (input.isKeyPressed(sf::Keyboard::Up) && player.isOnGround()) {
         physics->applyImpulse(0, -PLAYER_JUMP_IMPULSE);
     }
 
-
-    if (input.isKeyPressed(sf::Keyboard::C)) {
-        player.shoot();
-    }
+    // Note: Shooting is now handled by PlayerInputHandler, not states
 }

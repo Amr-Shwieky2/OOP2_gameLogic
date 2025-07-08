@@ -1,4 +1,4 @@
 file(GLOB_RECURSE MY_SOURCE_FILES CONFIGURE_DEPENDS LIST_DIRECTORIES false RELATIVE ${CMAKE_CURRENT_LIST_DIR} *.cpp)
 
 # Add all source files to the executable
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${MY_SOURCE_FILES} "ProjectileEntity.cpp" "../include/FalconEnemyEntity.h" "FalconEnemyEntity.cpp" "../include/SquareEnemyEntity.h" "SquareEnemyEntity.cpp")
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${MY_SOURCE_FILES} "ProjectileEntity.cpp" "../include/FalconEnemyEntity.h" "FalconEnemyEntity.cpp" "../include/SquareEnemyEntity.h" "SquareEnemyEntity.cpp" "../include/PlayerStateManager.h" "../include/PlayerInputHandler.h" "../include/PlayerScoreManager.h" "../include/PlayerVisualEffects.h" "../include/PlayerWeaponSystem.h" "PlayerStateManager.cpp" "PlayerInputHandler.cpp" "PlayerScoreManager.cpp" "PlayerVisualEffects.cpp" "PlayerWeaponSystem.cpp")
