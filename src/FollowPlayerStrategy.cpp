@@ -1,4 +1,3 @@
-// FollowPlayerStrategy.cpp
 #include "FollowPlayerStrategy.h"
 #include "Entity.h"
 #include "PlayerEntity.h"

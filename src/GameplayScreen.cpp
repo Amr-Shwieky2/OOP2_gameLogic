@@ -1,14 +1,12 @@
-﻿// GameplayScreen.cpp - FULLY INTEGRATED Implementation
-#include "GameplayScreen.h"
+﻿#include "GameplayScreen.h"
 #include "Constants.h"
 #include "PlayerEntity.h"
 #include "HealthComponent.h"
 #include "Transform.h"
-#include "UIObserver.h"  // Include the header file
+#include "UIObserver.h"
 #include "EventSystem.h"
 #include "GameEvents.h"
 #include <iostream>
-#include <RenderComponent.h>
 
 GameplayScreen::GameplayScreen() {
     initializeComponents();
@@ -17,19 +15,21 @@ GameplayScreen::GameplayScreen() {
 GameplayScreen::~GameplayScreen() = default;
 
 void GameplayScreen::initializeComponents() {
+    // Create SRP-compliant GameSession
     m_gameSession = std::make_unique<GameSession>();
     m_cameraManager = std::make_unique<CameraManager>();
     m_backgroundRenderer = std::make_unique<BackgroundRenderer>(m_textures);
     m_ui = std::make_unique<UIOverlay>(WINDOW_WIDTH);
 
-    // Load font for UI Observer
+    // Load font for UI
     if (!m_font.loadFromFile("arial.ttf")) {
-        std::cerr << "[WARNING] Failed to load font, UI notifications disabled" << std::endl;
+        std::cerr << "[WARNING] Failed to load font" << std::endl;
     }
 
     // Initialize camera
     m_cameraManager->initialize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
+    // Setup UI texts
     m_levelCompleteText.setFont(m_font);
     m_levelCompleteText.setCharacterSize(48);
     m_levelCompleteText.setFillColor(sf::Color::Yellow);
@@ -44,12 +44,6 @@ void GameplayScreen::initializeComponents() {
     m_gameCompleteText.setOutlineColor(sf::Color::Black);
     m_gameCompleteText.setString("Game Complete! Congratulations!");
 
-    m_messageBackground.setSize(sf::Vector2f(WINDOW_WIDTH, 200.0f));
-    m_messageBackground.setFillColor(sf::Color(0, 0, 0, 180));
-    m_messageBackground.setPosition(0, WINDOW_HEIGHT / 2 - 100);
-
-    std::cout << "[OK] GameplayScreen components initialized with ECS" << std::endl;
-    // إعداد Game Over
     m_gameOverText.setFont(m_font);
     m_gameOverText.setCharacterSize(32);
     m_gameOverText.setFillColor(sf::Color::White);
@@ -57,11 +51,15 @@ void GameplayScreen::initializeComponents() {
     m_gameOverText.setOutlineColor(sf::Color::Black);
     m_gameOverText.setString("Press SPACE to restart");
 
-    // إعداد خلفية Game Over
-    m_gameOverBackground.setSize(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
-    m_gameOverBackground.setFillColor(sf::Color(0, 0, 0, 150)); // شفاف أسود
+    // Setup backgrounds
+    m_messageBackground.setSize(sf::Vector2f(WINDOW_WIDTH, 200.0f));
+    m_messageBackground.setFillColor(sf::Color(0, 0, 0, 180));
+    m_messageBackground.setPosition(0, WINDOW_HEIGHT / 2 - 100);
 
-    // محاولة تحميل صورة Game Over
+    m_gameOverBackground.setSize(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
+    m_gameOverBackground.setFillColor(sf::Color(0, 0, 0, 150));
+
+    // Try to load Game Over sprite
     try {
         m_gameOverSprite.setTexture(m_textures.getResource("GameOver.png"));
         sf::Vector2u texSize = m_gameOverSprite.getTexture()->getSize();
@@ -71,19 +69,19 @@ void GameplayScreen::initializeComponents() {
     catch (const std::exception& e) {
         std::cout << "[WARNING] Could not load GameOver.png: " << e.what() << std::endl;
     }
+
+    std::cout << "[GameplayScreen] Components initialized with SRP GameSession" << std::endl;
 }
 
 void GameplayScreen::initializeUIObserver() {
-    // Only initialize if font loaded successfully
     if (m_font.getInfo().family.empty()) {
         return;
     }
 
-    // Create and initialize UI Observer
     m_uiObserver = std::make_unique<UIObserver>(m_font);
     m_uiObserver->initialize();
 
-    std::cout << "[OK] UI Observer initialized and listening to events" << std::endl;
+    std::cout << "[GameplayScreen] UI Observer initialized" << std::endl;
 }
 
 void GameplayScreen::handleEvents(sf::RenderWindow& window) {
@@ -91,25 +89,22 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
 
     // One-time initialization
     if (!m_initialized) {
-        // Initialize game session with window NOW
+        // Initialize the SRP-compliant GameSession
         m_gameSession->initialize(m_textures, window);
 
-        // Load initial level 
-        m_gameSession->loadLevel(m_gameSession->getLevelManager().getCurrentLevelPath());
+        // Load initial level using the new level manager
+        m_gameSession->loadLevel("level1.txt");
 
-        // Initialize UI Observer after level is loaded
+        // Initialize UI Observer
         initializeUIObserver();
-
         setupLevelEventHandlers();
 
         m_initialized = true;
-        std::cout << "[OK] Level loaded with level management" << std::endl;
+        std::cout << "[GameplayScreen] Initialized with SRP GameSession" << std::endl;
     }
 
-    // Update input service
     m_inputService.update();
 
-    // Handle window events
     sf::Event event;
     while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
@@ -118,34 +113,35 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
 
         m_ui->handleEvent(event, window);
 
-        // Handle level switching for testing
         if (event.type == sf::Event::KeyPressed) {
+            // Level switching for testing - now uses SRP methods
             if (event.key.code == sf::Keyboard::F1) {
-                m_gameSession->getLevelManager().resetToFirstLevel();
-                m_gameSession->loadLevel(m_gameSession->getLevelManager().getCurrentLevelPath());
-                std::cout << "[OK] Reset to first level" << std::endl;
+                // Reset to first level - need to access LevelManager through GameSession
+                m_gameSession->loadLevel("level1.txt");
+                std::cout << "[GameplayScreen] Reset to first level" << std::endl;
             }
             else if (event.key.code == sf::Keyboard::F2) {
+                // Load next level using SRP method
                 if (m_gameSession->loadNextLevel()) {
-                    std::cout << "[OK] Manually switched to next level" << std::endl;
+                    std::cout << "[GameplayScreen] Manually switched to next level" << std::endl;
                 }
             }
             else if (event.key.code == sf::Keyboard::Space && m_showingGameOver) {
-                // إعادة تشغيل المستوى عند الضغط على SPACE
                 std::cout << "[GameplayScreen] Restarting level after Game Over..." << std::endl;
                 m_showingGameOver = false;
                 m_gameSession->reloadCurrentLevel();
             }
-
             else if (event.key.code == sf::Keyboard::Escape) {
                 window.close();
             }
         }
     }
 }
+
 void GameplayScreen::update(float deltaTime) {
     if (m_ui->isPaused()) return;
 
+    // Handle message timers
     if (m_showingLevelComplete || m_showingGameComplete) {
         m_messageTimer += deltaTime;
         if (m_messageTimer >= m_messageDuration) {
@@ -155,15 +151,17 @@ void GameplayScreen::update(float deltaTime) {
         }
     }
 
+    // Handle game over
     if (m_showingGameOver) {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
             std::cout << "[GameplayScreen] Space pressed! Restarting level..." << std::endl;
             m_showingGameOver = false;
             m_gameSession->reloadCurrentLevel();
         }
-        return; 
+        return;
     }
 
+    // Get player from the SRP-compliant GameSession
     PlayerEntity* player = m_gameSession->getPlayer();
     if (!player) {
         std::cout << "[WARNING] No player found in GameSession" << std::endl;
@@ -171,9 +169,12 @@ void GameplayScreen::update(float deltaTime) {
     }
 
     handlePlayerInput(*player);
+
+    // Update the SRP-compliant GameSession (coordinates all managers)
     m_gameSession->update(deltaTime);
 
-    player = m_gameSession->getPlayer();
+    // Update camera and UI
+    player = m_gameSession->getPlayer(); // Re-get in case it changed
     if (player && player->hasComponent<Transform>()) {
         updateCameraForPlayer(*player);
         updateUI(*player);
@@ -183,12 +184,11 @@ void GameplayScreen::update(float deltaTime) {
         m_uiObserver->update(deltaTime);
     }
 
+    // Check for game over
     auto* health = player ? player->getComponent<HealthComponent>() : nullptr;
     if (health && !health->isAlive() && !m_showingGameOver) {
-        // إظهار شاشة Game Over
         m_showingGameOver = true;
 
-        // "Press SPACE to restart"
         sf::FloatRect bounds = m_gameOverText.getLocalBounds();
         m_gameOverText.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
         m_gameOverText.setPosition(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f + 320.0f);
@@ -197,7 +197,6 @@ void GameplayScreen::update(float deltaTime) {
     }
 }
 
-
 void GameplayScreen::render(sf::RenderWindow& window) {
     // Set camera view
     m_cameraManager->setView(window);
@@ -205,21 +204,21 @@ void GameplayScreen::render(sf::RenderWindow& window) {
     // Render background
     m_backgroundRenderer->render(window, m_cameraManager->getCamera());
 
-    // Render game session (all entities)
+    // Render game session (uses SRP RenderSystem internally)
     m_gameSession->render(window);
 
-    // Render UI (switch to default view)
+    // Switch to UI view
     sf::View defaultView = window.getDefaultView();
     window.setView(defaultView);
 
-    // Render UI overlay
+    // Render UI elements
     m_ui->draw(window);
 
-    // Render UI notifications
     if (m_uiObserver) {
         m_uiObserver->render(window);
     }
 
+    // Render messages
     if (m_showingLevelComplete) {
         window.draw(m_messageBackground);
 
@@ -236,7 +235,6 @@ void GameplayScreen::render(sf::RenderWindow& window) {
         window.draw(m_gameCompleteText);
     }
 
-    // Game Over
     if (m_showingGameOver) {
         window.draw(m_gameOverBackground);
         window.draw(m_gameOverSprite);
@@ -245,10 +243,10 @@ void GameplayScreen::render(sf::RenderWindow& window) {
 }
 
 void GameplayScreen::handlePlayerInput(PlayerEntity& player) {
-    // Use the player's input handler
+    // Player input handling remains the same
     player.handleInput(m_inputService);
 
-    // Debug keys that affect subsystems directly
+    // Debug keys remain the same
     if (m_inputService.isKeyPressed(sf::Keyboard::F3)) {
         if (auto* scoreManager = player.getScoreManager()) {
             scoreManager->addScore(100);
@@ -280,16 +278,13 @@ void GameplayScreen::handlePlayerInput(PlayerEntity& player) {
 }
 
 void GameplayScreen::updateCameraForPlayer(PlayerEntity& player) {
-    // Use the CameraManager's update method
     m_cameraManager->update(player);
 }
 
 void GameplayScreen::updateUI(PlayerEntity& player) {
-    // Get score and lives from player
     int score = player.getScore();
 
-    // Get health from HealthComponent
-    int lives = 3;  // Default
+    int lives = 3;
     auto* health = player.getComponent<HealthComponent>();
     if (health) {
         lives = health->getHealth();
@@ -299,7 +294,6 @@ void GameplayScreen::updateUI(PlayerEntity& player) {
 }
 
 void GameplayScreen::setupLevelEventHandlers() {
-    // الاشتراك في أحداث انتقال المستوى
     EventSystem::getInstance().subscribe<LevelTransitionEvent>(
         [this](const LevelTransitionEvent& event) {
             this->onLevelTransition(event);
@@ -326,7 +320,9 @@ void GameplayScreen::showLevelCompleteMessage() {
     m_showingLevelComplete = true;
     m_messageTimer = 0.0f;
 
-    std::string levelText = "Level " + std::to_string(m_gameSession->getLevelManager().getCurrentIndex() + 1) + " Complete!";
+    // Note: We can't easily get level index from SRP GameSession
+    // This could be improved by exposing level info through GameSession
+    std::string levelText = "Level Complete!";
     m_levelCompleteText.setString(levelText);
 
     sf::FloatRect bounds = m_levelCompleteText.getLocalBounds();

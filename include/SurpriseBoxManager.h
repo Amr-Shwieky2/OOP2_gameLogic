@@ -19,7 +19,7 @@ public:
     static constexpr int COINS_FOR_SURPRISE = 1;
 
     SurpriseBoxManager(TextureManager& textures, sf::RenderWindow& window);
-    ~SurpriseBoxManager() = default;
+    ~SurpriseBoxManager() ;
 
     // Set the entity manager and physics world for spawning
     void setEntityManager(EntityManager* manager) { m_entityManager = manager; }
