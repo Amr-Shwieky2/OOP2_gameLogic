@@ -32,6 +32,10 @@ SurpriseBoxManager::SurpriseBoxManager(TextureManager& textures, sf::RenderWindo
     );
 }
 
+SurpriseBoxManager::~SurpriseBoxManager() {
+    reset();
+}
+
 bool SurpriseBoxManager::shouldTriggerSurprise() const {
     // Trigger every 5 coins
     return (m_coinsCollected > 0) && (m_coinsCollected % 5 == 0) && (m_coinsCollected != m_lastTriggerCoin);

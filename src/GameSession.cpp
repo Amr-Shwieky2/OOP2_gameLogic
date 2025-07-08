@@ -1,287 +1,183 @@
 ﻿#include "GameSession.h"
-#include "GameCollisionSetup.h"
-#include "EntityFactory.h"
-#include "LevelLoader.h"
 #include "PlayerEntity.h"
-#include "EnemyEntity.h"
-#include "AIComponent.h"
-#include "CollisionComponent.h"
-#include "Transform.h"
-#include "Constants.h"
+#include "GameCollisionSetup.h"
+#include "ResourceManager.h"
 #include <iostream>
-#include <RenderComponent.h>
-#include <PhysicsComponent.h>
-#include <FlagEntity.h>
-#include <cmath> 
-#include <SeaEntity.h>
 
-// Global pointer to the current active session
+// Global pointer for backwards compatibility
 GameSession* g_currentSession = nullptr;
 
-GameSession::GameSession()
-    : m_physicsWorld(b2Vec2(0.0f, 9.8f)) {
+GameSession::GameSession() {
     g_currentSession = this;
+    std::cout << "[GameSession] Created - SRP compliant!" << std::endl;
 }
 
 GameSession::~GameSession() {
+    std::cout << "[GameSession] Starting destruction..." << std::endl;
+
+    // FIRST: Clear global pointer to prevent any access
     if (g_currentSession == this) {
+        std::cout << "[GameSession] Clearing global session pointer" << std::endl;
         g_currentSession = nullptr;
+    }
+
+    try {
+        // Clear player cache immediately
+        std::cout << "[GameSession] Clearing player cache" << std::endl;
+        m_player = nullptr;
+
+        // Shutdown surprise box manager FIRST (it has event subscriptions)
+        std::cout << "[GameSession] Destroying surprise box manager..." << std::endl;
+        if (m_surpriseBoxManager) {
+            m_surpriseBoxManager->reset();
+            m_surpriseBoxManager.reset();
+        }
+
+        // Clear all event handlers
+        std::cout << "[GameSession] Shutting down event coordinator..." << std::endl;
+        m_eventCoordinator.shutdown();
+
+        // Clear collision system
+        std::cout << "[GameSession] Clearing collision handlers..." << std::endl;
+        m_collisionManager.clearHandlers();
+
+        // Force cleanup of entities
+        std::cout << "[GameSession] Force cleaning entities..." << std::endl;
+        m_cleanupManager.forceCleanup(m_entityManager);
+
+        // Clear all entities
+        std::cout << "[GameSession] Clearing entity manager..." << std::endl;
+        m_entityManager.clear();
+
+        // Clear any remaining event system listeners
+        std::cout << "[GameSession] Clearing event system..." << std::endl;
+        EventSystem::getInstance().clear();
+
+        std::cout << "[GameSession] Destruction complete successfully" << std::endl;
+
+    }
+    catch (const std::exception& e) {
+        std::cout << "[GameSession] Exception during destruction: " << e.what() << std::endl;
     }
 }
 
 void GameSession::initialize(TextureManager& textures, sf::RenderWindow& window) {
     m_textures = &textures;
 
-    // Register all entity types
-    registerGameEntities(m_physicsWorld, textures);
+    std::cout << "[GameSession] Initializing all managers..." << std::endl;
 
-    // Setup collision handlers
-    setupGameCollisionHandlers(m_collisionSystem);
-    setupEventHandlers();
+    // Initialize all managers in proper order
+    // 1. Physics first (others depend on it)
+    // Physics manager initializes itself in constructor
 
-    // Initialize surprise box manager - FIX: pass window reference properly
+    // 2. Level manager (needs physics and entity manager)
+    m_levelManager.initialize(m_entityManager, m_physicsManager, textures);
+
+    // 3. Collision system
+    m_collisionManager.setupGameCollisionHandlers();
+
+    // 4. Event system
+    m_eventCoordinator.initialize();
+
+    // 5. Register entities for factory (needed for level loading)
+    registerGameEntities(m_physicsManager.getWorld(), textures);
+
+    // 6. Setup surprise box manager
     m_surpriseBoxManager = std::make_unique<SurpriseBoxManager>(textures, window);
     m_surpriseBoxManager->setEntityManager(&m_entityManager);
-    m_surpriseBoxManager->setPhysicsWorld(&m_physicsWorld);
+    m_surpriseBoxManager->setPhysicsWorld(&m_physicsManager.getWorld());
 
-    std::cout << "[GameSession] SurpriseBoxManager initialized with window" << std::endl;
+    std::cout << "[GameSession] All managers initialized successfully!" << std::endl;
 }
-
-void GameSession::loadLevel(const std::string& levelPath) {
-    std::cout << "\n[GameSession] Loading level: " << levelPath << std::endl;
-
-    // Clear existing entities 
-    m_entityManager.clear();
-    m_player = nullptr;
-    if (m_surpriseBoxManager) {
-        m_surpriseBoxManager->reset(); 
-    }
-
-    m_levelTransitionPending = false;
-    m_transitionTimer = 0.0f;
-    m_needLevelSwitch = false;
-
-    // Load level from file
-    bool success = m_levelLoader.loadFromFile(levelPath, m_entityManager, m_physicsWorld, *m_textures);
-
-    if (success) {
-        // Find the player entity
-        for (auto* entity : m_entityManager.getAllEntities()) {
-            if (auto* player = dynamic_cast<PlayerEntity*>(entity)) {
-                m_player = player;
-                break;
-            }
-        }
-
-        if (!m_player) {
-            std::cout << "[GameSession] No player in level, creating default player" << std::endl;
-            auto playerEntity = EntityFactory::instance().create("Player", 200.0f, 400.0f);
-            if (playerEntity) {
-                m_player = dynamic_cast<PlayerEntity*>(playerEntity.get());
-                m_entityManager.addEntity(std::move(playerEntity));
-            }
-        }
-
-        if (m_player && m_surpriseBoxManager) {
-            m_surpriseBoxManager->setPlayer(m_player);
-            m_surpriseBoxManager->setEntityManager(&m_entityManager);
-            m_surpriseBoxManager->setPhysicsWorld(&m_physicsWorld);
-        }
-
-        std::cout << "[GameSession] Level loaded successfully: " << levelPath << std::endl;
-    }
-    else {
-        std::cerr << "[GameSession] Failed to load level: " << levelPath << std::endl;
-    }
-}
-
 
 void GameSession::update(float deltaTime) {
-    if (m_needLevelSwitch) {
-        std::cout << "[GameSession] Performing delayed level switch to: " << m_nextLevelPath << std::endl;
-        m_needLevelSwitch = false;
-        loadLevel(m_nextLevelPath);
-        return;
-    }
-    if (m_levelTransitionPending) {
-        m_transitionTimer += deltaTime;
-
-        std::cout << "[DEBUG] Transition timer: " << m_transitionTimer
-            << "/" << m_transitionDelay << std::endl;
-
-        if (m_transitionTimer >= m_transitionDelay) {
-            m_levelTransitionPending = false;
-
-            std::cout << "[GameSession] Starting level transition..." << std::endl;
-
-            if (!loadNextLevel()) {
-                std::cout << "[GameSession] All levels completed!" << std::endl;
-            }
-
-            return;
-        }
-    }
-
-    // Update physics
-    m_physicsWorld.Step(deltaTime, 8, 3);
-
-    // Update all entities
-    m_entityManager.updateAll(deltaTime);
-
-    // Check collisions
-    checkCollisions();
-
-    cleanupInactiveEntities();
+    // Simply coordinate all subsystems - no business logic here!
+    updateAllSubsystems(deltaTime);
 }
 
 void GameSession::render(sf::RenderWindow& window) {
-    // Render all entities
+    // Delegate to render system
     m_renderSystem.render(m_entityManager, window);
 }
 
-// FIXED: Use addEntity instead of createEntity with unique_ptr
+PlayerEntity* GameSession::getPlayer() {
+    if (!m_player) {
+        findAndCachePlayer();
+    }
+    return m_player;
+}
+
 void GameSession::spawnEntity(std::unique_ptr<Entity> entity) {
     if (entity) {
-        Entity* ptr = entity.get();  // Get pointer before moving
-        m_entityManager.addEntity(std::move(entity));
-
-        // If it's a player, store reference
-        if (auto* player = dynamic_cast<PlayerEntity*>(ptr)) {
+        // Check if it's a player for caching
+        if (auto* player = dynamic_cast<PlayerEntity*>(entity.get())) {
             m_player = player;
-        }
-    }
-}
 
-void GameSession::checkCollisions() {
-    auto entities = m_entityManager.getAllEntities();
-
-    for (size_t i = 0; i < entities.size(); ++i) {
-        for (size_t j = i + 1; j < entities.size(); ++j) {
-            if (entities[i]->isActive() && entities[j]->isActive()) {
-                // إضافة debug للعلم
-                bool isPlayerFlag = (dynamic_cast<PlayerEntity*>(entities[i]) && dynamic_cast<FlagEntity*>(entities[j])) ||
-                    (dynamic_cast<FlagEntity*>(entities[i]) && dynamic_cast<PlayerEntity*>(entities[j]));
-
-                if (areColliding(*entities[i], *entities[j])) {
-                    if (isPlayerFlag) {
-                        std::cout << "[DEBUG] Player-Flag collision detected!" << std::endl;
-                    }
-                    m_collisionSystem.processCollision(*entities[i], *entities[j]);
-                }
+            // Setup surprise box manager with player
+            if (m_surpriseBoxManager) {
+                m_surpriseBoxManager->setPlayer(m_player);
             }
         }
+
+        // Delegate to entity manager
+        m_entityManager.addEntity(std::move(entity));
     }
 }
 
-bool GameSession::areColliding(Entity& a, Entity& b) {
-    auto* collA = a.getComponent<CollisionComponent>();
-    auto* collB = b.getComponent<CollisionComponent>();
-
-    if (!collA || !collB) return false;
-    if (!a.isActive() || !b.isActive()) return false;
-
-    bool isPlayerSea = (dynamic_cast<PlayerEntity*>(&a) && dynamic_cast<SeaEntity*>(&b)) ||
-        (dynamic_cast<SeaEntity*>(&a) && dynamic_cast<PlayerEntity*>(&b));
-
-    // Get positions
-    auto* transA = a.getComponent<Transform>();
-    auto* transB = b.getComponent<Transform>();
-
-    if (!transA || !transB) return false;
-
-    sf::Vector2f posA = transA->getPosition();
-    sf::Vector2f posB = transB->getPosition();
-
-    float dx = posA.x - posB.x;
-    float dy = posA.y - posB.y;
-    float distSq = dx * dx + dy * dy;
-
-    float collisionDistance = 100.0f; 
-
-    if (isPlayerSea) {
-        collisionDistance = 150.0f; 
-        float distance = std::sqrt(distSq);
-
-        if (distance < collisionDistance) {
-            return true;
-        }
-    }
-
-    return distSq < (collisionDistance * collisionDistance);
-}
-
-void GameSession::setupEventHandlers() {
-    EventSystem::getInstance().subscribe<FlagReachedEvent>(
-        [this](const FlagReachedEvent& event) {
-            this->onFlagReached(event);
-        }
-    );
-
-    EventSystem::getInstance().subscribe<LevelTransitionEvent>(
-        [this](const LevelTransitionEvent& event) {
-            this->onLevelTransition(event);
-        }
-    );
-}
-
-void GameSession::onFlagReached(const FlagReachedEvent& event) {
-    std::cout << "[GameSession] Flag reached! Starting level transition..." << std::endl;
-
-    m_levelTransitionPending = true;
-    m_transitionTimer = 0.0f;
-}
-
-void GameSession::onLevelTransition(const LevelTransitionEvent& event) {
-    if (event.isGameComplete) {
-        std::cout << "[GameSession] Game completed! All levels finished!" << std::endl;
-    }
-    else {
-        std::cout << "[GameSession] Transitioning from " << event.fromLevel
-            << " to " << event.toLevel << std::endl;
-    }
+bool GameSession::loadLevel(const std::string& levelPath) {
+    m_player = nullptr; // Reset player cache
+    // Delegate to level manager
+    return m_levelManager.loadLevel(levelPath);
 }
 
 bool GameSession::loadNextLevel() {
-    if (m_levelManager.hasNextLevel()) {
-        std::string currentLevel = m_levelManager.getCurrentLevelPath();
-
-        if (m_levelManager.loadNextLevel()) {
-            std::string nextLevel = m_levelManager.getCurrentLevelPath();
-
-            m_nextLevelPath = nextLevel;
-            m_needLevelSwitch = true;
-
-            std::cout << "[GameSession] Next level queued: " << nextLevel << std::endl;
-
-            EventSystem::getInstance().publish(
-                LevelTransitionEvent(currentLevel, nextLevel, false)
-            );
-
-            return true;
-        }
-    }
-    else {
-        EventSystem::getInstance().publish(
-            LevelTransitionEvent(m_levelManager.getCurrentLevelPath(), "", true)
-        );
-
-        std::cout << "[GameSession] Game Complete! No more levels!" << std::endl;
-        return false;
-    }
-
-    return false;
+    m_player = nullptr; // Reset player cache
+    // Delegate to level manager
+    return m_levelManager.loadNextLevel();
 }
 
 void GameSession::reloadCurrentLevel() {
-    std::string currentLevel = m_levelManager.getCurrentLevelPath();
-    std::cout << "[GameSession] Reloading current level: " << currentLevel << std::endl;
-    loadLevel(currentLevel);
+    m_player = nullptr; // Reset player cache
+    // Delegate to level manager
+    m_levelManager.reloadCurrentLevel();
 }
 
 const std::string& GameSession::getCurrentLevelName() const {
+    // Delegate to level manager
     return m_levelManager.getCurrentLevelPath();
 }
 
-void GameSession::cleanupInactiveEntities() {
-    m_entityManager.removeInactiveEntities();
+void GameSession::findAndCachePlayer() {
+    // Simple player finding - no complex logic
+    for (auto* entity : m_entityManager.getAllEntities()) {
+        if (auto* player = dynamic_cast<PlayerEntity*>(entity)) {
+            m_player = player;
+
+            // Setup surprise box manager with player
+            if (m_surpriseBoxManager) {
+                m_surpriseBoxManager->setPlayer(m_player);
+            }
+            break;
+        }
+    }
+}
+
+void GameSession::updateAllSubsystems(float deltaTime) {
+    // Coordinate all managers in proper order - no business logic!
+
+    // 1. Update physics world
+    m_physicsManager.update(deltaTime);
+
+    // 2. Update level manager (handles transitions)
+    m_levelManager.update(deltaTime);
+
+    // 3. Update all entities
+    m_entityManager.updateAll(deltaTime);
+
+    // 4. Check collisions
+    m_collisionManager.checkCollisions(m_entityManager);
+
+    // 5. Cleanup inactive entities
+    m_cleanupManager.update(deltaTime);
+    m_cleanupManager.cleanupInactiveEntities(m_entityManager);
 }
