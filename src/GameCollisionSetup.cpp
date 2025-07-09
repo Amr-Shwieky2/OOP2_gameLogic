@@ -26,6 +26,7 @@
 #include <FalconEnemyEntity.h>
 #include <Constants.h>
 #include <SquareEnemyEntity.h>
+#include <WellEntity.h>
 
 // For entity ID generation
 int g_nextEntityId = 1;
@@ -484,6 +485,26 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             proj.setActive(false);
         }
     );
+    // ===== Player vs Well =====
+    collisionSystem.registerHandler<PlayerEntity, WellEntity>(
+        [](PlayerEntity& player, WellEntity& well) {
+            if (well.isActivated()) return;
+
+            std::cout << "[Collision] Player entered the well!" << std::endl;
+
+            well.onPlayerEnter();
+
+            // Publish well entered event
+            EventSystem::getInstance().publish(
+                WellEnteredEvent(player.getId(), well.getId(), well.getTargetLevel())
+            );
+
+            // Add some score for discovering the well
+            if (auto* scoreManager = player.getScoreManager()) {
+                scoreManager->addScore(100);
+            }
+        }
+    );
 }
 
 void registerGameEntities(b2World& world, TextureManager& textures) {
@@ -600,5 +621,9 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
         auto enemy = std::make_unique<FalconEnemyEntity>(g_nextEntityId++, world, x, y, textures);
         std::cout << "[FACTORY] FalconEnemyEntity created with ID: " << enemy->getId() << std::endl;
         return enemy;
+        });
+    factory.registerCreator("W", [&](float x, float y) -> std::unique_ptr<Entity> {
+        std::cout << "[FACTORY] Creating Well at (" << x << ", " << y << ")" << std::endl;
+        return std::make_unique<WellEntity>(g_nextEntityId++, world, x, y, textures);
         });
 }

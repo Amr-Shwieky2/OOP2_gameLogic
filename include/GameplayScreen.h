@@ -8,6 +8,7 @@
 #include "InputService.h"
 #include "UIOverlay.h"
 #include "ResourceManager.h"
+#include <DarkLevelSystem.h>
 
 class UIObserver;
 
@@ -22,6 +23,9 @@ public:
     void render(sf::RenderWindow& window) override;
 
 private:
+    std::unique_ptr<DarkLevelSystem> m_darkLevelSystem;
+    bool m_isUnderground = false;
+
     void initializeComponents();
     void handlePlayerInput(PlayerEntity& player);
     void updateCameraForPlayer(PlayerEntity& player);

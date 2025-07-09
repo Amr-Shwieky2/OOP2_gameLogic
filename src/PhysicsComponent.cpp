@@ -1,7 +1,8 @@
-#include "PhysicsComponent.h"
+﻿#include "PhysicsComponent.h"
 #include "Entity.h"
 #include "Transform.h"
 #include "Constants.h"
+#include <CollisionComponent.h>
 
 PhysicsComponent::PhysicsComponent(b2World& world, b2BodyType type)
     : m_world(world) {
@@ -94,27 +95,32 @@ void PhysicsComponent::createCircleShape(float radius) {
         fixture = next;
     }
 
-    // Create circle shape
     b2CircleShape circle;
     circle.m_radius = radius / PPM;
 
-    // Create fixture
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &circle;
     fixtureDef.density = 1.0f;
     fixtureDef.friction = 0.3f;
     fixtureDef.restitution = 0.1f;
 
+    // 🧠 إضافة تصفية التصادم
+    if (m_owner && m_owner->hasComponent<CollisionComponent>()) {
+        auto* collision = m_owner->getComponent<CollisionComponent>();
+        b2Filter filter;
+        filter.categoryBits = collision->getLayer();
+        filter.maskBits = collision->getMask();
+        fixtureDef.filter = filter;
+    }
+
     m_body->CreateFixture(&fixtureDef);
 }
-
 void PhysicsComponent::createBoxShape(float width, float height,
-                                      float density,
-                                      float friction,
-                                      float restitution) {
+    float density,
+    float friction,
+    float restitution) {
     if (!m_body) return;
 
-    // Remove existing fixtures
     b2Fixture* fixture = m_body->GetFixtureList();
     while (fixture) {
         b2Fixture* next = fixture->GetNext();
@@ -122,16 +128,23 @@ void PhysicsComponent::createBoxShape(float width, float height,
         fixture = next;
     }
 
-    // Create box shape
     b2PolygonShape box;
     box.SetAsBox(width / (2.0f * PPM), height / (2.0f * PPM));
 
-    // Create fixture
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &box;
     fixtureDef.density = density;
     fixtureDef.friction = friction;
     fixtureDef.restitution = restitution;
+
+    // 🧠 إضافة تصفية التصادم
+    if (m_owner && m_owner->hasComponent<CollisionComponent>()) {
+        auto* collision = m_owner->getComponent<CollisionComponent>();
+        b2Filter filter;
+        filter.categoryBits = collision->getLayer();
+        filter.maskBits = collision->getMask();
+        fixtureDef.filter = filter;
+    }
 
     m_body->CreateFixture(&fixtureDef);
 }

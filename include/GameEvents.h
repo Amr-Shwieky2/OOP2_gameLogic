@@ -145,3 +145,19 @@ public:
     std::string toLevel;
     bool isGameComplete;
 };
+
+/**
+ * Well entered event - triggers transition to dark level
+ */
+class WellEnteredEvent : public Event {
+public:
+    WellEnteredEvent(Entity::IdType playerId, Entity::IdType wellId, const std::string& targetLevel)
+        : playerId(playerId), wellId(wellId), targetLevel(targetLevel) {
+    }
+
+    const char* getName() const override { return "WellEntered"; }
+
+    Entity::IdType playerId;
+    Entity::IdType wellId;
+    std::string targetLevel;
+};
