@@ -21,6 +21,8 @@ void GameplayScreen::initializeComponents() {
     m_backgroundRenderer = std::make_unique<BackgroundRenderer>(m_textures);
     m_ui = std::make_unique<UIOverlay>(WINDOW_WIDTH);
 
+    m_darkLevelSystem = std::make_unique<DarkLevelSystem>();
+
     // Load font for UI
     if (!m_font.loadFromFile("arial.ttf")) {
         std::cerr << "[WARNING] Failed to load font" << std::endl;
@@ -98,6 +100,8 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
         // Initialize UI Observer
         initializeUIObserver();
         setupLevelEventHandlers();
+
+        m_darkLevelSystem->initialize(window);
 
         m_initialized = true;
         std::cout << "[GameplayScreen] Initialized with SRP GameSession" << std::endl;
@@ -184,6 +188,11 @@ void GameplayScreen::update(float deltaTime) {
         m_uiObserver->update(deltaTime);
     }
 
+    if (m_darkLevelSystem) {
+        PlayerEntity* player = m_gameSession->getPlayer();
+        m_darkLevelSystem->update(deltaTime, player);
+    }
+
     // Check for game over
     auto* health = player ? player->getComponent<HealthComponent>() : nullptr;
     if (health && !health->isAlive() && !m_showingGameOver) {
@@ -206,6 +215,12 @@ void GameplayScreen::render(sf::RenderWindow& window) {
 
     // Render game session (uses SRP RenderSystem internally)
     m_gameSession->render(window);
+
+    m_gameSession->render(window);
+
+    if (m_darkLevelSystem && m_isUnderground) {
+        m_darkLevelSystem->render(window);
+    }
 
     // Switch to UI view
     sf::View defaultView = window.getDefaultView();
@@ -303,6 +318,26 @@ void GameplayScreen::setupLevelEventHandlers() {
     EventSystem::getInstance().subscribe<FlagReachedEvent>(
         [this](const FlagReachedEvent& event) {
             this->showLevelCompleteMessage();
+        }
+    );
+
+    EventSystem::getInstance().subscribe<WellEnteredEvent>(
+        [this](const WellEnteredEvent& event) {
+            std::cout << "[GameplayScreen] Well entered! Loading: " << event.targetLevel << std::endl;
+
+            // Load the underground level
+            if (m_gameSession->loadLevel(event.targetLevel)) {
+                // Enable darkness system
+                m_darkLevelSystem->setEnabled(true);
+                m_darkLevelSystem->setDarknessLevel(0.85f); // Very dark
+                m_isUnderground = true;
+
+                // Add some ambient light sources in underground level
+                m_darkLevelSystem->addLightSource(sf::Vector2f(300, 400), 80.0f, sf::Color(255, 200, 100));
+                m_darkLevelSystem->addLightSource(sf::Vector2f(800, 300), 60.0f, sf::Color(100, 255, 200));
+
+                std::cout << "[GameplayScreen] Entered underground level with darkness!" << std::endl;
+            }
         }
     );
 }

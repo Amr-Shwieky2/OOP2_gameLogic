@@ -40,6 +40,7 @@ configure_file("./icons/heart.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file("./icons/wooden_box.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file("./icons/MagneticGift.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file("./icons/FalconEnemy2.png" ${CMAKE_BINARY_DIR} COPYONLY)
+configure_file("./icons/well.png" ${CMAKE_BINARY_DIR} COPYONLY)
 
 configure_file("./tile/Edge.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file("./tile/middle.png" ${CMAKE_BINARY_DIR} COPYONLY)
@@ -56,5 +57,6 @@ configure_file("./fonts/NotoSansHebrew-Regular.ttf" ${CMAKE_BINARY_DIR} COPYONLY
 
 configure_file("highScore.txt" ${CMAKE_BINARY_DIR} COPYONLY)
 
+configure_file("./levels/dark_level.txt" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file("./levels/level1.txt" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file("./levels/level2.txt" ${CMAKE_BINARY_DIR} COPYONLY)

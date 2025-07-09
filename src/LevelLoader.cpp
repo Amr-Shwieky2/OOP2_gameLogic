@@ -4,6 +4,7 @@
 #include "Constants.h"
 #include <fstream>
 #include <iostream>
+#include "WellEntity.h"
 
 // For ground tiles that aren't entities yet, we'll need a temporary solution
 #include "GameCollisionSetup.h"
@@ -76,6 +77,10 @@ std::unique_ptr<Entity> LevelLoader::createEntityForChar(char tileChar, float x,
     case 'h': // Life Heart Gift
         std::cout << "[LEVEL DEBUG] Creating Life Heart Gift" << std::endl;
         return factory.create("h", x, y);
+
+    case 'W': // Well - ADD THIS CASE
+        std::cout << "[LEVEL DEBUG] Creating Well at (" << x << ", " << y << ")" << std::endl;
+        return factory.create("W", x, y);
 
     case 'r': // Reverse Movement Gift
         return factory.create("r", x, y);
