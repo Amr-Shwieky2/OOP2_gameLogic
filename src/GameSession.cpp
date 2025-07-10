@@ -5,10 +5,12 @@
 #include "FalconEnemyEntity.h"
 #include "Transform.h"
 #include "Constants.h"
+#include <memory>
 #include <iostream>
 
 // Global pointer for backwards compatibility
 GameSession* g_currentSession = nullptr;
+extern int g_nextEntityId;
 
 GameSession::GameSession() {
     g_currentSession = this;
