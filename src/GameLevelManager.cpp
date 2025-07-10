@@ -224,7 +224,7 @@ void GameLevelManager::setupEventHandlers() {
     }
 }
 
-void GameLevelManager::onFlagReached(const FlagReachedEvent& event) {
+void GameLevelManager::onFlagReached(const FlagReachedEvent&) {
     std::cout << "[GameLevelManager] Flag reached! Starting transition timer..." << std::endl;
     m_transitionPending = true;
     m_transitionTimer = 0.0f;

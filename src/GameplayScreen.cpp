@@ -7,32 +7,77 @@
 #include "EventSystem.h"
 #include "GameEvents.h"
 #include <iostream>
+#include <format>
 #include <WellEntity.h>
 
-GameplayScreen::GameplayScreen() {
+/**
+ * GameplayScreen constructor - initializes all needed components
+ * Following Single Responsibility Principle by delegating initialization
+ * to specialized methods
+ */
+GameplayScreen::GameplayScreen() : 
+    m_initialized(false),
+    m_isUnderground(false),
+    m_showingLevelComplete(false),
+    m_showingGameComplete(false),
+    m_showingGameOver(false),
+    m_messageTimer(0.0f),
+    m_messageDuration(3.0f),
+    m_levelTransitionInProgress(false),
+    m_playerValid(false) {
     initializeComponents();
 }
 
+/**
+ * Default destructor - smart pointers handle cleanup automatically
+ * following RAII principle
+ */
 GameplayScreen::~GameplayScreen() = default;
 
+/**
+ * Initialize all screen components using dependency injection pattern
+ * Each component has a clear single responsibility
+ */
 void GameplayScreen::initializeComponents() {
-    // Create SRP-compliant GameSession
-    m_gameSession = std::make_unique<GameSession>();
-    m_cameraManager = std::make_unique<CameraManager>();
-    m_backgroundRenderer = std::make_unique<BackgroundRenderer>(m_textures);
-    m_ui = std::make_unique<UIOverlay>(WINDOW_WIDTH);
+    try {
+        // Create core systems - each with single responsibility (SRP)
+        m_gameSession = std::make_unique<GameSession>();
+        m_cameraManager = std::make_unique<CameraManager>();
+        m_backgroundRenderer = std::make_unique<BackgroundRenderer>(m_textures);
+        m_ui = std::make_unique<UIOverlay>(WINDOW_WIDTH);
+        m_darkLevelSystem = std::make_unique<DarkLevelSystem>();
 
-    m_darkLevelSystem = std::make_unique<DarkLevelSystem>();
+        // Load font for UI
+        if (!m_font.loadFromFile("arial.ttf")) {
+            std::cerr << "[WARNING] Failed to load font" << std::endl;
+        }
 
-    // Load font for UI
-    if (!m_font.loadFromFile("arial.ttf")) {
-        std::cerr << "[WARNING] Failed to load font" << std::endl;
+        // Initialize camera
+        m_cameraManager->initialize(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+        // Setup UI components with consistent styling
+        initializeUITexts();
+        
+        // Setup backgrounds with proper layering
+        initializeBackgrounds();
+
+        // Try to load Game Over sprite with proper exception handling
+        loadGameOverSprite();
+
+        std::cout << "[GameplayScreen] Components initialized with SRP GameSession" << std::endl;
     }
+    catch (const std::exception& e) {
+        std::cerr << "[ERROR] Failed to initialize GameplayScreen components: " << e.what() << std::endl;
+        throw; // Rethrow to be handled by App
+    }
+}
 
-    // Initialize camera
-    m_cameraManager->initialize(WINDOW_WIDTH, WINDOW_HEIGHT);
-
-    // Setup UI texts
+/**
+ * Set up all UI text elements with consistent styling
+ * Extracted to separate method to keep initializeComponents cleaner
+ */
+void GameplayScreen::initializeUITexts() {
+    // Level complete text
     m_levelCompleteText.setFont(m_font);
     m_levelCompleteText.setCharacterSize(48);
     m_levelCompleteText.setFillColor(sf::Color::Yellow);
@@ -40,6 +85,7 @@ void GameplayScreen::initializeComponents() {
     m_levelCompleteText.setOutlineColor(sf::Color::Black);
     m_levelCompleteText.setString("Level Complete!");
 
+    // Game complete text
     m_gameCompleteText.setFont(m_font);
     m_gameCompleteText.setCharacterSize(54);
     m_gameCompleteText.setFillColor(sf::Color::Yellow);
@@ -47,22 +93,34 @@ void GameplayScreen::initializeComponents() {
     m_gameCompleteText.setOutlineColor(sf::Color::Black);
     m_gameCompleteText.setString("Game Complete! Congratulations!");
 
+    // Game over text
     m_gameOverText.setFont(m_font);
     m_gameOverText.setCharacterSize(32);
     m_gameOverText.setFillColor(sf::Color::White);
     m_gameOverText.setOutlineThickness(2.0f);
     m_gameOverText.setOutlineColor(sf::Color::Black);
     m_gameOverText.setString("Press SPACE to restart");
+}
 
-    // Setup backgrounds
+/**
+ * Set up all background elements
+ * Extracted to separate method for better organization
+ */
+void GameplayScreen::initializeBackgrounds() {
+    // Message background
     m_messageBackground.setSize(sf::Vector2f(WINDOW_WIDTH, 200.0f));
     m_messageBackground.setFillColor(sf::Color(0, 0, 0, 180));
     m_messageBackground.setPosition(0, WINDOW_HEIGHT / 2 - 100);
 
+    // Game over background
     m_gameOverBackground.setSize(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
     m_gameOverBackground.setFillColor(sf::Color(0, 0, 0, 150));
+}
 
-    // Try to load Game Over sprite
+/**
+ * Load game over sprite with proper error handling
+ */
+void GameplayScreen::loadGameOverSprite() {
     try {
         m_gameOverSprite.setTexture(m_textures.getResource("GameOver.png"));
         sf::Vector2u texSize = m_gameOverSprite.getTexture()->getSize();
@@ -72,118 +130,273 @@ void GameplayScreen::initializeComponents() {
     catch (const std::exception& e) {
         std::cout << "[WARNING] Could not load GameOver.png: " << e.what() << std::endl;
     }
-
-    std::cout << "[GameplayScreen] Components initialized with SRP GameSession" << std::endl;
 }
 
+/**
+ * Initialize the UI observer with proper error handling
+ * Uses lazy initialization pattern - only creates if needed
+ */
 void GameplayScreen::initializeUIObserver() {
     if (m_font.getInfo().family.empty()) {
+        std::cout << "[WARNING] Cannot initialize UIObserver: font not loaded" << std::endl;
         return;
     }
 
-    m_uiObserver = std::make_unique<UIObserver>(m_font);
-    m_uiObserver->initialize();
-
-    std::cout << "[GameplayScreen] UI Observer initialized" << std::endl;
+    try {
+        m_uiObserver = std::make_unique<UIObserver>(m_font);
+        m_uiObserver->initialize();
+        std::cout << "[GameplayScreen] UI Observer initialized" << std::endl;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "[ERROR] Failed to initialize UIObserver: " << e.what() << std::endl;
+    }
 }
 
+/**
+ * Handle all window events and user input
+ * @param window The render window
+ */
 void GameplayScreen::handleEvents(sf::RenderWindow& window) {
     m_window = &window;
 
-    // One-time initialization
+    // One-time initialization with lazy loading pattern
     if (!m_initialized) {
-        // Initialize the SRP-compliant GameSession
-        m_gameSession->initialize(m_textures, window);
-
-        // Load initial level using the new level manager
-        m_gameSession->loadLevel("level1.txt");
-
-        // Initialize UI Observer
-        initializeUIObserver();
-        setupLevelEventHandlers();
-
-        m_darkLevelSystem->initialize(window);
-
-        m_initialized = true;
-        std::cout << "[GameplayScreen] Initialized with SRP GameSession" << std::endl;
+        initializeGameSession(window);
     }
 
+    // Update input service
     m_inputService.update();
 
+    // Process all pending events
     sf::Event event;
     while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
             window.close();
         }
 
+        // Let UI handle its events first (event bubbling pattern)
         m_ui->handleEvent(event, window);
 
+        // Handle keyboard events
         if (event.type == sf::Event::KeyPressed) {
-            // Level switching for testing - now uses SRP methods
-            if (event.key.code == sf::Keyboard::F1) {
-                // Reset to first level - need to access LevelManager through GameSession
-                m_gameSession->loadLevel("level1.txt");
-                std::cout << "[GameplayScreen] Reset to first level" << std::endl;
-            }
-            else if (event.key.code == sf::Keyboard::F2) {
-                // Load next level using SRP method
-                if (m_gameSession->loadNextLevel()) {
-                    std::cout << "[GameplayScreen] Manually switched to next level" << std::endl;
-                }
-            }
-            else if (event.key.code == sf::Keyboard::Space && m_showingGameOver) {
-                std::cout << "[GameplayScreen] Restarting level after Game Over..." << std::endl;
-                m_showingGameOver = false;
-                m_gameSession->reloadCurrentLevel();
-            }
-            else if (event.key.code == sf::Keyboard::Escape) {
-                window.close();
-            }
+            handleKeyboardInput(event.key.code);
         }
     }
 }
 
+/**
+ * Initialize the game session and related components
+ * @param window The render window
+ */
+void GameplayScreen::initializeGameSession(sf::RenderWindow& window) {
+    try {
+        // Initialize the SRP-compliant GameSession
+        m_gameSession->initialize(m_textures, window);
+
+        // Load initial level using the level manager
+        m_gameSession->loadLevel("level1.txt");
+
+        // Initialize UI Observer
+        initializeUIObserver();
+        setupLevelEventHandlers();
+
+        // Initialize dark level system
+        m_darkLevelSystem->initialize(window);
+
+        m_initialized = true;
+        std::cout << "[GameplayScreen] Initialized with SRP GameSession" << std::endl;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "[ERROR] Failed to initialize game session: " << e.what() << std::endl;
+        throw; // Rethrow for the App to handle
+    }
+}
+
+/**
+ * Handle keyboard input events
+ * @param keyCode The key code pressed
+ */
+void GameplayScreen::handleKeyboardInput(sf::Keyboard::Key keyCode) {
+    switch (keyCode) {
+    case sf::Keyboard::F1:
+        // Reset to first level
+        m_gameSession->loadLevel("level1.txt");
+        std::cout << "[GameplayScreen] Reset to first level" << std::endl;
+        break;
+    case sf::Keyboard::F2:
+        // Load next level
+        if (m_gameSession->loadNextLevel()) {
+            std::cout << "[GameplayScreen] Manually switched to next level" << std::endl;
+        }
+        break;
+    case sf::Keyboard::Space:
+        if (m_showingGameOver) {
+            std::cout << "[GameplayScreen] Restarting level after Game Over..." << std::endl;
+            m_showingGameOver = false;
+            m_gameSession->reloadCurrentLevel();
+        }
+        break;
+    case sf::Keyboard::Escape:
+        if (m_window) {
+            m_window->close();
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+/**
+ * Update game state
+ * @param deltaTime Time elapsed since last frame
+ */
 void GameplayScreen::update(float deltaTime) {
+    // Don't update if the game is paused
     if (m_ui->isPaused()) return;
 
-    // تحقق من طلبات تغيير المستوى من البئر
-    if (WellEntity::isLevelChangeRequested()) {
-        std::string targetLevel = WellEntity::getTargetLevelName();
-        WellEntity::clearLevelChangeRequest();
-
-        std::cout << "[GameplayScreen] Level change requested: " << targetLevel << std::endl;
-
-        // تحميل المستوى الجديد بأمان
-        if (m_gameSession && m_gameSession->loadLevel(targetLevel)) {
-            std::cout << "[GameplayScreen] Level loaded successfully: " << targetLevel << std::endl;
-
-            // تفعيل نظام الظلام إذا كان مستوى مظلم
-            if (targetLevel.find("dark") != std::string::npos ||
-                targetLevel.find("underground") != std::string::npos) {
-
-                if (m_darkLevelSystem) {
-                    m_darkLevelSystem->setEnabled(true);
-                    m_darkLevelSystem->setDarknessLevel(0.85f);
-                    m_isUnderground = true;
-
-                    // إضافة مصادر إضاءة
-                    m_darkLevelSystem->addLightSource(sf::Vector2f(300, 400), 80.0f, sf::Color(255, 200, 100));
-                    m_darkLevelSystem->addLightSource(sf::Vector2f(800, 300), 60.0f, sf::Color(100, 255, 200));
-
-                    std::cout << "[GameplayScreen] Dark level system activated!" << std::endl;
-                }
-            }
-        }
-        else {
-            std::cerr << "[GameplayScreen] Failed to load level: " << targetLevel << std::endl;
-        }
-
-        return; // اخرج من update loop بعد تحميل المستوى
+    // Check for level change requests from well
+    if (handleWellLevelChangeRequests()) {
+        return; // Exit update loop after loading level
     }
 
-    // باقي كود update كما هو...
+    // Update message timers
+    updateMessageTimers(deltaTime);
 
-    // Handle message timers
+    // Handle game over state
+    if (m_showingGameOver) {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+            std::cout << "[GameplayScreen] Restarting level after Game Over..." << std::endl;
+            m_showingGameOver = false;
+            m_gameSession->reloadCurrentLevel();
+        }
+        return;
+    }
+
+    // Get player from the SRP-compliant GameSession
+    PlayerEntity* player = m_gameSession ? m_gameSession->getPlayer() : nullptr;
+    
+    // Safety check - if there's no player, we can't update player-related state
+    if (!player) {
+        std::cout << "[WARNING] No player found in GameSession" << std::endl;
+        
+        // Even without player, we should update the game session 
+        // to allow systems to initialize properly
+        if (m_gameSession) {
+            m_gameSession->update(deltaTime);
+        }
+        
+        // Update UI observer even without player
+        if (m_uiObserver) {
+            m_uiObserver->update(deltaTime);
+        }
+        
+        return;
+    }
+
+    // Store player ID for safety in case player becomes invalid
+    const int playerId = player->getId();
+
+    // Handle player input and update game state
+    try {
+        // Handle player input
+        handlePlayerInput(*player);
+        
+        // Update the GameSession
+        if (m_gameSession) {
+            m_gameSession->update(deltaTime);
+        }
+        
+        // Re-fetch player after game session update
+        player = m_gameSession ? m_gameSession->getPlayer() : nullptr;
+        
+        // Exit safely if player was deleted during update
+        if (!player) {
+            return;
+        }
+        
+        // Update camera and UI if player is valid
+        if (player && getSafeComponent<Transform>(player)) {
+            updateCameraForPlayer(*player);
+            updateUI(*player);
+        }
+        
+        // Update UI observer
+        if (m_uiObserver) {
+            m_uiObserver->update(deltaTime);
+        }
+        
+        // Update dark level system
+        if (m_darkLevelSystem) {
+            m_darkLevelSystem->update(deltaTime, player);
+        }
+        
+        // Check game over condition with the latest player reference
+        if (player) {
+            checkGameOverCondition(player);
+        }
+    }
+    catch (const std::exception& e) {
+        std::cerr << "[ERROR] Exception in update loop: " << e.what() << std::endl;
+    }
+}
+
+/**
+ * Handle level change requests from wells
+ * @return true if a level change was processed
+ */
+bool GameplayScreen::handleWellLevelChangeRequests() {
+    // Early exit if no level change is requested or if we're already showing transition messages
+    // or if a level transition is already in progress
+    if (!WellEntity::isLevelChangeRequested() || 
+        m_showingLevelComplete || 
+        m_showingGameComplete || 
+        m_levelTransitionInProgress) {
+        return false;
+    }
+
+    // Get target level and clear the request early to prevent repeated processing
+    std::string targetLevel = WellEntity::getTargetLevelName();
+    WellEntity::clearLevelChangeRequest();
+
+    std::cout << "[GameplayScreen] Level change requested from well: " << targetLevel << std::endl;
+    
+    // Use our safe level transition method
+    return startLevelTransition(targetLevel);
+}
+
+/**
+ * Activate dark level system if needed based on level name
+ * @param levelName The name of the loaded level
+ */
+void GameplayScreen::activateDarkLevelIfNeeded(const std::string& levelName) {
+    if (levelName.find("dark") != std::string::npos || 
+        levelName.find("underground") != std::string::npos) {
+
+        if (m_darkLevelSystem) {
+            m_darkLevelSystem->setEnabled(true);
+            m_darkLevelSystem->setDarknessLevel(0.85f);
+            m_isUnderground = true;
+
+            // Add light sources for improved gameplay
+            m_darkLevelSystem->addLightSource(sf::Vector2f(300, 400), 80.0f, sf::Color(255, 200, 100));
+            m_darkLevelSystem->addLightSource(sf::Vector2f(800, 300), 60.0f, sf::Color(100, 255, 200));
+
+            std::cout << "[GameplayScreen] Dark level system activated!" << std::endl;
+        }
+    } else {
+        // Reset dark level settings for normal levels
+        if (m_darkLevelSystem) {
+            m_darkLevelSystem->setEnabled(false);
+            m_isUnderground = false;
+        }
+    }
+}
+
+/**
+ * Update message timers
+ * @param deltaTime Time elapsed since last frame
+ */
+void GameplayScreen::updateMessageTimers(float deltaTime) {
     if (m_showingLevelComplete || m_showingGameComplete) {
         m_messageTimer += deltaTime;
         if (m_messageTimer >= m_messageDuration) {
@@ -192,58 +405,90 @@ void GameplayScreen::update(float deltaTime) {
             m_messageTimer = 0.0f;
         }
     }
+}
 
-    // Handle game over
-    if (m_showingGameOver) {
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-            std::cout << "[GameplayScreen] Space pressed! Restarting level..." << std::endl;
-            m_showingGameOver = false;
-            m_gameSession->reloadCurrentLevel();
-        }
-        return;
+/**
+ * Update the game state for a valid player entity
+ * @param deltaTime Time elapsed since last frame
+ * @param player Reference to the player entity
+ */
+void GameplayScreen::updateGameState(float deltaTime, PlayerEntity& player) {
+    // Handle player input first (before anything that might destroy the player)
+    try {
+        // Handle player input
+        handlePlayerInput(player);
     }
-
-    // Get player from the SRP-compliant GameSession
-    PlayerEntity* player = m_gameSession->getPlayer();
-    if (!player) {
-        std::cout << "[WARNING] No player found in GameSession" << std::endl;
-        return;
+    catch (const std::exception& e) {
+        std::cerr << "[ERROR] Exception handling player input: " << e.what() << std::endl;
     }
-
-    handlePlayerInput(*player);
 
     // Update the SRP-compliant GameSession (coordinates all managers)
-    m_gameSession->update(deltaTime);
-
-    // Update camera and UI
-    PlayerEntity* updatedPlayer = m_gameSession->getPlayer(); // Re-get in case it changed
-    if (updatedPlayer && updatedPlayer->hasComponent<Transform>()) {
-        updateCameraForPlayer(*updatedPlayer);
-        updateUI(*updatedPlayer);
+    if (m_gameSession) {
+        m_gameSession->update(deltaTime);
     }
 
+    // Player might be destroyed during update, so refetch it
+    PlayerEntity* updatedPlayer = m_gameSession ? m_gameSession->getPlayer() : nullptr;
+
+    // Only update camera and UI if player still exists
+    if (updatedPlayer && updatedPlayer->hasComponent<Transform>()) {
+        try {
+            updateCameraForPlayer(*updatedPlayer);
+            updateUI(*updatedPlayer);
+        }
+        catch (const std::exception& e) {
+            std::cerr << "[ERROR] Exception updating camera/UI: " << e.what() << std::endl;
+        }
+    }
+
+    // Update UI observer - doesn't depend on player
     if (m_uiObserver) {
         m_uiObserver->update(deltaTime);
     }
 
+    // Update dark level system if it exists
     if (m_darkLevelSystem) {
-        PlayerEntity* updatedPlayer = m_gameSession->getPlayer();
-        m_darkLevelSystem->update(deltaTime, updatedPlayer);
+        // Re-get player - it might have changed again
+        PlayerEntity* darkLevelPlayer = m_gameSession ? m_gameSession->getPlayer() : nullptr;
+        m_darkLevelSystem->update(deltaTime, darkLevelPlayer);
+    }
+}
+
+/**
+ * Check for game over condition
+ * @param player Pointer to the player entity
+ */
+void GameplayScreen::checkGameOverCondition(PlayerEntity* player) {
+    // Safety check - don't proceed if player is nullptr or invalid
+    if (!isPlayerValid(player)) {
+        return;
     }
 
-    // Check for game over
-    auto* health = player ? player->getComponent<HealthComponent>() : nullptr;
+    // Store player ID to avoid use-after-free if player becomes invalid
+    const int playerId = player->getId();
+    
+    // Safely check for health component using our helper
+    auto* health = getSafeComponent<HealthComponent>(player);
+    
+    // Only process game over if player has health and is not alive
     if (health && !health->isAlive() && !m_showingGameOver) {
         m_showingGameOver = true;
 
+        // Position the game over text
         sf::FloatRect bounds = m_gameOverText.getLocalBounds();
         m_gameOverText.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
         m_gameOverText.setPosition(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f + 320.0f);
 
-        EventSystem::getInstance().publish(PlayerDiedEvent(player->getId()));
+        // Publish player died event with stored ID (safe even if player is deleted)
+        EventSystem::getInstance().publish(PlayerDiedEvent(playerId));
     }
 }
 
+/**
+ * Render the game screen
+ * Follows a layered rendering approach for proper z-ordering
+ * @param window The render window
+ */
 void GameplayScreen::render(sf::RenderWindow& window) {
     // Set camera view
     m_cameraManager->setView(window);
@@ -254,8 +499,7 @@ void GameplayScreen::render(sf::RenderWindow& window) {
     // Render game session (uses SRP RenderSystem internally)
     m_gameSession->render(window);
 
-    m_gameSession->render(window);
-
+    // Render darkness system if in underground level
     if (m_darkLevelSystem && m_isUnderground) {
         m_darkLevelSystem->render(window);
     }
@@ -267,14 +511,24 @@ void GameplayScreen::render(sf::RenderWindow& window) {
     // Render UI elements
     m_ui->draw(window);
 
+    // Render UI observer notifications
     if (m_uiObserver) {
         m_uiObserver->render(window);
     }
 
-    // Render messages
+    // Render appropriate messages based on game state
+    renderGameMessages(window);
+}
+
+/**
+ * Render game messages (level complete, game complete, game over)
+ * @param window The render window
+ */
+void GameplayScreen::renderGameMessages(sf::RenderWindow& window) {
     if (m_showingLevelComplete) {
         window.draw(m_messageBackground);
 
+        // Animate text with pulsing effect using sine wave
         float alpha = 0.8f + 0.2f * std::sin(m_messageTimer * 8.0f);
         sf::Color color = m_levelCompleteText.getFillColor();
         color.a = static_cast<sf::Uint8>(255 * alpha);
@@ -295,137 +549,212 @@ void GameplayScreen::render(sf::RenderWindow& window) {
     }
 }
 
+/**
+ * Handle player input
+ * @param player Reference to the player entity
+ */
 void GameplayScreen::handlePlayerInput(PlayerEntity& player) {
-    // Player input handling remains the same
-    player.handleInput(m_inputService);
+    // Player input handling
+    try {
+        // Player input handling
+        player.handleInput(m_inputService);
+        
+        // Debug keys
+        handleDebugKeys(player);
+    }
+    catch (const std::exception& e) {
+        std::cerr << "[ERROR] Exception handling player input: " << e.what() << std::endl;
+    }
+}
 
-    // Debug keys remain the same
+/**
+ * Handle debug keys for development/testing
+ * @param player Reference to the player entity
+ */
+void GameplayScreen::handleDebugKeys(PlayerEntity& player) {
+    // Score manipulation
     if (m_inputService.isKeyPressed(sf::Keyboard::F3)) {
         if (auto* scoreManager = player.getScoreManager()) {
-            scoreManager->addScore(100);
-            std::cout << "[DEBUG] Added 100 score" << std::endl;
+            try {
+                scoreManager->addScore(100);
+                std::cout << "[DEBUG] Added 100 score" << std::endl;
+            }
+            catch (const std::exception& e) {
+                std::cerr << "[ERROR] Exception adding score: " << e.what() << std::endl;
+            }
         }
     }
 
+    // Health manipulation
     if (m_inputService.isKeyPressed(sf::Keyboard::F4)) {
-        auto* health = player.getComponent<HealthComponent>();
+        auto* health = getSafeComponent<HealthComponent>(&player);
         if (health) {
-            health->takeDamage(1);
-            std::cout << "[DEBUG] Player health: " << health->getHealth() << std::endl;
+            try {
+                health->takeDamage(1);
+                std::cout << "[DEBUG] Player health: " << health->getHealth() << std::endl;
+            }
+            catch (const std::exception& e) {
+                std::cerr << "[ERROR] Exception manipulating health: " << e.what() << std::endl;
+            }
         }
     }
 
+    // Speed boost
     if (m_inputService.isKeyPressed(sf::Keyboard::F5)) {
         if (auto* stateManager = player.getStateManager()) {
-            stateManager->applySpeedBoost(5.0f);
-            std::cout << "[DEBUG] Applied speed boost" << std::endl;
+            try {
+                stateManager->applySpeedBoost(5.0f);
+                std::cout << "[DEBUG] Applied speed boost" << std::endl;
+            }
+            catch (const std::exception& e) {
+                std::cerr << "[ERROR] Exception applying speed boost: " << e.what() << std::endl;
+            }
         }
     }
 
+    // Shield
     if (m_inputService.isKeyPressed(sf::Keyboard::F6)) {
         if (auto* stateManager = player.getStateManager()) {
-            stateManager->applyShield(5.0f);
-            std::cout << "[DEBUG] Applied shield" << std::endl;
+            try {
+                stateManager->applyShield(5.0f);
+                std::cout << "[DEBUG] Applied shield" << std::endl;
+            }
+            catch (const std::exception& e) {
+                std::cerr << "[ERROR] Exception applying shield: " << e.what() << std::endl;
+            }
         }
     }
 }
 
+/**
+ * Update camera based on player position
+ * @param player Reference to the player entity
+ */
 void GameplayScreen::updateCameraForPlayer(PlayerEntity& player) {
     m_cameraManager->update(player);
 }
 
+/**
+ * Update UI elements based on player state
+ * @param player Reference to the player entity
+ */
 void GameplayScreen::updateUI(PlayerEntity& player) {
-    int score = player.getScore();
+    try {
+        // Get score from player
+        int score = player.getScore();
 
-    int lives = 3;
-    auto* health = player.getComponent<HealthComponent>();
-    if (health) {
-        lives = health->getHealth();
+        // Get lives from health component using our safe helper
+        int lives = 3; // Default
+        auto* health = getSafeComponent<HealthComponent>(&player);
+        if (health) {
+            lives = health->getHealth();
+        }
+
+        // Update UI with player info
+        m_ui->update(score, lives);
     }
-
-    m_ui->update(score, lives);
+    catch (const std::exception& e) {
+        std::cerr << "[ERROR] Exception updating UI: " << e.what() << std::endl;
+    }
 }
 
+/**
+ * Set up event handlers for level events
+ * Uses observer pattern via event system
+ */
 void GameplayScreen::setupLevelEventHandlers() {
+    // Level transition events
     EventSystem::getInstance().subscribe<LevelTransitionEvent>(
         [this](const LevelTransitionEvent& event) {
             this->onLevelTransition(event);
         }
     );
 
+    // Flag reached events
     EventSystem::getInstance().subscribe<FlagReachedEvent>(
         [this](const FlagReachedEvent& event) {
             this->showLevelCompleteMessage();
         }
     );
 
+    // Well entered events
     EventSystem::getInstance().subscribe<WellEnteredEvent>(
         [this](const WellEnteredEvent& event) {
-            std::cout << "[GameplayScreen] Well entered event received!" << std::endl;
-            std::cout << "[GameplayScreen] Target level: " << event.targetLevel << std::endl;
-
-            // تأكد من أن GameSession موجود
-            if (!m_gameSession) {
-                std::cerr << "[GameplayScreen] ERROR: GameSession is null!" << std::endl;
-                return;
-            }
-
-            // تحقق من وجود الملف
-            std::string levelPath = event.targetLevel;
-            if (levelPath.empty()) {
-                levelPath = "dark_level.txt";
-                std::cout << "[GameplayScreen] Using default dark level" << std::endl;
-            }
-
-            // تحميل المستوى الجديد
-            try {
-                std::cout << "[GameplayScreen] Loading underground level: " << levelPath << std::endl;
-
-                if (m_gameSession->loadLevel(levelPath)) {
-                    // تفعيل نظام الظلام
-                    if (m_darkLevelSystem) {
-                        m_darkLevelSystem->setEnabled(true);
-                        m_darkLevelSystem->setDarknessLevel(0.85f);
-                        m_isUnderground = true;
-
-                        // إضافة مصادر إضاءة
-                        m_darkLevelSystem->addLightSource(sf::Vector2f(300, 400), 80.0f, sf::Color(255, 200, 100));
-                        m_darkLevelSystem->addLightSource(sf::Vector2f(800, 300), 60.0f, sf::Color(100, 255, 200));
-
-                        std::cout << "[GameplayScreen] Dark level system activated!" << std::endl;
-                    }
-
-                    std::cout << "[GameplayScreen] Successfully entered underground level!" << std::endl;
-                }
-                else {
-                    std::cerr << "[GameplayScreen] Failed to load underground level: " << levelPath << std::endl;
-                }
-            }
-            catch (const std::exception& e) {
-                std::cerr << "[GameplayScreen] Exception loading underground level: " << e.what() << std::endl;
-            }
+            this->handleWellEnteredEvent(event);
         }
     );
 }
 
+/**
+ * Handle well entered events
+ * @param event The well entered event
+ */
+void GameplayScreen::handleWellEnteredEvent(const WellEnteredEvent& event) {
+    std::cout << "[GameplayScreen] Well entered event received!" << std::endl;
+    std::cout << "[GameplayScreen] Target level: " << event.targetLevel << std::endl;
+
+    // Check for file existence
+    std::string levelPath = event.targetLevel;
+    if (levelPath.empty()) {
+        levelPath = "dark_level.txt";
+        std::cout << "[GameplayScreen] Using default dark level" << std::endl;
+    }
+
+    // Use our safe level transition method
+    if (startLevelTransition(levelPath)) {
+        // Check if this is a dark level and activate darkness effects
+        activateDarkLevelIfNeeded(levelPath);
+    }
+}
+
+/**
+ * Handle level transition events
+ * @param event The level transition event
+ */
 void GameplayScreen::onLevelTransition(const LevelTransitionEvent& event) {
+    // Handle game completion differently than level transitions
     if (event.isGameComplete) {
         showGameCompleteMessage();
     }
     else {
-        std::cout << "[GameplayScreen] Transitioning to: " << event.toLevel << std::endl;
+        std::cout << "[GameplayScreen] Level transition event received: " << event.toLevel << std::endl;
+        
+        // If we're already transitioning, don't start another transition
+        if (m_levelTransitionInProgress) {
+            std::cout << "[GameplayScreen] Level transition already in progress, ignoring event" << std::endl;
+            return;
+        }
+        
+        // Additional safety - check for empty level name
+        if (event.toLevel.empty()) {
+            std::cerr << "[GameplayScreen] WARNING: Empty level name in transition event" << std::endl;
+            return;
+        }
+        
+        // We don't call startLevelTransition here because GameLevelManager already handles the actual loading
+        // This event is just informing us about the transition - we just need to prepare our UI state
+        
+        // Reset game state for UI
+        m_showingGameOver = false;
+        m_showingLevelComplete = false;
+        m_showingGameComplete = false;
+        m_messageTimer = 0.0f;
+        m_playerValid = false; // Mark player as potentially invalid during transition
     }
 }
 
+/**
+ * Show level complete message
+ */
 void GameplayScreen::showLevelCompleteMessage() {
     m_showingLevelComplete = true;
     m_messageTimer = 0.0f;
 
-    // Note: We can't easily get level index from SRP GameSession
-    // This could be improved by exposing level info through GameSession
+    // Set level complete text
     std::string levelText = "Level Complete!";
     m_levelCompleteText.setString(levelText);
 
+    // Center the text
     sf::FloatRect bounds = m_levelCompleteText.getLocalBounds();
     m_levelCompleteText.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
     m_levelCompleteText.setPosition(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
@@ -433,19 +762,91 @@ void GameplayScreen::showLevelCompleteMessage() {
     std::cout << "[GameplayScreen] Showing level complete message" << std::endl;
 }
 
+/**
+ * Show game complete message
+ */
 void GameplayScreen::showGameCompleteMessage() {
     m_showingGameComplete = true;
     m_messageTimer = 0.0f;
 
+    // Get player score if available
     PlayerEntity* player = m_gameSession->getPlayer();
     if (player) {
-        std::string completeText = "Game Complete!\nFinal Score: " + std::to_string(player->getScore());
+        std::string completeText = std::format("Game Complete!\nFinal Score: {}", player->getScore());
         m_gameCompleteText.setString(completeText);
     }
 
+    // Center the text
     sf::FloatRect bounds = m_gameCompleteText.getLocalBounds();
     m_gameCompleteText.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
     m_gameCompleteText.setPosition(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
 
     std::cout << "[GameplayScreen] Showing game complete message" << std::endl;
+}
+
+/**
+ * Check if player pointer is valid
+ * @param player Pointer to the player entity
+ * @return true if player is valid, false otherwise
+ */
+bool GameplayScreen::isPlayerValid(PlayerEntity* player) {
+    // Basic null check
+    if (!player) {
+        return false;
+    }
+    
+    // Check if the player belongs to the current session
+    PlayerEntity* currentSessionPlayer = m_gameSession ? m_gameSession->getPlayer() : nullptr;
+    if (player != currentSessionPlayer) {
+        return false;
+    }
+    
+    // Simple validity check - if we get here, the player is likely valid
+    return true;
+}
+
+/**
+ * Start level transition with proper state reset
+ * @param targetLevel The level to transition to
+ * @return true if transition was started, false otherwise
+ */
+bool GameplayScreen::startLevelTransition(const std::string& targetLevel) {
+    if (!m_gameSession || m_levelTransitionInProgress) {
+        return false;
+    }
+    
+    std::cout << "[GameplayScreen] Starting level transition to: " << targetLevel << std::endl;
+    
+    m_levelTransitionInProgress = true;
+    m_playerValid = false; // Mark player as invalid during transition
+    
+    // Reset all UI state
+    m_showingGameOver = false;
+    m_showingLevelComplete = false;
+    m_showingGameComplete = false;
+    m_messageTimer = 0.0f;
+    
+    try {
+        bool success = m_gameSession->loadLevel(targetLevel);
+        m_levelTransitionInProgress = false;
+        
+        if (success) {
+            std::cout << "[GameplayScreen] Level transition complete: " << targetLevel << std::endl;
+            
+            // Check if player is valid after transition
+            PlayerEntity* newPlayer = m_gameSession->getPlayer();
+            m_playerValid = isPlayerValid(newPlayer);
+            
+            return true;
+        }
+        else {
+            std::cerr << "[GameplayScreen] Level transition failed: " << targetLevel << std::endl;
+            return false;
+        }
+    }
+    catch (const std::exception& e) {
+        m_levelTransitionInProgress = false;
+        std::cerr << "[GameplayScreen] Exception during level transition: " << e.what() << std::endl;
+        return false;
+    }
 }

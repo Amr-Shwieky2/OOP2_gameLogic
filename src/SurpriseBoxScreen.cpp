@@ -1,5 +1,7 @@
 ﻿#include "SurpriseBoxScreen.h"
 #include "ResourceManager.h"
+#include "Exceptions/GameExceptions.h"
+#include "Exceptions/Logger.h"
 #include <iostream>
 #include <cmath>
 #include <sstream>
@@ -21,10 +23,22 @@ SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerTyp
             m_boxSprite.setTexture(m_textures.getResource("OpenBox.png"));
             textureLoaded = true;
         }
-        catch (...) {
+        catch (const GameExceptions::ResourceException& ex) {
+            // Log the exception but continue trying
+            GameExceptions::getLogger().logException(ex, GameExceptions::LogLevel::Debug);
+            
             // Try alternative name
-            m_boxSprite.setTexture(m_textures.getResource("CloseBox.png"));
-            textureLoaded = true;
+            try {
+                m_boxSprite.setTexture(m_textures.getResource("CloseBox.png"));
+                textureLoaded = true;
+            }
+            catch (const GameExceptions::ResourceException& ex2) {
+                // Re-throw with context
+                GameExceptions::ResourceLoadException loadEx("Box texture", "Failed to load both OpenBox.png and CloseBox.png");
+                loadEx.addContext(ex.what());
+                loadEx.addContext(ex2.what());
+                throw loadEx;
+            }
         }
 
         if (textureLoaded) {
@@ -35,8 +49,14 @@ SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerTyp
             }
         }
     }
-    catch (...) {
-        std::cout << "[SurpriseBox] Failed to load box texture, using fallback" << std::endl;
+    catch (const GameExceptions::ResourceException& ex) {
+        GameExceptions::getLogger().logException(ex);
+        GameExceptions::getLogger().info("Using fallback box graphics");
+        m_useSprite = false;
+    }
+    catch (const std::exception& ex) {
+        GameExceptions::getLogger().logException(ex);
+        GameExceptions::getLogger().info("Using fallback box graphics due to unknown error");
         m_useSprite = false;
     }
 
@@ -45,7 +65,8 @@ SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerTyp
     try {
         m_background.setTexture(&m_textures.getResource("BoxBackground.png"));
     }
-    catch (...) {
+    catch (const GameExceptions::ResourceException& ex) {
+        GameExceptions::getLogger().logException(ex, GameExceptions::LogLevel::Debug);
         m_background.setFillColor(sf::Color(20, 20, 50, 200)); // Dark blue
     }
 
@@ -63,11 +84,12 @@ SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerTyp
     // Load font
     try {
         if (!m_font.loadFromFile("arial.ttf")) {
-            std::cerr << "[SurpriseBox] Failed to load font" << std::endl;
+            throw GameExceptions::ResourceLoadException("arial.ttf", "loadFromFile returned false");
         }
     }
-    catch (...) {
-        std::cerr << "[SurpriseBox] Font loading exception" << std::endl;
+    catch (const std::exception& ex) {
+        GameExceptions::getLogger().logException(ex);
+        GameExceptions::getLogger().warning("Font loading failed, text rendering may be affected");
     }
 
     // Setup text elements
@@ -107,8 +129,8 @@ SurpriseGiftType SurpriseBoxScreen::showSurpriseBox() {
     m_particles.clear();
     m_giftImageLoaded = false;
 
-    std::cout << "[SurpriseBox] Starting surprise box sequence. Selected gift: "
-        << getGiftName(m_selectedGift) << std::endl;
+    GameExceptions::getLogger().info(std::format("Starting surprise box sequence. Selected gift: {}", 
+                                    getGiftName(m_selectedGift)));
 
     sf::Clock clock;
 
@@ -120,7 +142,7 @@ SurpriseGiftType SurpriseBoxScreen::showSurpriseBox() {
         render();
     }
 
-    std::cout << "[SurpriseBox] Returning gift: " << getGiftName(m_selectedGift) << std::endl;
+    GameExceptions::getLogger().info(std::format("Returning gift: {}", getGiftName(m_selectedGift)));
     return m_selectedGift;
 }
 
@@ -140,13 +162,13 @@ void SurpriseBoxScreen::handleEvents() {
                 m_animationTimer = 0.0f;
                 m_phase = AnimationPhase::Opening;
                 createParticles();
-                std::cout << "[SurpriseBox] Box opened!" << std::endl;
+                GameExceptions::getLogger().debug("Box opened!");
                 break;
 
             case AnimationPhase::WaitingToContinue:
                 // Return to game
                 m_isRunning = false;
-                std::cout << "[SurpriseBox] Returning to game" << std::endl;
+                GameExceptions::getLogger().debug("Returning to game");
                 break;
 
             default:
@@ -203,15 +225,16 @@ void SurpriseBoxScreen::update(float deltaTime) {
             };
 
             try {
-                m_giftSprite.setTexture(m_textures.getResource(giftImages[static_cast<int>(m_selectedGift)]));
+                std::string gifImagePath = giftImages[static_cast<int>(m_selectedGift)];
+                m_giftSprite.setTexture(m_textures.getResource(gifImagePath));
                 sf::Vector2u giftSize = m_giftSprite.getTexture()->getSize();
                 m_giftSprite.setOrigin(giftSize.x / 2.0f, giftSize.y / 2.0f);
                 m_giftSprite.setPosition(m_giftPosition);
                 m_giftSprite.setScale(0.3f, 0.3f);
                 m_giftImageLoaded = true;
             }
-            catch (...) {
-                std::cout << "[SurpriseBox] Failed to load gift image" << std::endl;
+            catch (const GameExceptions::ResourceException& ex) {
+                GameExceptions::getLogger().logException(ex);
                 m_giftImageLoaded = true; // Prevent retry
             }
         }

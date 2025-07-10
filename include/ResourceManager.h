@@ -5,8 +5,11 @@
 #include <memory>
 #include <string>
 #include <stdexcept>
+#include <filesystem>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+#include "Exceptions/GameExceptions.h"
+#include "Exceptions/Logger.h"
 
 // Generic resource manager template
 // All definitions are in this header for templates
@@ -26,12 +29,59 @@ public:
 
         auto resPtr = std::make_unique<Resource>();
         if (!loadResource(*resPtr, filename)) {
-            throw std::runtime_error("Failed to load resource: " + filename);
+            // Check if file exists first
+            if (!std::filesystem::exists(filename)) {
+                throw GameExceptions::ResourceNotFoundException(filename);
+            }
+            // File exists but couldn't be loaded
+            throw GameExceptions::ResourceLoadException(filename, "Failed to load resource");
         }
 
         Resource& ref = *resPtr;
         m_resources[filename] = std::move(resPtr);
         return ref;
+    }
+
+    // Try to get a resource, returning a default if not found
+    Resource& tryGetResource(const std::string& filename, Resource& defaultResource) {
+        try {
+            return getResource(filename);
+        } 
+        catch (const GameExceptions::ResourceException& ex) {
+            // Log the exception but don't propagate it
+            GameExceptions::getLogger().logException(ex, GameExceptions::LogLevel::Warning);
+            return defaultResource;
+        }
+    }
+
+    // Check if resource is loaded
+    bool isLoaded(const std::string& filename) const {
+        return m_resources.find(filename) != m_resources.end();
+    }
+
+    // Pre-load a resource
+    bool preload(const std::string& filename) {
+        try {
+            getResource(filename);
+            return true;
+        } 
+        catch (const std::exception& ex) {
+            GameExceptions::getLogger().logException(ex);
+            return false;
+        }
+    }
+
+    // Release a specific resource
+    void releaseResource(const std::string& filename) {
+        auto it = m_resources.find(filename);
+        if (it != m_resources.end()) {
+            m_resources.erase(it);
+        }
+    }
+
+    // Release all resources
+    void releaseAllResources() {
+        m_resources.clear();
     }
 
 private:
