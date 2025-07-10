@@ -1,7 +1,10 @@
-﻿#include "GameSession.h"
+#include "GameSession.h"
 #include "PlayerEntity.h"
 #include "GameCollisionSetup.h"
 #include "ResourceManager.h"
+#include "FalconEnemyEntity.h"
+#include "Transform.h"
+#include "Constants.h"
 #include <iostream>
 
 // Global pointer for backwards compatibility
@@ -130,18 +133,24 @@ void GameSession::spawnEntity(std::unique_ptr<Entity> entity) {
 
 bool GameSession::loadLevel(const std::string& levelPath) {
     m_player = nullptr; // Reset player cache
+    m_falconSpawnTimer = 0.f;
+    m_falconSpawned = false;
     // Delegate to level manager
     return m_levelManager.loadLevel(levelPath);
 }
 
 bool GameSession::loadNextLevel() {
     m_player = nullptr; // Reset player cache
+    m_falconSpawnTimer = 0.f;
+    m_falconSpawned = false;
     // Delegate to level manager
     return m_levelManager.loadNextLevel();
 }
 
 void GameSession::reloadCurrentLevel() {
     m_player = nullptr; // Reset player cache
+    m_falconSpawnTimer = 0.f;
+    m_falconSpawned = false;
     // Delegate to level manager
     m_levelManager.reloadCurrentLevel();
 }
@@ -175,6 +184,9 @@ void GameSession::updateAllSubsystems(float deltaTime) {
     // 2. Update level manager (handles transitions)
     m_levelManager.update(deltaTime);
 
+    // Check timed spawns
+    updateFalconSpawner(deltaTime);
+
     // 3. Update all entities
     m_entityManager.updateAll(deltaTime);
 
@@ -184,4 +196,39 @@ void GameSession::updateAllSubsystems(float deltaTime) {
     // 5. Cleanup inactive entities
     m_cleanupManager.update(deltaTime);
     m_cleanupManager.cleanupInactiveEntities(m_entityManager);
+}
+
+void GameSession::updateFalconSpawner(float deltaTime) {
+    if (m_falconSpawned)
+        return;
+
+    m_falconSpawnTimer += deltaTime;
+    if (m_falconSpawnTimer >= 30.0f) {
+        spawnFalconEnemy();
+        m_falconSpawned = true;
+    }
+}
+
+void GameSession::spawnFalconEnemy() {
+    if (!m_textures)
+        return;
+
+    PlayerEntity* player = getPlayer();
+    if (!player)
+        return;
+
+    auto* playerTransform = player->getComponent<Transform>();
+    if (!playerTransform)
+        return;
+
+    float spawnX = playerTransform->getPosition().x + WINDOW_WIDTH / 2.0f + 300.0f;
+
+    auto enemy = std::make_unique<FalconEnemyEntity>(
+        g_nextEntityId++,
+        m_physicsManager.getWorld(),
+        spawnX,
+        0.0f,
+        *m_textures);
+
+    spawnEntity(std::move(enemy));
 }

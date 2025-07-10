@@ -90,8 +90,8 @@ void FalconEnemyEntity::updateFlightPattern(float dt) {
     float cameraLeft = playerPos.x - WINDOW_WIDTH / 2.0f;
     float cameraRight = playerPos.x + WINDOW_WIDTH / 2.0f;
 
-    // Move falcon to the right
-    physics->setVelocity(3.0f, 0.0f);
+    // Move falcon to the left
+    physics->setVelocity(-3.0f, 0.0f);
 
     // STABLE LOGIC: Wider margins to prevent flickering
     bool inShootingZone = (currentPos.x >= cameraLeft - 200.0f && currentPos.x <= cameraRight + 200.0f);
@@ -111,8 +111,8 @@ void FalconEnemyEntity::updateFlightPattern(float dt) {
     }
 
     // Loop back when very far off-screen
-    if (currentPos.x > cameraRight + 400.0f) {
-        float newX = cameraLeft - 300.0f;
+    if (currentPos.x < cameraLeft - 400.0f) {
+        float newX = cameraRight + 300.0f;
         physics->setPosition(newX, m_flightAltitude);
         m_shootTimer = 0.0f;
         m_readyToShoot = false;
