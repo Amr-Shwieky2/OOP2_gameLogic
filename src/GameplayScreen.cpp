@@ -7,6 +7,7 @@
 #include "EventSystem.h"
 #include "GameEvents.h"
 #include <iostream>
+#include <WellEntity.h>
 
 GameplayScreen::GameplayScreen() {
     initializeComponents();
@@ -144,6 +145,43 @@ void GameplayScreen::handleEvents(sf::RenderWindow& window) {
 
 void GameplayScreen::update(float deltaTime) {
     if (m_ui->isPaused()) return;
+
+    // تحقق من طلبات تغيير المستوى من البئر
+    if (WellEntity::isLevelChangeRequested()) {
+        std::string targetLevel = WellEntity::getTargetLevelName();
+        WellEntity::clearLevelChangeRequest();
+
+        std::cout << "[GameplayScreen] Level change requested: " << targetLevel << std::endl;
+
+        // تحميل المستوى الجديد بأمان
+        if (m_gameSession && m_gameSession->loadLevel(targetLevel)) {
+            std::cout << "[GameplayScreen] Level loaded successfully: " << targetLevel << std::endl;
+
+            // تفعيل نظام الظلام إذا كان مستوى مظلم
+            if (targetLevel.find("dark") != std::string::npos ||
+                targetLevel.find("underground") != std::string::npos) {
+
+                if (m_darkLevelSystem) {
+                    m_darkLevelSystem->setEnabled(true);
+                    m_darkLevelSystem->setDarknessLevel(0.85f);
+                    m_isUnderground = true;
+
+                    // إضافة مصادر إضاءة
+                    m_darkLevelSystem->addLightSource(sf::Vector2f(300, 400), 80.0f, sf::Color(255, 200, 100));
+                    m_darkLevelSystem->addLightSource(sf::Vector2f(800, 300), 60.0f, sf::Color(100, 255, 200));
+
+                    std::cout << "[GameplayScreen] Dark level system activated!" << std::endl;
+                }
+            }
+        }
+        else {
+            std::cerr << "[GameplayScreen] Failed to load level: " << targetLevel << std::endl;
+        }
+
+        return; // اخرج من update loop بعد تحميل المستوى
+    }
+
+    // باقي كود update كما هو...
 
     // Handle message timers
     if (m_showingLevelComplete || m_showingGameComplete) {
@@ -323,20 +361,48 @@ void GameplayScreen::setupLevelEventHandlers() {
 
     EventSystem::getInstance().subscribe<WellEnteredEvent>(
         [this](const WellEnteredEvent& event) {
-            std::cout << "[GameplayScreen] Well entered! Loading: " << event.targetLevel << std::endl;
+            std::cout << "[GameplayScreen] Well entered event received!" << std::endl;
+            std::cout << "[GameplayScreen] Target level: " << event.targetLevel << std::endl;
 
-            // Load the underground level
-            if (m_gameSession->loadLevel(event.targetLevel)) {
-                // Enable darkness system
-                m_darkLevelSystem->setEnabled(true);
-                m_darkLevelSystem->setDarknessLevel(0.85f); // Very dark
-                m_isUnderground = true;
+            // تأكد من أن GameSession موجود
+            if (!m_gameSession) {
+                std::cerr << "[GameplayScreen] ERROR: GameSession is null!" << std::endl;
+                return;
+            }
 
-                // Add some ambient light sources in underground level
-                m_darkLevelSystem->addLightSource(sf::Vector2f(300, 400), 80.0f, sf::Color(255, 200, 100));
-                m_darkLevelSystem->addLightSource(sf::Vector2f(800, 300), 60.0f, sf::Color(100, 255, 200));
+            // تحقق من وجود الملف
+            std::string levelPath = event.targetLevel;
+            if (levelPath.empty()) {
+                levelPath = "dark_level.txt";
+                std::cout << "[GameplayScreen] Using default dark level" << std::endl;
+            }
 
-                std::cout << "[GameplayScreen] Entered underground level with darkness!" << std::endl;
+            // تحميل المستوى الجديد
+            try {
+                std::cout << "[GameplayScreen] Loading underground level: " << levelPath << std::endl;
+
+                if (m_gameSession->loadLevel(levelPath)) {
+                    // تفعيل نظام الظلام
+                    if (m_darkLevelSystem) {
+                        m_darkLevelSystem->setEnabled(true);
+                        m_darkLevelSystem->setDarknessLevel(0.85f);
+                        m_isUnderground = true;
+
+                        // إضافة مصادر إضاءة
+                        m_darkLevelSystem->addLightSource(sf::Vector2f(300, 400), 80.0f, sf::Color(255, 200, 100));
+                        m_darkLevelSystem->addLightSource(sf::Vector2f(800, 300), 60.0f, sf::Color(100, 255, 200));
+
+                        std::cout << "[GameplayScreen] Dark level system activated!" << std::endl;
+                    }
+
+                    std::cout << "[GameplayScreen] Successfully entered underground level!" << std::endl;
+                }
+                else {
+                    std::cerr << "[GameplayScreen] Failed to load underground level: " << levelPath << std::endl;
+                }
+            }
+            catch (const std::exception& e) {
+                std::cerr << "[GameplayScreen] Exception loading underground level: " << e.what() << std::endl;
             }
         }
     );

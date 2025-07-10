@@ -52,12 +52,19 @@ void WellEntity::setupComponents(b2World& world, float x, float y, TextureManage
 void WellEntity::onPlayerEnter() {
     if (m_activated) return;
 
-    setTargetLevel("dark_level.txt");
-    std::cout << "[Well] Player entered the well! Transporting to: " << m_targetLevel << std::endl;
+    std::cout << "[Well] Player entered the well! Requesting level change..." << std::endl;
 
     m_activated = true;
-    m_bubbleEffect = true;
 
+    // طلب تغيير المستوى بدلاً من التحميل المباشر
+    std::string targetLevel = getTargetLevel();
+    if (targetLevel.empty()) {
+        targetLevel = "dark_level.txt";
+    }
+
+    requestLevelChange(targetLevel);
+
+    // تغيير المظهر
     auto* render = getComponent<RenderComponent>();
     if (render) {
         render->getSprite().setColor(sf::Color(120, 120, 200));
@@ -76,4 +83,17 @@ void WellEntity::updateAnimation(float dt) {
             render->getSprite().setColor(color);
         }
     }
+}
+
+bool WellEntity::s_levelChangeRequested = false;
+std::string WellEntity::s_targetLevelName = "";
+
+void WellEntity::requestLevelChange(const std::string& levelName) {
+    s_levelChangeRequested = true;
+    s_targetLevelName = levelName;
+}
+
+void WellEntity::clearLevelChangeRequest() {
+    s_levelChangeRequested = false;
+    s_targetLevelName.clear();
 }

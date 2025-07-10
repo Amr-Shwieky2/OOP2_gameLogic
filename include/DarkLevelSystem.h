@@ -1,4 +1,4 @@
-// DarkLevelSystem.h
+﻿// DarkLevelSystem.h
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <memory>
@@ -30,9 +30,19 @@ public:
     void setEnabled(bool enabled) { m_enabled = enabled; }
     bool isEnabled() const { return m_enabled; }
 
+    void updateFlashlightDirection(const sf::Vector2f& playerPos, const sf::Vector2f& mousePos);
+    void toggleFlashlight();
+    void renderFlashlight(sf::RenderWindow& window);
+    void updateBattery(float dt);
+
+    // إعدادات الكشاف
+    void setFlashlightRange(float range) { m_flashlightRange = range; }
+    void setFlashlightIntensity(float intensity) { m_flashlightIntensity = intensity; }
+    float getBatteryLevel() const { return m_batteryLevel; }
+
 private:
     void updatePlayerLight(PlayerEntity* player);
-    void renderDarkness(sf::RenderWindow& window);
+    void drawFlashlightCone(float intensity);
     void renderLightSources(sf::RenderTexture& target);
 
     struct LightSource {
@@ -61,4 +71,25 @@ private:
     // Animation
     float m_flickerTimer = 0.0f;
     float m_ambientTimer = 0.0f;
+
+    // متغيرات الكشاف
+    sf::Vector2f m_flashlightDirection;    // اتجاه الكشاف
+    float m_flashlightAngle;               // زاوية الكشاف
+    float m_flashlightRange;               // مدى الكشاف
+    float m_flashlightIntensity;           // قوة الكشاف
+    bool m_flashlightOn;                   // حالة الكشاف (مشتعل/مطفأ)
+
+    // بطارية الكشاف
+    float m_batteryLevel;                  // مستوى البطارية (0-1)
+    float m_batteryDrainRate;              // معدل استنزاف البطارية
+
+    // تأثيرات إضافية
+    bool m_lowBatteryWarning;              // تحذير البطارية المنخفضة
+
+    // الرندر تكستشرز
+    std::unique_ptr<sf::RenderTexture> m_flashlightTexture;
+    std::unique_ptr<sf::RenderTexture> m_maskTexture;
+
+    // الشيدرز (اختياري للتأثيرات المتقدمة)
+    sf::Shader m_flashlightShader;
 };
