@@ -31,7 +31,7 @@ public:
     TextureManager& getTextures() { return m_textures; }
 
     // NEW: Virtual onDeath method for special death behaviors
-    virtual void onDeath(Entity* killer) override {
+    virtual void onDeath([[maybe_unused]] Entity* killer) override {
         // Default enemy death behavior
         // Derived classes can override for special effects (like splitting)
     }

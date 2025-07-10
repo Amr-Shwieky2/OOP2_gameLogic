@@ -328,9 +328,9 @@ void SurpriseBoxScreen::createParticles() {
 
         // Mix gift color with random variations
         particle.color = giftColor;
-        particle.color.r = std::min(255, particle.color.r + rand() % 50);
-        particle.color.g = std::min(255, particle.color.g + rand() % 50);
-        particle.color.b = std::min(255, particle.color.b + rand() % 50);
+        particle.color.r = static_cast<sf::Uint8>(std::min(255, particle.color.r + rand() % 50));
+        particle.color.g = static_cast<sf::Uint8>(std::min(255, particle.color.g + rand() % 50));
+        particle.color.b = static_cast<sf::Uint8>(std::min(255, particle.color.b + rand() % 50));
 
         particle.size = sizeDist(m_gen);
         particle.life = particle.maxLife = lifeDist(m_gen);

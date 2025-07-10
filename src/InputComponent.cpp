@@ -1,5 +1,5 @@
 #include "InputComponent.h"
 
-void InputComponent::update(float dt)
+void InputComponent::update([[maybe_unused]] float dt)
 {
 }

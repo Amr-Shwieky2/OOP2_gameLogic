@@ -97,7 +97,7 @@ public:
      * The default implementation does nothing; subclasses can override
      * this to perform custom death behaviour.
      */
-    virtual void onDeath(Entity* killer) {
+    virtual void onDeath([[maybe_unused]] Entity* killer) {
         // Default implementation does nothing
         // Derived classes can override for special death behavior
     }
