@@ -56,7 +56,8 @@ void FalconEnemyEntity::setupComponents(b2World& world, float x, float y, Textur
     auto* render = addComponent<RenderComponent>();
     render->setTexture(*m_texture1);
     auto& sprite = render->getSprite();
-    sprite.setScale(0.2f, 0.2f);
+    // Use negative X scale to flip the sprite horizontally (face left instead of right)
+    sprite.setScale(-0.2f, 0.2f);
     sprite.setColor(sf::Color::White);
     sprite.setOrigin(sprite.getLocalBounds().width / 2.0f, sprite.getLocalBounds().height / 2.0f);
     sprite.setPosition(centerX, m_flightAltitude);
@@ -90,49 +91,54 @@ void FalconEnemyEntity::updateFlightPattern(float dt) {
     float cameraLeft = playerPos.x - WINDOW_WIDTH / 2.0f;
     float cameraRight = playerPos.x + WINDOW_WIDTH / 2.0f;
 
-    // Move falcon to the right
-    physics->setVelocity(3.0f, 0.0f);
+    // Move falcon to the left
+    physics->setVelocity(-3.0f, 0.0f);
 
-    // STABLE LOGIC: Wider margins to prevent flickering
+    // IMPROVED LOGIC: Wider margins and better visibility tracking
     bool inShootingZone = (currentPos.x >= cameraLeft - 200.0f && currentPos.x <= cameraRight + 200.0f);
-    bool farLeft = (currentPos.x < cameraLeft - 300.0f);
-    bool farRight = (currentPos.x > cameraRight + 300.0f);
+    bool farLeft = (currentPos.x < cameraLeft - 400.0f);
+    bool farRight = (currentPos.x > cameraRight + 400.0f);
+
+    // Debug position occasionally
+    static float posDebugTimer = 0.0f;
+    posDebugTimer += dt;
+    if (posDebugTimer >= 3.0f) {
+        posDebugTimer = 0.0f;
+        std::cout << "[FALCON] Position: (" << currentPos.x << "," << currentPos.y 
+                  << ") Camera: [" << cameraLeft << "," << cameraRight 
+                  << "] InShootingZone: " << inShootingZone << std::endl;
+    }
 
     // Enable shooting when entering the zone (simplified condition)
     if (inShootingZone && !m_readyToShoot) {
         m_readyToShoot = true;
         m_hasEnteredScreen = true;
         m_shootTimer = 0.0f;
+        std::cout << "[FALCON] Entering shooting zone!" << std::endl;
     }
 
     // Disable shooting only when FAR outside
     if ((farLeft || farRight) && m_readyToShoot) {
         m_readyToShoot = false;
+        std::cout << "[FALCON] Leaving shooting zone!" << std::endl;
     }
 
     // Loop back when very far off-screen
-    if (currentPos.x > cameraRight + 400.0f) {
-        float newX = cameraLeft - 300.0f;
+    if (currentPos.x < cameraLeft - 400.0f) {
+        float newX = cameraRight + 300.0f;
         physics->setPosition(newX, m_flightAltitude);
         m_shootTimer = 0.0f;
         m_readyToShoot = false;
         m_hasEnteredScreen = false;
+        std::cout << "[FALCON] Looping back to position: " << newX << std::endl;
     }
 
     // Force active always
     if (!isActive()) {
         setActive(true);
     }
-
-    // Debug position every 3 seconds (less spam)
-    static float posDebugTimer = 0.0f;
-    posDebugTimer += dt;
-    if (posDebugTimer >= 3.0f) {
-        posDebugTimer = 0.0f;
-    }
 }
 
-// Simplified shooting - less debug spam
 void FalconEnemyEntity::updateShooting(float dt) {
     if (!m_readyToShoot) {
         return;
@@ -142,13 +148,15 @@ void FalconEnemyEntity::updateShooting(float dt) {
     if (m_shootTimer >= m_shootCooldown) {
         shootProjectile();
         m_shootTimer = 0.0f;
-        // Remove spam - only print occasionally
+        // Debug logging occasionally
         static int shotCount = 0;
         shotCount++;
+        if (shotCount % 5 == 0) {
+            std::cout << "[FALCON] Shot #" << shotCount << " fired!" << std::endl;
+        }
     }
 }
 
-// Clean up the update method
 void FalconEnemyEntity::update(float dt) {
     // Debug every 3 seconds instead of 1
     static float debugTimer = 0.0f;
@@ -196,6 +204,9 @@ void FalconEnemyEntity::switchTexture() {
 
     auto& sprite = render->getSprite();
     sprite.setOrigin(sprite.getLocalBounds().width / 2.0f, sprite.getLocalBounds().height / 2.0f);
+    // Maintain the negative X scale when switching textures to keep the sprite facing left
+    float currentScaleY = sprite.getScale().y;
+    sprite.setScale(-abs(sprite.getScale().x), currentScaleY);
 }
 
 void FalconEnemyEntity::shootProjectile() {
@@ -210,6 +221,8 @@ void FalconEnemyEntity::shootProjectile() {
 
     b2World& world = *body->GetWorld();
     sf::Vector2f falconPos = transform->getPosition();
+    
+    // Calculate bullet spawn position below the falcon
     sf::Vector2f bulletSpawnPos = falconPos + sf::Vector2f(0.0f, 60.0f);
     sf::Vector2f shootDir(0.0f, 1.0f); // Shoot downward
 
@@ -220,7 +233,15 @@ void FalconEnemyEntity::shootProjectile() {
             bulletSpawnPos.x, bulletSpawnPos.y,
             shootDir, getTextures(), false // false = enemy projectile
         );
+        
+        // Make sure projectile is active
+        projectile->setActive(true);
+        
         g_currentSession->spawnEntity(std::move(projectile));
+        
+        // Debug info
+        std::cout << "[FALCON] Shot projectile at position: (" 
+                  << bulletSpawnPos.x << "," << bulletSpawnPos.y << ")" << std::endl;
     }
     catch (const std::exception& e) {
         std::cerr << "[FALCON] Error shooting: " << e.what() << std::endl;
