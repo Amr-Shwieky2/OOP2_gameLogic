@@ -448,6 +448,52 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
         }
     );
 
+    // ===== Projectile vs Falcon Enemy =====
+    collisionSystem.registerHandler<ProjectileEntity, FalconEnemyEntity>(
+        [](ProjectileEntity& proj, FalconEnemyEntity& falcon) {
+            if (!proj.isFromPlayer() || !falcon.isActive()) return;
+
+            std::cout << "[PROJECTILE] Player projectile hit falcon enemy!" << std::endl;
+
+            auto* health = falcon.getComponent<HealthComponent>();
+            if (health) {
+                health->takeDamage(1);
+                if (!health->isAlive()) {
+                    falcon.setActive(false);
+                    std::cout << "[PROJECTILE] Falcon enemy killed by projectile!" << std::endl;
+
+                    EventSystem::getInstance().publish(
+                        EnemyKilledEvent(falcon.getId(), proj.getId())
+                    );
+                }
+                else {
+                    std::cout << "[PROJECTILE] Falcon enemy hit! Health: "
+                        << health->getHealth() << std::endl;
+                }
+            }
+
+            proj.setActive(false);
+        }
+    );
+
+    // ===== Projectile vs Ground =====
+    collisionSystem.registerHandler<ProjectileEntity, GroundEntity>(
+        [](ProjectileEntity& proj, GroundEntity& ground) {
+            // Projectile hits ground - destroy it
+            std::cout << "[PROJECTILE] Projectile hit ground!" << std::endl;
+            
+            // Create a simple visual effect (could be expanded)
+            auto* render = proj.getComponent<RenderComponent>();
+            if (render) {
+                render->getSprite().setColor(sf::Color(200, 200, 200, 150)); // Fade out
+                render->getSprite().setScale(0.05f, 0.05f); // Smaller
+            }
+            
+            // Deactivate the projectile
+            proj.setActive(false);
+        }
+    );
+
     // ===== Enemy Projectile vs Player =====
     collisionSystem.registerHandler<ProjectileEntity, PlayerEntity>(
         [](ProjectileEntity& proj, PlayerEntity& player) {

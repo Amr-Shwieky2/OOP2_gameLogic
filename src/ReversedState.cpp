@@ -66,9 +66,17 @@ void ReversedState::handleInput(PlayerEntity& player, const InputService& input)
         physics->applyImpulse(0, -PLAYER_JUMP_IMPULSE);
     }
 
+    // Forward shooting with C key
     if (input.isKeyPressed(sf::Keyboard::C)) {
         if (auto* weaponSystem = player.getWeaponSystem()) {
             weaponSystem->shoot();
+        }
+    }
+    
+    // Backward shooting with B key
+    if (input.isKeyPressed(sf::Keyboard::B)) {
+        if (auto* weaponSystem = player.getWeaponSystem()) {
+            weaponSystem->shootBackward();
         }
     }
 }

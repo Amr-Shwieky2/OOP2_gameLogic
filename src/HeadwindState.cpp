@@ -56,7 +56,7 @@ void HeadwindState::update(PlayerEntity& player, float dt) {
     // Visual flickering effect during headwind
     if (auto* visualEffects = player.getVisualEffects()) {
         int flicker = static_cast<int>(m_duration * 20) % 3;
-        sf::Uint8 alpha = 200 + flicker * 20;
+        sf::Uint8 alpha = static_cast<sf::Uint8>(200 + flicker * 20);
         visualEffects->setStateColor(sf::Color(150, 150, 255, alpha));
     }
 

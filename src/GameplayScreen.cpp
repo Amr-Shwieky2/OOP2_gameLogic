@@ -216,10 +216,10 @@ void GameplayScreen::update(float deltaTime) {
     m_gameSession->update(deltaTime);
 
     // Update camera and UI
-    player = m_gameSession->getPlayer(); // Re-get in case it changed
-    if (player && player->hasComponent<Transform>()) {
-        updateCameraForPlayer(*player);
-        updateUI(*player);
+    PlayerEntity* updatedPlayer = m_gameSession->getPlayer(); // Re-get in case it changed
+    if (updatedPlayer && updatedPlayer->hasComponent<Transform>()) {
+        updateCameraForPlayer(*updatedPlayer);
+        updateUI(*updatedPlayer);
     }
 
     if (m_uiObserver) {
@@ -227,8 +227,8 @@ void GameplayScreen::update(float deltaTime) {
     }
 
     if (m_darkLevelSystem) {
-        PlayerEntity* player = m_gameSession->getPlayer();
-        m_darkLevelSystem->update(deltaTime, player);
+        PlayerEntity* updatedPlayer = m_gameSession->getPlayer();
+        m_darkLevelSystem->update(deltaTime, updatedPlayer);
     }
 
     // Check for game over

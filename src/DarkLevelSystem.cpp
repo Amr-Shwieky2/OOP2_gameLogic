@@ -148,9 +148,9 @@ void DarkLevelSystem::drawFlashlightCone(float intensity) {
 
     sf::VertexArray flashlightCone(sf::TriangleFan);
     sf::Vector2f center = m_playerLightPos;
-    flashlightCone.append(sf::Vertex(center, sf::Color(255, 255, 200, (sf::Uint8)(255 * intensity))));
+    flashlightCone.append(sf::Vertex(center, sf::Color(255, 255, 200, static_cast<sf::Uint8>(255 * intensity))));
 
-    float angleRad = m_flashlightAngle * M_PI / 180.0f;
+    float angleRad = m_flashlightAngle * static_cast<float>(M_PI) / 180.0f;
     float directionAngle = std::atan2(m_flashlightDirection.y, m_flashlightDirection.x);
 
     int segments = 20;
@@ -160,7 +160,7 @@ void DarkLevelSystem::drawFlashlightCone(float intensity) {
             std::cos(segmentAngle) * m_flashlightRange,
             std::sin(segmentAngle) * m_flashlightRange
         );
-        sf::Uint8 alpha = (sf::Uint8)(100 * intensity * (1.0f - (float)i / segments));
+        sf::Uint8 alpha = static_cast<sf::Uint8>(100 * intensity * (1.0f - static_cast<float>(i) / segments));
         flashlightCone.append(sf::Vertex(point, sf::Color(255, 255, 180, alpha)));
     }
 
@@ -169,7 +169,7 @@ void DarkLevelSystem::drawFlashlightCone(float intensity) {
     sf::CircleShape halo(50.0f);
     halo.setOrigin(50.0f, 50.0f);
     halo.setPosition(center);
-    halo.setFillColor(sf::Color(255, 255, 200, (sf::Uint8)(50 * intensity)));
+    halo.setFillColor(sf::Color(255, 255, 200, static_cast<sf::Uint8>(50 * intensity)));
     m_flashlightTexture->draw(halo);
 }
 

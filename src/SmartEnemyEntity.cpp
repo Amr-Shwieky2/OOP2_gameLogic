@@ -151,9 +151,9 @@ void SmartEnemyEntity::update(float dt) {
 
         // Add pulsing effect for activity
         float pulse = 0.8f + 0.2f * std::sin(m_decisionTimer * 8.0f);
-        baseColor.r = (sf::Uint8)(baseColor.r * pulse);
-        baseColor.g = (sf::Uint8)(baseColor.g * pulse);
-        baseColor.b = (sf::Uint8)(baseColor.b * pulse);
+        baseColor.r = static_cast<sf::Uint8>(baseColor.r * pulse);
+        baseColor.g = static_cast<sf::Uint8>(baseColor.g * pulse);
+        baseColor.b = static_cast<sf::Uint8>(baseColor.b * pulse);
 
         render->getSprite().setColor(baseColor);
     }
@@ -204,9 +204,9 @@ void SmartEnemyEntity::analyzeAndDecide() {
     for (auto* entity : g_currentSession->getEntityManager().getAllEntities()) {
         if (auto* enemy = dynamic_cast<EnemyEntity*>(entity)) {
             if (enemy != this && enemy->isActive()) {
-                auto* enemyTransform = enemy->getComponent<Transform>();
-                if (enemyTransform) {
-                    sf::Vector2f enemyPos = enemyTransform->getPosition();
+                auto* otherEnemyTransform = enemy->getComponent<Transform>();
+                if (otherEnemyTransform) {
+                    sf::Vector2f enemyPos = otherEnemyTransform->getPosition();
                     sf::Vector2f toEnemy = enemyPos - m_gameState.enemyPosition;
                     float distance = std::sqrt(toEnemy.x * toEnemy.x + toEnemy.y * toEnemy.y);
                     if (distance < 400.0f) { // Within coordination range

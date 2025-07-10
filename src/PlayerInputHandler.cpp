@@ -31,6 +31,27 @@ void PlayerInputHandler::processActionInput(const InputService& input) {
         }
     }
 
+    // Backward shooting with B
+    if (input.isKeyPressed(sf::Keyboard::B)) {
+        if (auto* weaponSystem = m_player.getWeaponSystem()) {
+            weaponSystem->shootBackward();
+        }
+    }
+
+    // Special gravity shot with F (left-upward)
+    if (input.isKeyPressed(sf::Keyboard::F)) {
+        if (auto* weaponSystem = m_player.getWeaponSystem()) {
+            weaponSystem->shootSpecialGravity();
+        }
+    }
+    
+    // Forward gravity shot with V
+    if (input.isKeyPressed(sf::Keyboard::V)) {
+        if (auto* weaponSystem = m_player.getWeaponSystem()) {
+            weaponSystem->shootForwardGravity();
+        }
+    }
+
     // Debug keys (optional - can be removed in release)
     if (input.isKeyPressed(sf::Keyboard::F5)) {
         if (auto* stateManager = m_player.getStateManager()) {
