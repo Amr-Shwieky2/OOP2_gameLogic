@@ -488,20 +488,25 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
     // ===== Player vs Well =====
     collisionSystem.registerHandler<PlayerEntity, WellEntity>(
         [](PlayerEntity& player, WellEntity& well) {
-            if (well.isActivated()) return;
+            try {
+                if (!player.isActive() || !well.isActive() || well.isActivated()) {
+                    return;
+                }
 
-            std::cout << "[Collision] Player entered the well!" << std::endl;
+                std::cout << "[COLLISION] Player entered well - processing safely..." << std::endl;
 
-            well.onPlayerEnter();
+                // تفعيل البئر (يطلب تغيير المستوى)
+                well.onPlayerEnter();
 
-            // Publish well entered event
-            EventSystem::getInstance().publish(
-                WellEnteredEvent(player.getId(), well.getId(), well.getTargetLevel())
-            );
+                // إضافة النقاط
+                if (auto* scoreManager = player.getScoreManager()) {
+                    scoreManager->addScore(100);
+                }
 
-            // Add some score for discovering the well
-            if (auto* scoreManager = player.getScoreManager()) {
-                scoreManager->addScore(100);
+                std::cout << "[COLLISION] Well activated - level change requested" << std::endl;
+            }
+            catch (const std::exception& e) {
+                std::cerr << "[COLLISION] Exception: " << e.what() << std::endl;
             }
         }
     );

@@ -52,6 +52,8 @@ private:
     void onFlagReached(const FlagReachedEvent& event);
     void onLevelTransition(const LevelTransitionEvent& event);
 
+    void onWellEntered(const WellEnteredEvent& event);
+
     // Level transition state
     bool m_transitionPending = false;
     float m_transitionTimer = 0.0f;
