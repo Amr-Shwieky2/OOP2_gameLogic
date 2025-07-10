@@ -67,4 +67,11 @@ private:
     // Helper methods - these just coordinate, don't do work
     void findAndCachePlayer();
     void updateAllSubsystems(float deltaTime);
+
+    // Falcon spawn logic
+    void updateFalconSpawner(float deltaTime);
+    void spawnFalconEnemy();
+
+    float m_falconSpawnTimer = 0.f;
+    bool m_falconSpawned = false;
 };
