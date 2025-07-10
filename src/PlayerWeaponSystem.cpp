@@ -30,15 +30,37 @@ void PlayerWeaponSystem::shoot() {
     sf::Vector2f playerPos = m_player.getPosition();
     sf::Vector2f playerVel = m_player.getVelocity();
 
-    // Determine shoot direction based on velocity
-    sf::Vector2f direction = playerVel.x >= 0 ? sf::Vector2f(1.f, 0.f) : sf::Vector2f(-1.f, 0.f);
+    // Get the player's state to determine direction
+    PlayerState* currentState = m_player.getCurrentState();
+    bool isReversedState = (currentState && std::string(currentState->getName()) == "Reversed");
 
-    createProjectile(playerPos, direction);
+    // Determine shoot direction based on player's state and movement
+    sf::Vector2f direction;
+    
+    // If in reversed state, invert direction logic
+    if (isReversedState) {
+        direction = playerVel.x <= 0 ? sf::Vector2f(1.f, 0.f) : sf::Vector2f(-1.f, 0.f);
+    } else {
+        direction = playerVel.x >= 0 ? sf::Vector2f(1.f, 0.f) : sf::Vector2f(-1.f, 0.f);
+    }
+    
+    // If player is not moving, use a default direction
+    if (std::abs(playerVel.x) < 0.1f) {
+        // Use the last known movement direction or default to right
+        direction = sf::Vector2f(1.f, 0.f);
+    }
+    
+    // Offset the projectile position in front of the player
+    float offsetX = direction.x * 30.0f;  // Offset in the direction of shooting
+    sf::Vector2f projectilePos = playerPos + sf::Vector2f(offsetX, 0);
+
+    createProjectile(projectilePos, direction);
 
     // Reset shot timer
     m_lastShotTime = 0.0f;
 
-    std::cout << "[WeaponSystem] Shot fired! Type: " << static_cast<int>(m_weaponType) << std::endl;
+    std::cout << "[WeaponSystem] Shot fired! Type: " << static_cast<int>(m_weaponType) 
+              << " Direction: (" << direction.x << "," << direction.y << ")" << std::endl;
 }
 
 bool PlayerWeaponSystem::canShoot() const {
@@ -72,7 +94,7 @@ void PlayerWeaponSystem::createProjectile(const sf::Vector2f& position, const sf
     }
 }
 
-float PlayerWeaponSystem::getCooldownForWeapon(WeaponType type)const {
+float PlayerWeaponSystem::getCooldownForWeapon(WeaponType type) const {
     switch (type) {
     case WeaponType::Basic:  return 0.3f;
     case WeaponType::Rapid:  return 0.1f;

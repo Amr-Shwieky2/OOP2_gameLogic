@@ -6,6 +6,9 @@
 #include "CollisionComponent.h"
 #include "Constants.h"
 #include <iostream>
+#include "GameSession.h"
+
+extern GameSession* g_currentSession;
 
 ProjectileEntity::ProjectileEntity(IdType id, b2World& world, float x, float y,
     sf::Vector2f direction, TextureManager& textures,
@@ -36,8 +39,8 @@ void ProjectileEntity::setupComponents(b2World& world, float x, float y,
         }
     }
 
-    // Set velocity for kinematic body
-    float speed = 5.0f; 
+    // Increase projectile speed for better visibility
+    float speed = 10.0f; // Increased from 5.0f for better visibility
     physics->setVelocity(direction.x * speed, direction.y * speed);
 
     if (auto* body = physics->getBody()) {
@@ -53,10 +56,19 @@ void ProjectileEntity::setupComponents(b2World& world, float x, float y,
     auto* render = addComponent<RenderComponent>();
     render->setTexture(textures.getResource("Bullet.png"));
     auto& sprite = render->getSprite();
-    sprite.setScale(0.07f, 0.07f); 
+    
+    // Make the bullet larger and rotate in the direction of movement
+    sprite.setScale(0.07f, 0.07f);  // Increased from 0.07f for better visibility
+    
+    // Set rotation based on direction
+    float angle = atan2(direction.y, direction.x) * 180.0f / 3.14159f;
+    sprite.setRotation(angle);
 
     auto bounds = sprite.getLocalBounds();
     sprite.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
+    
+    // Set initial position
+    sprite.setPosition(x, y);
 
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Projectile);
 }
@@ -82,15 +94,33 @@ void ProjectileEntity::update(float dt) {
         render->getSprite().setPosition(pos);
     }
 
-    // Check if projectile is off-screen and destroy it
-    auto* transform2 = getComponent<Transform>();
-    if (transform2) {
-        sf::Vector2f pos = transform2->getPosition();
+    // Check if projectile is off-screen relative to the camera view and destroy it
+    if (!g_currentSession) return;
 
-        // Destroy if way off screen
-        if (pos.x < -100.0f || pos.x > WINDOW_WIDTH + 100.0f ||
-            pos.y < -100.0f || pos.y > WINDOW_HEIGHT + 100.0f) {
-            setActive(false);
-        }
+    auto* playerEntity = g_currentSession->getPlayer();
+    if (!playerEntity) return;
+
+    auto* playerTransform = playerEntity->getComponent<Transform>();
+    if (!playerTransform) return;
+
+    auto* projectileTransform = getComponent<Transform>();
+    if (!projectileTransform) return;
+
+    sf::Vector2f playerPos = playerTransform->getPosition();
+    sf::Vector2f projectilePos = projectileTransform->getPosition();
+
+    // Calculate camera bounds based on player position
+    float cameraLeft = playerPos.x - WINDOW_WIDTH / 2.0f;
+    float cameraRight = playerPos.x + WINDOW_WIDTH / 2.0f;
+    float cameraTop = playerPos.y - WINDOW_HEIGHT / 2.0f;
+    float cameraBottom = playerPos.y + WINDOW_HEIGHT / 2.0f;
+
+    // Add extra margin (300 pixels in each direction)
+    const float margin = 300.0f;
+    
+    // Destroy if way off screen relative to camera
+    if (projectilePos.x < cameraLeft - margin || projectilePos.x > cameraRight + margin ||
+        projectilePos.y < cameraTop - margin || projectilePos.y > cameraBottom + margin) {
+        setActive(false);
     }
 }
