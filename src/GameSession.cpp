@@ -107,6 +107,10 @@ PlayerEntity* GameSession::getPlayer() {
     return m_player;
 }
 
+void GameSession::invalidateCachedPlayer() {
+    m_player = nullptr;
+}
+
 void GameSession::spawnEntity(std::unique_ptr<Entity> entity) {
     if (entity) {
         // Check if it's a player for caching

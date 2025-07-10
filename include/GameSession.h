@@ -41,6 +41,9 @@ public:
     void reloadCurrentLevel();
     const std::string& getCurrentLevelName() const;
 
+    // Invalidate cached player pointer (e.g., when levels reload internally)
+    void invalidateCachedPlayer();
+
     // Other accessors
     SurpriseBoxManager* getSurpriseBoxManager() { return m_surpriseBoxManager.get(); }
     GameLevelManager& getLevelManager() { return m_levelManager; }

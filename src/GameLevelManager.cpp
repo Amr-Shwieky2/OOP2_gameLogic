@@ -2,6 +2,7 @@
 #include "EntityManager.h"
 #include "PhysicsManager.h"
 #include "ResourceManager.h"
+#include "GameSession.h"
 #include <iostream>
 #include <PlayerEntity.h>
 #include "EntityFactory.h"
@@ -36,6 +37,11 @@ bool GameLevelManager::loadLevel(const std::string& levelPath) {
         m_transitionPending = false;
         m_transitionTimer = 0.0f;
         m_needLevelSwitch = false;
+
+        // Invalidate cached player in current session since entities will be cleared
+        if (g_currentSession) {
+            g_currentSession->invalidateCachedPlayer();
+        }
 
         // إزالة أي مراجع للكائنات الحالية
         std::cout << "[GameLevelManager] Clearing current entities..." << std::endl;
