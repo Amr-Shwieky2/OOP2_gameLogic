@@ -12,7 +12,7 @@
 #include "Constants.h"
 #include <iostream>
 
-EnemyEntity::EnemyEntity(IdType id, EnemyType type, b2World& world, float x, float y, TextureManager& textures)
+EnemyEntity::EnemyEntity(IdType id, EnemyType type, b2World& , float, float, TextureManager& textures)
     : Entity(id)
     , m_enemyType(type)
     , m_textures(textures) {
@@ -20,7 +20,7 @@ EnemyEntity::EnemyEntity(IdType id, EnemyType type, b2World& world, float x, flo
     // DON'T call setupComponents here - let derived classes do it
 }
 
-void EnemyEntity::setupComponents(b2World&, float x, float y, TextureManager& textures) {
+void EnemyEntity::setupComponents(b2World&, float x, float y, TextureManager& ) {
     std::cout << "[ENEMY BASE] setupComponents called at (" << x << ", " << y << ")" << std::endl;
     // Base enemy setup - derived classes will override
     addComponent<Transform>(sf::Vector2f(x, y));

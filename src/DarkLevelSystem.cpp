@@ -48,6 +48,7 @@ void DarkLevelSystem::initialize(sf::RenderWindow& window) {
 
     m_darknessLevel = 0.98f;
 
+
     m_darknessOverlay.setSize(sf::Vector2f(windowSize.x, windowSize.y));
     m_darknessOverlay.setFillColor(sf::Color(0, 0, 0, 250));
 

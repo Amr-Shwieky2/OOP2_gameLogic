@@ -119,7 +119,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
     // ===== Player vs Sea =====
     collisionSystem.registerHandler<PlayerEntity, SeaEntity>(
-        [](PlayerEntity& player, SeaEntity& sea) {
+        [](PlayerEntity& player, SeaEntity&) {
             auto* health = player.getComponent<HealthComponent>();
             auto* physics = player.getComponent<PhysicsComponent>();
             auto* visualEffects = player.getVisualEffects();
@@ -478,7 +478,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
     // ===== Projectile vs Ground =====
     collisionSystem.registerHandler<ProjectileEntity, GroundEntity>(
-        [](ProjectileEntity& proj, GroundEntity& ground) {
+        [](ProjectileEntity& proj, GroundEntity&) {
             // Projectile hits ground - destroy it
             std::cout << "[PROJECTILE] Projectile hit ground!" << std::endl;
             

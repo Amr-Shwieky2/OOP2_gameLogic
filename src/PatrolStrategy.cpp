@@ -12,7 +12,7 @@ PatrolStrategy::PatrolStrategy(float patrolDistance, float speed)
     , m_speed(speed) {
 }
 
-void PatrolStrategy::update(Entity& entity, float dt, PlayerEntity* player) {
+void PatrolStrategy::update(Entity& entity, float, PlayerEntity*) {
     auto* transform = entity.getComponent<Transform>();
     auto* physics = entity.getComponent<PhysicsComponent>();
 

@@ -13,7 +13,7 @@ FollowPlayerStrategy::FollowPlayerStrategy(float speed, float detectionRange)
     std::cout << "[FOLLOW] Strategy created - Speed: " << speed << " Range: " << detectionRange << std::endl;
 }
 
-void FollowPlayerStrategy::update(Entity& entity, float dt, PlayerEntity* player) {
+void FollowPlayerStrategy::update(Entity& entity, float, PlayerEntity* player) {
     if (!player) {
         std::cout << "[FOLLOW] No player target!" << std::endl;
         return;

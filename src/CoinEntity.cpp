@@ -42,7 +42,7 @@ void CoinEntity::setupCircularMotion(const sf::Vector2f& centerPosition) {
     }
 }
 
-void CoinEntity::onCollect(Entity* collector) {
+void CoinEntity::onCollect(Entity*) {
     // Implement your coin collection logic here
     setActive(false);
 }

@@ -23,7 +23,7 @@ std::unique_ptr<Entity> EntityFactory::create(const std::string& typeName, float
     return nullptr;
 }
 
-Entity* EntityFactory::createInManager(const std::string& typeName, float x, float y, EntityManager& manager) {
+Entity* EntityFactory::createInManager(const std::string& typeName, float x, float y, EntityManager&) {
     auto entity = create(typeName, x, y);
     if (entity) {
         Entity* ptr = entity.get();
