@@ -21,4 +21,10 @@ set(PERFORMANCE_HEADERS
 )
 
 # Add source files directly to the library
-target_sources(${CMAKE_PROJECT_NAME}_lib PRIVATE ${PERFORMANCE_SOURCES} ${PERFORMANCE_HEADERS})set(GAME_HEADERS ${GAME_HEADERS} ${PERFORMANCE_HEADERS} PARENT_SCOPE)
+target_sources(
+    ${CMAKE_PROJECT_NAME}_lib
+    PRIVATE ${PERFORMANCE_SOURCES} ${PERFORMANCE_HEADERS}
+)
+
+# Propagate header list up so the parent can include it in IDE grouping
+set(GAME_HEADERS ${GAME_HEADERS} ${PERFORMANCE_HEADERS} PARENT_SCOPE)
