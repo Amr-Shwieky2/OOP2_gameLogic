@@ -17,6 +17,9 @@ class UIObserver;
 class WellEnteredEvent;
 class LevelTransitionEvent;
 class PlayerEntity;
+class Transform;
+class HealthComponent;
+class PhysicsComponent;
 
 /**
  * @class GameplayScreen
@@ -65,8 +68,8 @@ private:
     bool m_showingGameOver = false;
     float m_messageTimer = 0.0f;
     float m_messageDuration = 3.0f;
-    bool m_levelTransitionInProgress = false;
-    bool m_playerValid = false;
+    bool m_levelTransitionInProgress = false;  // Added for safe level transitions
+    bool m_playerValid = false;                // Added for player validation
     
     // Initialization methods
     void initializeComponents();
@@ -87,38 +90,25 @@ private:
     void updateUI(PlayerEntity& player);
     void updateMessageTimers(float deltaTime);
     void checkGameOverCondition(PlayerEntity* player);
-    bool isPlayerValid(PlayerEntity* player);
-
-    // Helper methods
-    template<typename T>
-    T* getSafeComponent(Entity* entity) {
-        if (!entity) {
-            return nullptr;
-        }
-        
-        try {
-            return entity->getComponent<T>();
-        }
-        catch (...) {
-            // If any exception occurs, return nullptr
-            return nullptr;
-        }
-    }
 
     // Level handling
     bool handleWellLevelChangeRequests();
     void activateDarkLevelIfNeeded(const std::string& levelName);
     bool startLevelTransition(const std::string& targetLevel);
+    void registerShadowCastingObjects();
 
     // Event handling
     void setupLevelEventHandlers();
-    void onLevelTransition(const LevelTransitionEvent& event);
     void handleWellEnteredEvent(const WellEnteredEvent& event);
-
-    // Rendering
-    void renderGameMessages(sf::RenderWindow& window);
-
-    // UI state management
+    void onLevelTransition(const LevelTransitionEvent& event);
     void showLevelCompleteMessage();
     void showGameCompleteMessage();
+    bool isPlayerValid(PlayerEntity* player);
+    
+    // Rendering methods
+    void renderGameMessages(sf::RenderWindow& window);
+    
+    // Component safety helpers
+    template <typename T>
+    T* getSafeComponent(Entity* entity) const;
 };

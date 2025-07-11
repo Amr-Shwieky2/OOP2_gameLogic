@@ -60,3 +60,4 @@ configure_file("highScore.txt" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file("./levels/dark_level.txt" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file("./levels/level1.txt" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file("./levels/level2.txt" ${CMAKE_BINARY_DIR} COPYONLY)
+
