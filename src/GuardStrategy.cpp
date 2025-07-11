@@ -14,11 +14,11 @@ GuardStrategy::GuardStrategy(float guardRadius, float attackRange)
     , m_attackRange(attackRange) {
 }
 
-void GuardStrategy::update(Entity& entity, float dt, PlayerEntity* player) {
-    if (!player) return;
+void GuardStrategy::update(float dt) {
+    if (!m_owner) return;
 
-    auto* transform = entity.getComponent<Transform>();
-    auto* physics = entity.getComponent<PhysicsComponent>();
+    auto* transform = m_owner->getComponent<Transform>();
+    auto* physics = m_owner->getComponent<PhysicsComponent>();
 
     if (!transform || !physics) return;
 
@@ -29,41 +29,59 @@ void GuardStrategy::update(Entity& entity, float dt, PlayerEntity* player) {
     }
 
     sf::Vector2f entityPos = transform->getPosition();
-    sf::Vector2f playerPos = player->getPosition();
+    
+    // Handle attacking if we have a target
+    if (m_targetPlayer) {
+        sf::Vector2f playerPos;
+        if (auto* targetTransform = m_targetPlayer->getComponent<Transform>()) {
+            playerPos = targetTransform->getPosition();
+            
+            float distanceToPlayer = getDistanceToPlayer(entityPos, playerPos);
+            
+            // Update attack cooldown
+            if (m_attackCooldown > 0) {
+                m_attackCooldown -= dt;
+            }
 
-    // Update attack cooldown
-    if (m_attackCooldown > 0) {
-        m_attackCooldown -= dt;
-    }
+            // If player is within attack range, attack (stay in place)
+            if (distanceToPlayer <= m_attackRange) {
+                // Stop moving to attack
+                physics->setVelocity(0, physics->getVelocity().y);
 
-    float distanceToPlayer = getDistanceToPlayer(entityPos, playerPos);
-    float distanceToGuardPos = getDistanceToPlayer(entityPos, m_guardPosition);
-
-    // If player is within attack range, attack (stay in place)
-    if (distanceToPlayer <= m_attackRange) {
-        // Stop moving to attack
-        physics->setVelocity(0, physics->getVelocity().y);
-
-        // Attack logic (could shoot projectiles here)
-        if (m_attackCooldown <= 0) {
-            std::cout << "[Guard] Attacking player!" << std::endl;
-            // TODO: Implement attack (shoot projectile, etc.)
-            m_attackCooldown = 1.0f; // 1 second between attacks
+                // Attack logic (could shoot projectiles here)
+                if (m_attackCooldown <= 0) {
+                    std::cout << "[Guard] Attacking player!" << std::endl;
+                    // TODO: Implement attack (shoot projectile, etc.)
+                    m_attackCooldown = 1.0f; // 1 second between attacks
+                }
+                return;
+            }
+            // If player is within guard radius, move towards them
+            else if (distanceToPlayer <= m_guardRadius) {
+                sf::Vector2f direction = getDirectionToPlayer(entityPos, playerPos);
+                // Convert speeds to Box2D meters/sec
+                physics->setVelocity(direction.x * (80.0f / PPM), physics->getVelocity().y);
+                return;
+            }
         }
     }
-    // If player is within guard radius, move towards them
-    else if (distanceToPlayer <= m_guardRadius) {
-        sf::Vector2f direction = getDirectionToPlayer(entityPos, playerPos);
-        // Convert speeds to Box2D meters/sec
-        physics->setVelocity(direction.x * (80.0f / PPM), physics->getVelocity().y);
-    }
-    // Otherwise, return to guard position
-    else if (distanceToGuardPos > 10.0f) {
+    
+    // No target or target is out of range - return to guard position
+    float distanceToGuardPos = getDistanceToPlayer(entityPos, m_guardPosition);
+    if (distanceToGuardPos > 10.0f) {
         sf::Vector2f direction = getDirectionToPlayer(entityPos, m_guardPosition);
         physics->setVelocity(direction.x * (50.0f / PPM), physics->getVelocity().y);
     }
     else {
         // At guard position, stand still
         physics->setVelocity(0, physics->getVelocity().y);
+    }
+}
+
+void GuardStrategy::onTargetDetected(PlayerEntity* player) {
+    m_targetPlayer = player;
+    
+    if (player && m_owner) {
+        std::cout << "[Guard] Entity " << m_owner->getId() << " detected player!" << std::endl;
     }
 }

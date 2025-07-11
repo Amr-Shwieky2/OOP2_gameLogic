@@ -5,15 +5,24 @@
 
 #pragma once
 #include "Component.h"
-#include "InputService.h"
 
+/**
+ * InputComponent - Handles input for entities
+ */
 class InputComponent : public Component {
 public:
+    InputComponent() = default;
+    virtual ~InputComponent() = default;
+    
+    // Called once per frame to process input
     void update(float dt) override;
-    void setInputService(const InputService* input) { m_input = input; }
-
+    
+    // Enable or disable input processing
+    void setEnabled(bool enabled) { m_enabled = enabled; }
+    bool isEnabled() const { return m_enabled; }
+    
 private:
-    const InputService* m_input = nullptr;
+    bool m_enabled = true;
 };
 
 // This would allow input handling to be completely component-based

@@ -2,6 +2,8 @@
 #include "PlayerEntity.h"
 #include "ProjectileEntity.h"
 #include "GameSession.h"
+#include "Memory/ProjectilePool.h"
+#include "Memory/MemoryManager.h"
 #include <iostream>
 
 // External references
@@ -11,6 +13,9 @@ extern GameSession* g_currentSession;
 PlayerWeaponSystem::PlayerWeaponSystem(PlayerEntity& player, b2World& world, TextureManager& textures)
     : m_player(player), m_world(world), m_textures(textures),
     m_lastShotTime(0.0f), m_shotCooldown(0.3f), m_weaponType(WeaponType::Basic) {
+    
+    // Initialize the projectile pool
+    ProjectilePool::getInstance().initialize(world, textures, 64);
 }
 
 void PlayerWeaponSystem::update(float dt) {
@@ -208,17 +213,25 @@ void PlayerWeaponSystem::setWeaponType(WeaponType type) {
 
 void PlayerWeaponSystem::createProjectile(const sf::Vector2f& position, const sf::Vector2f& direction) {
     try {
-        auto projectile = std::make_unique<ProjectileEntity>(
+        // Start memory profiling for this operation
+        auto opId = MemoryManager::getInstance().startOperation("ProjectileCreation");
+        
+        // Get a projectile from the pool
+        auto projectile = ProjectilePool::getInstance().createProjectile(
             g_nextEntityId++,
-            m_world,
             position.x,
             position.y,
             direction,
-            m_textures,
             true // fromPlayer = true
         );
-
-        g_currentSession->spawnEntity(std::move(projectile));
+        
+        // End memory profiling
+        MemoryManager::getInstance().endOperation(opId);
+        
+        // If projectile creation was successful, add it to the game session
+        if (projectile.get()) {
+            g_currentSession->spawnEntity(std::unique_ptr<Entity>(projectile.release()));
+        }
     }
     catch (const std::exception& e) {
         std::cerr << "[WeaponSystem] Error creating projectile: " << e.what() << std::endl;
@@ -227,19 +240,26 @@ void PlayerWeaponSystem::createProjectile(const sf::Vector2f& position, const sf
 
 void PlayerWeaponSystem::createGravityProjectile(const sf::Vector2f& position, const sf::Vector2f& direction) {
     try {
-        // Create a projectile with the special parameter to enable gravity
-        auto projectile = std::make_unique<ProjectileEntity>(
+        // Start memory profiling for this operation
+        auto opId = MemoryManager::getInstance().startOperation("GravityProjectileCreation");
+        
+        // Get a gravity projectile from the pool
+        auto projectile = ProjectilePool::getInstance().createProjectile(
             g_nextEntityId++,
-            m_world,
             position.x,
             position.y,
             direction,
-            m_textures,
             true, // fromPlayer = true
-            true  // withGravity = true (we'll add this parameter)
+            true  // withGravity = true
         );
-
-        g_currentSession->spawnEntity(std::move(projectile));
+        
+        // End memory profiling
+        MemoryManager::getInstance().endOperation(opId);
+        
+        // If projectile creation was successful, add it to the game session
+        if (projectile.get()) {
+            g_currentSession->spawnEntity(std::unique_ptr<Entity>(projectile.release()));
+        }
     }
     catch (const std::exception& e) {
         std::cerr << "[WeaponSystem] Error creating gravity projectile: " << e.what() << std::endl;

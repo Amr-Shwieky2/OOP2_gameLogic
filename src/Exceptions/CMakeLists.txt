@@ -4,6 +4,12 @@
 set(EXCEPTIONS_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Exception.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ExceptionRecoverySystem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/GameCheckpoint.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ResourceRetry.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/UserFriendlyErrors.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/RecoveryStrategyFactory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ExceptionRecoveryDemo.cpp
     # Add any other source files here
 )
 
@@ -14,6 +20,11 @@ set(EXCEPTIONS_HEADERS
     ${CMAKE_SOURCE_DIR}/include/Exceptions/Logger.h
     ${CMAKE_SOURCE_DIR}/include/Exceptions/SafeResource.h
     ${CMAKE_SOURCE_DIR}/include/Exceptions/DebugUtils.h
+    ${CMAKE_SOURCE_DIR}/include/Exceptions/ExceptionRecoverySystem.h
+    ${CMAKE_SOURCE_DIR}/include/Exceptions/GameCheckpoint.h
+    ${CMAKE_SOURCE_DIR}/include/Exceptions/ResourceRetry.h
+    ${CMAKE_SOURCE_DIR}/include/Exceptions/UserFriendlyErrors.h
+    ${CMAKE_SOURCE_DIR}/include/Exceptions/RecoveryStrategyFactory.h
     # Add any other header files here
 )
 

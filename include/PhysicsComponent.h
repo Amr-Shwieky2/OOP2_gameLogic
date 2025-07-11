@@ -2,10 +2,14 @@
 #include "Component.h"
 #include <Box2D/Box2D.h>
 #include <SFML/System/Vector2.hpp>
+#include <iostream>
+
+class Transform;
 
 /**
  * PhysicsComponent - Handles Box2D physics for entities
  * Replaces the physics code scattered in Player, Enemy, etc.
+ * Enhanced to work with specialized template methods in Entity class
  */
 class PhysicsComponent : public Component {
 public:
@@ -13,8 +17,11 @@ public:
     ~PhysicsComponent();
 
     // Component interface
-    void update(float) override;
+    void update(float dt) override;
     void onDestroy() override;
+    
+    // Initialization method called by specialized template
+    bool initialize();
 
     // Physics operations
     void setPosition(float x, float y);
@@ -31,13 +38,35 @@ public:
     const b2Body* getBody() const { return m_body; }
 
     // Configure physics body
-    void createCircleShape(float radius);
+    void createCircleShape(float radius, 
+                          float density = 1.0f,
+                          float friction = 0.3f,
+                          float restitution = 0.1f);
+                          
     void createBoxShape(float width, float height,
                         float density = 1.0f,
                         float friction = 0.3f,
                         float restitution = 0.1f);
+                        
+    void createSensorShape(float width, float height);
+
+    // Enhanced features for specialized template
+    void synchronizeWithTransform();
+    bool validateDependencies() const;
+    void configureBodyProperties(float density, float friction, float restitution);
+    void setFixedRotation(bool fixed);
+    void setGravityScale(float scale);
+    
+    // Debug helpers
+    void debugDraw(bool enabled) { m_debugDraw = enabled; }
+    bool isDebugDrawEnabled() const { return m_debugDraw; }
 
 private:
     b2Body* m_body = nullptr;
     b2World& m_world;
+    bool m_debugDraw = false;
+    bool m_initialized = false;
+    
+    // Utility method to get transform component safely
+    Transform* getTransformComponent() const;
 };

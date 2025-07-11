@@ -35,6 +35,9 @@ public:
     void update(float deltaTime) override;
     void render(sf::RenderWindow& window) override;
 
+    // Get access to the game session
+    GameSession* getGameSession() const { return m_gameSession.get(); }
+
 private:
     // Core systems
     std::unique_ptr<GameSession> m_gameSession;

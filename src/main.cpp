@@ -1,45 +1,18 @@
-// main.cpp
 #include "App.h"
-#include "Exceptions/Logger.h"
-#include "Exceptions/GameExceptions.h"
 #include <iostream>
-#include <filesystem>
 
-int main() {
-    // Create logs directory if it doesn't exist
+// A simple main file that just calls the main app
+int main(int argc, char* argv[]) {
     try {
-        std::filesystem::path logDir = "logs";
-        if (!std::filesystem::exists(logDir)) {
-            std::filesystem::create_directory(logDir);
-        }
-    }
-    catch (const std::exception& e) {
-        std::cerr << "Failed to create logs directory: " << e.what() << std::endl;
-        // Continue anyway
-    }
-    
-    // Initialize exception system before any other code
-    try {
-        // Run the application
         App app;
-        app.run();
-    }
-    catch (const GameExceptions::Exception& e) {
-        GameExceptions::getLogger().logException(e, GameExceptions::LogLevel::Critical);
-        std::cerr << "[FATAL] Unhandled exception: " << e.what() << std::endl;
-        return EXIT_FAILURE;
+        return app.run();
     }
     catch (const std::exception& e) {
-        GameExceptions::getLogger().error(std::string("Unhandled standard exception: ") + e.what());
-        std::cerr << "[FATAL] Unhandled exception: " << e.what() << std::endl;
-        return EXIT_FAILURE;
+        std::cerr << "Fatal error: " << e.what() << std::endl;
+        return 1;
     }
     catch (...) {
-        GameExceptions::getLogger().critical("Unknown exception occurred");
-        std::cerr << "[FATAL] Unknown exception occurred." << std::endl;
-        return EXIT_FAILURE;
+        std::cerr << "Unknown fatal error occurred" << std::endl;
+        return 1;
     }
-    
-    GameExceptions::getLogger().info("Game exited successfully");
-    return EXIT_SUCCESS;
 }

@@ -1,10 +1,11 @@
 #pragma once
 #include <cstdint>
+#include "Property/PropertyContainer.h"
 
 class Entity;
 
 // Base class for all components
-class Component {
+class Component : public PropertyContainer {
 public:
     using IdType = std::uint32_t;
 
@@ -20,6 +21,12 @@ public:
 
     // Called when entity is destroyed (optional override)
     virtual void onDestroy() {}
+    
+    // PropertyContainer interface
+    virtual void registerProperties() override;
+    
+    // Handle property changes
+    virtual void onPropertyChanged(const std::string& name, const PropertyValue& oldValue, const PropertyValue& newValue) override;
 
 protected:
     Entity* m_owner = nullptr;

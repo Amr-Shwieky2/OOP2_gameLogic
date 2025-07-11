@@ -9,10 +9,27 @@
 #include "HeadwindState.h"
 #include "EventSystem.h"
 #include "GameEvents.h"
+
+#ifdef USE_VALIDATED_STATE_MACHINE
+#include "StateMachine/PlayerStateMachine.h"
+#include "StateMachine/StateMachineGuards.h"
+#endif
+
 #include <iostream>
+
+// Function to initialize the state machine (defined in StateMachineDemo.cpp)
+extern void InitializeStateMachine();
 
 PlayerStateManager::PlayerStateManager(PlayerEntity& player)
     : m_player(player), m_currentState(nullptr) {
+#ifdef USE_VALIDATED_STATE_MACHINE
+    // Initialize the state machine for validation
+    static bool initialized = false;
+    if (!initialized) {
+        InitializeStateMachine();
+        initialized = true;
+    }
+#endif
 }
 
 void PlayerStateManager::update(float dt) {
@@ -29,6 +46,25 @@ void PlayerStateManager::changeState(PlayerState* newState) {
 
     std::cout << "[StateManager] State change: " << oldStateName
         << " -> " << newStateName << std::endl;
+
+#ifdef USE_VALIDATED_STATE_MACHINE
+    // Validate transition using our state machine
+    if (!PlayerStateMachine::ValidateTransition(m_currentState, newState)) {
+        std::cerr << "[StateManager] ERROR: Invalid state transition from " 
+                  << oldStateName << " to " << newStateName << std::endl;
+        return; // Abort the invalid transition
+    }
+    
+    // Check if guard conditions allow the transition
+    if (!TransitionManager::CanTransition(m_currentState, newState, m_player)) {
+        std::cerr << "[StateManager] Transition guard prevented state change from " 
+                  << oldStateName << " to " << newStateName << std::endl;
+        return; // Abort if guard rejects the transition
+    }
+    
+    // Execute any transition actions
+    TransitionManager::ExecuteAction(m_currentState, newState, m_player);
+#endif
 
     // Exit current state
     if (m_currentState) {
