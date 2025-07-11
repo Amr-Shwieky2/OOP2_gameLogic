@@ -45,18 +45,18 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_
 # Create scripts directory in source if it doesn't exist
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
 
-# Create script directory in build folder
-add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
+# Create script directory in build folder and copy sample scripts
+add_custom_target(copy_scripting_assets ALL
     COMMAND ${CMAKE_COMMAND} -E make_directory
-    $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>/scripts
-)
-
-# Copy sample scripts to the build directory
-add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
+        $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>/scripts
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_CURRENT_SOURCE_DIR}/scripts $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>/scripts
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts
+        $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>/scripts
     COMMENT "Copying scripts to build directory"
 )
+
+# Ensure scripts are copied after the main executable is built
+add_dependencies(copy_scripting_assets ${CMAKE_PROJECT_NAME})
 
 # Source groups for IDE organization
 source_group("Source Files\\Scripting" FILES ${SCRIPTING_SOURCES})
