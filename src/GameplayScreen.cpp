@@ -6,9 +6,23 @@
 #include "UIObserver.h"
 #include "EventSystem.h"
 #include "GameEvents.h"
+#include "PhysicsComponent.h"
 #include <iostream>
 #include <format>
 #include <WellEntity.h>
+#include <typeinfo>
+
+// Define PIXEL_PER_METER if not already defined in Constants.h
+#ifndef PIXEL_PER_METER
+#define PIXEL_PER_METER 30.0f
+#endif
+
+// Utility template method for safely getting components
+template <typename T>
+T* GameplayScreen::getSafeComponent(Entity* entity) const {
+    if (!entity) return nullptr;
+    return entity->getComponent<T>();
+}
 
 /**
  * GameplayScreen constructor - initializes all needed components
@@ -229,6 +243,12 @@ void GameplayScreen::handleKeyboardInput(sf::Keyboard::Key keyCode) {
             std::cout << "[GameplayScreen] Manually switched to next level" << std::endl;
         }
         break;
+    case sf::Keyboard::F:
+        // Toggle flashlight
+        if (m_darkLevelSystem && m_isUnderground) {
+            m_darkLevelSystem->toggleFlashlight();
+        }
+        break;
     case sf::Keyboard::Space:
         if (m_showingGameOver) {
             std::cout << "[GameplayScreen] Restarting level after Game Over..." << std::endl;
@@ -293,9 +313,6 @@ void GameplayScreen::update(float deltaTime) {
         return;
     }
 
-    // Store player ID for safety in case player becomes invalid
-    const int playerId = player->getId();
-
     // Handle player input and update game state
     try {
         // Handle player input
@@ -326,8 +343,17 @@ void GameplayScreen::update(float deltaTime) {
         }
         
         // Update dark level system
-        if (m_darkLevelSystem) {
+        if (m_darkLevelSystem && m_isUnderground) {
             m_darkLevelSystem->update(deltaTime, player);
+            
+            // Periodically update obstacle positions for moving objects
+            static float obstacleUpdateTimer = 0.0f;
+            obstacleUpdateTimer += deltaTime;
+            
+            if (obstacleUpdateTimer > 1.0f) { // Update every second
+                registerShadowCastingObjects();
+                obstacleUpdateTimer = 0.0f;
+            }
         }
         
         // Check game over condition with the latest player reference
@@ -337,6 +363,32 @@ void GameplayScreen::update(float deltaTime) {
     }
     catch (const std::exception& e) {
         std::cerr << "[ERROR] Exception in update loop: " << e.what() << std::endl;
+    }
+}
+
+/**
+ * Register objects that should cast shadows in the dark level
+ */
+void GameplayScreen::registerShadowCastingObjects() {
+    if (!m_darkLevelSystem) {
+        return;
+    }
+    
+    // Clear existing obstacles
+    m_darkLevelSystem->clearObstacles();
+    
+    // Create a simplified set of obstacles for the dark level
+    std::vector<sf::FloatRect> obstacles;
+    
+    // Add some fixed obstacles for now
+    obstacles.push_back(sf::FloatRect(100, 300, 200, 50));  // Ground platform
+    obstacles.push_back(sf::FloatRect(400, 250, 150, 30));  // Floating platform
+    obstacles.push_back(sf::FloatRect(700, 400, 300, 100)); // Large obstacle
+    
+    // Register obstacles with the dark level system
+    if (!obstacles.empty()) {
+        m_darkLevelSystem->setObstacles(obstacles);
+        std::cout << "[GameplayScreen] Registered " << obstacles.size() << " shadow casting objects" << std::endl;
     }
 }
 
@@ -374,12 +426,18 @@ void GameplayScreen::activateDarkLevelIfNeeded(const std::string& levelName) {
 
         if (m_darkLevelSystem) {
             m_darkLevelSystem->setEnabled(true);
-            m_darkLevelSystem->setDarknessLevel(0.85f);
+            m_darkLevelSystem->setDarknessLevel(0.92f);
             m_isUnderground = true;
 
-            // Add light sources for improved gameplay
-            m_darkLevelSystem->addLightSource(sf::Vector2f(300, 400), 80.0f, sf::Color(255, 200, 100));
-            m_darkLevelSystem->addLightSource(sf::Vector2f(800, 300), 60.0f, sf::Color(100, 255, 200));
+            // Clear any existing light sources
+            m_darkLevelSystem->clearLightSources();
+            
+            // Add ambient light sources for the dark level
+            m_darkLevelSystem->addLightSource(sf::Vector2f(300, 400), 120.0f, sf::Color(255, 200, 100, 100)); // Warm torch
+            m_darkLevelSystem->addLightSource(sf::Vector2f(800, 300), 80.0f, sf::Color(100, 180, 255, 100)); // Cool blue light
+
+            // Register obstacles for shadow casting
+            registerShadowCastingObjects();
 
             std::cout << "[GameplayScreen] Dark level system activated!" << std::endl;
         }
@@ -463,9 +521,6 @@ void GameplayScreen::checkGameOverCondition(PlayerEntity* player) {
     if (!isPlayerValid(player)) {
         return;
     }
-
-    // Store player ID to avoid use-after-free if player becomes invalid
-    const int playerId = player->getId();
     
     // Safely check for health component using our helper
     auto* health = getSafeComponent<HealthComponent>(player);
@@ -479,8 +534,7 @@ void GameplayScreen::checkGameOverCondition(PlayerEntity* player) {
         m_gameOverText.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
         m_gameOverText.setPosition(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f + 320.0f);
 
-        // Publish player died event with stored ID (safe even if player is deleted)
-        EventSystem::getInstance().publish(PlayerDiedEvent(playerId));
+        std::cout << "[GameplayScreen] Game over state activated" << std::endl;
     }
 }
 
@@ -501,6 +555,23 @@ void GameplayScreen::render(sf::RenderWindow& window) {
 
     // Render darkness system if in underground level
     if (m_darkLevelSystem && m_isUnderground) {
+        // Update player light position before rendering
+        PlayerEntity* player = m_gameSession ? m_gameSession->getPlayer() : nullptr;
+        if (player) {
+            auto* transform = getSafeComponent<Transform>(player);
+            if (transform) {
+                // Update flashlight direction based on player movement or mouse
+                sf::Vector2f playerPos = transform->getPosition();
+                
+                // If mouse input is available, use it for flashlight direction
+                if (m_window) {
+                    sf::Vector2i mousePos = sf::Mouse::getPosition(*m_window);
+                    sf::Vector2f worldPos = m_window->mapPixelToCoords(mousePos);
+                    m_darkLevelSystem->updateFlashlightDirection(playerPos, worldPos);
+                }
+            }
+        }
+        
         m_darkLevelSystem->render(window);
     }
 
