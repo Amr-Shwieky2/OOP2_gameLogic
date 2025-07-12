@@ -4,7 +4,7 @@
 #include <iostream>
 
 EntityCleanupManager::EntityCleanupManager() {
-    std::cout << "[EntityCleanupManager] Created" << std::endl;
+    // Removed std::cout
 }
 
 void EntityCleanupManager::update(float deltaTime) {
@@ -16,8 +16,6 @@ void EntityCleanupManager::update(float deltaTime) {
 
         // Clear scheduled entities (they'll be cleaned up by EntityManager)
         if (!m_scheduledForCleanup.empty()) {
-            std::cout << "[EntityCleanupManager] Clearing " << m_scheduledForCleanup.size()
-                << " scheduled entities" << std::endl;
             m_scheduledForCleanup.clear();
         }
     }
@@ -42,11 +40,6 @@ void EntityCleanupManager::cleanupInactiveEntities(EntityManager& entityManager)
         entityManager.destroyEntity(id);
     }
 
-    if (m_lastCleanupCount > 0) {
-        std::cout << "[EntityCleanupManager] Cleaned up " << m_lastCleanupCount
-            << " inactive entities" << std::endl;
-    }
-
     // Use EntityManager's built-in cleanup
     entityManager.removeInactiveEntities();
 }
@@ -54,13 +47,10 @@ void EntityCleanupManager::cleanupInactiveEntities(EntityManager& entityManager)
 void EntityCleanupManager::scheduleForCleanup(Entity* entity) {
     if (entity) {
         m_scheduledForCleanup.push_back(entity);
-        std::cout << "[EntityCleanupManager] Scheduled entity " << entity->getId()
-            << " for cleanup" << std::endl;
     }
 }
 
 void EntityCleanupManager::forceCleanup(EntityManager& entityManager) {
-    std::cout << "[EntityCleanupManager] Force cleanup requested" << std::endl;
     cleanupInactiveEntities(entityManager);
     m_cleanupTimer = 0.0f; // Reset timer
 }

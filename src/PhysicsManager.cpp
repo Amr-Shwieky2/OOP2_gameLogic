@@ -6,12 +6,10 @@ PhysicsManager::PhysicsManager() {
     // Create physics world with standard gravity
     b2Vec2 gravity(0.0f, 9.8f);
     m_world = std::make_unique<b2World>(gravity);
-
-    std::cout << "[PhysicsManager] Physics world created" << std::endl;
 }
 
 PhysicsManager::~PhysicsManager() {
-    std::cout << "[PhysicsManager] Physics world destroyed" << std::endl;
+    // Removed std::cout
 }
 
 void PhysicsManager::update(float deltaTime) {
@@ -26,7 +24,6 @@ void PhysicsManager::update(float deltaTime) {
 void PhysicsManager::setGravity(const b2Vec2& gravity) {
     if (m_world) {
         m_world->SetGravity(gravity);
-        std::cout << "[PhysicsManager] Gravity set to (" << gravity.x << ", " << gravity.y << ")" << std::endl;
     }
 }
 
@@ -40,7 +37,4 @@ b2Vec2 PhysicsManager::getGravity() const {
 void PhysicsManager::setIterations(int velocityIterations, int positionIterations) {
     m_velocityIterations = velocityIterations;
     m_positionIterations = positionIterations;
-
-    std::cout << "[PhysicsManager] Iterations set to velocity=" << velocityIterations
-        << ", position=" << positionIterations << std::endl;
 }

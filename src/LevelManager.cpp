@@ -1,5 +1,4 @@
 ﻿#include "LevelManager.h"
-#include <iostream>
 
 LevelManager::LevelManager() {
     addLevel("level1.txt");
@@ -8,35 +7,27 @@ LevelManager::LevelManager() {
 
 void LevelManager::addLevel(const std::string& path) {
     m_levels.push_back(path);
-    std::cout << "[LevelManager] Added level: " << path << std::endl;
 }
 
 bool LevelManager::loadNextLevel() {
     if (m_currentIndex + 1 < m_levels.size()) {
         ++m_currentIndex;
-        std::cout << "[LevelManager] Loading next level: " << getCurrentLevelPath()
-            << " (" << (m_currentIndex + 1) << "/" << m_levels.size() << ")" << std::endl;
         return true;
     }
 
-    std::cout << "[LevelManager] No more levels! Game completed!" << std::endl;
     return false;  
 }
 
 bool LevelManager::loadLevel(std::size_t index) {
     if (index < m_levels.size()) {
         m_currentIndex = index;
-        std::cout << "[LevelManager] Loading level " << (index + 1) << ": "
-            << getCurrentLevelPath() << std::endl;
         return true;
     }
 
-    std::cout << "[LevelManager] Invalid level index: " << index << std::endl;
     return false;
 }
 
 bool LevelManager::reloadCurrentLevel() {
-    std::cout << "[LevelManager] Reloading current level: " << getCurrentLevelPath() << std::endl;
     return true;
 }
 
@@ -58,5 +49,4 @@ bool LevelManager::hasNextLevel() const {
 
 void LevelManager::resetToFirstLevel() {
     m_currentIndex = 0;
-    std::cout << "[LevelManager] Reset to first level: " << getCurrentLevelPath() << std::endl;
 }

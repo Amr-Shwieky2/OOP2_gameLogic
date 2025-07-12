@@ -41,7 +41,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             // Use ScoreManager subsystem
             if (auto* scoreManager = player.getScoreManager()) {
                 scoreManager->addScore(10);
-                std::cout << "Player collected coin! Score: " << scoreManager->getScore() << std::endl;
             }
 
             coin.onCollect(&player);
@@ -57,14 +56,10 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
         [](PlayerEntity& player, GiftEntity& gift) {
             if (!gift.isActive() || gift.isCollected()) return;
 
-            std::cout << "[Collision] Player collecting gift type: "
-                << static_cast<int>(gift.getGiftType()) << std::endl;
-
             auto* stateManager = player.getStateManager();
             auto* scoreManager = player.getScoreManager();
 
             if (!stateManager || !scoreManager) {
-                std::cerr << "[Collision] Player missing subsystems!" << std::endl;
                 return;
             }
 
@@ -73,40 +68,32 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                 auto* health = player.getComponent<HealthComponent>();
                 if (health) {
                     health->heal(1);
-                    std::cout << "Player collected Life Heart! Health: "
-                        << health->getHealth() << "/" << health->getMaxHealth() << std::endl;
                 }
                 break;
             }
 
             case GiftEntity::GiftType::SpeedBoost:
                 stateManager->applySpeedBoost(5.0f);
-                std::cout << "Player collected Speed Boost!" << std::endl;
                 break;
 
             case GiftEntity::GiftType::Shield:
                 stateManager->applyShield(6.0f);
-                std::cout << "Player collected Shield!" << std::endl;
                 break;
 
             case GiftEntity::GiftType::RareCoin:
                 scoreManager->addScore(50);
-                std::cout << "Player collected Rare Coin! +50 points" << std::endl;
                 break;
 
             case GiftEntity::GiftType::ReverseMovement:
                 stateManager->applyReverseEffect(10.0f);
-                std::cout << "[WARNING] Player collected Reverse Movement! Controls inverted!" << std::endl;
                 break;
 
             case GiftEntity::GiftType::HeadwindStorm:
                 stateManager->applyHeadwindEffect(8.0f);
-                std::cout << "[WARNING] Player collected Headwind Storm! Movement slowed!" << std::endl;
                 break;
 
             case GiftEntity::GiftType::Magnetic:
                 stateManager->applyMagneticEffect(6.0f);
-                std::cout << "Player collected Magnetic! Coins will be attracted!" << std::endl;
                 break;
             }
 
@@ -186,7 +173,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             if (flag.isCompleted()) {
                 return;
             }
-            std::cout << "[Collision] Player reached the flag!" << std::endl;
 
             flag.setCompleted(true);
             EventSystem::getInstance().publish(
@@ -197,8 +183,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             if (auto* scoreManager = player.getScoreManager()) {
                 scoreManager->addScore(500);
             }
-
-            std::cout << "Level Complete! Player reached the flag!" << std::endl;
         }
     );
 
@@ -224,9 +208,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             float verticalThreshold = TILE_SIZE * sizeFactor * 0.4f;
 
             if (playerPos.y < enemyPos.y - verticalThreshold) {
-                std::cout << "[Collision] Player jumping on " << (int)enemy.getSizeType()
-                    << " size square enemy!" << std::endl;
-
                 int scoreBonus = (enemy.getSizeType() == SquareEnemyEntity::SizeType::Large) ? 150 : 100;
 
                 enemy.onDeath(&player);
@@ -344,8 +325,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
             if (!playerHealth || !playerPhysics || !falconPhysics) return;
 
-            std::cout << "[Collision] Player touched flying falcon!" << std::endl;
-
             sf::Vector2f playerPos = playerPhysics->getPosition();
             sf::Vector2f falconPos = falconPhysics->getPosition();
 
@@ -361,8 +340,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                         scoreManager->addScore(200);
                     }
 
-                    std::cout << "Player defeated flying falcon! +200 points" << std::endl;
-
                     EventSystem::getInstance().publish(
                         EnemyKilledEvent(falcon.getId(), player.getId())
                     );
@@ -375,9 +352,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
                     playerHealth->takeDamage(1);
                     visualEffects->startDamageCooldown();
-
-                    std::cout << "Player hit by flying falcon! Health: "
-                        << playerHealth->getHealth() << std::endl;
 
                     float knockbackDir = (playerPos.x > falconPos.x) ? 1.0f : -1.0f;
                     playerPhysics->applyImpulse(knockbackDir * 4.0f, -3.0f);
@@ -393,23 +367,16 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
         [](ProjectileEntity& proj, SmartEnemyEntity& smartEnemy) {
             if (!proj.isFromPlayer() || !smartEnemy.isActive()) return;
 
-            std::cout << "[PROJECTILE] Player projectile hit smart enemy!" << std::endl;
-
             auto* health = smartEnemy.getComponent<HealthComponent>();
             if (health) {
                 health->takeDamage(1);
 
                 if (!health->isAlive()) {
                     smartEnemy.setActive(false);
-                    std::cout << "[PROJECTILE] Smart enemy killed by projectile!" << std::endl;
 
                     EventSystem::getInstance().publish(
                         EnemyKilledEvent(smartEnemy.getId(), proj.getId())
                     );
-                }
-                else {
-                    std::cout << "[PROJECTILE] Smart enemy hit! Health: "
-                        << health->getHealth() << std::endl;
                 }
             }
 
@@ -431,8 +398,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                 return;
             }
 
-            std::cout << "[PROJECTILE] Projectile hit regular enemy" << std::endl;
-
             auto* health = enemy.getComponent<HealthComponent>();
             if (health) {
                 health->takeDamage(1);
@@ -453,22 +418,15 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
         [](ProjectileEntity& proj, FalconEnemyEntity& falcon) {
             if (!proj.isFromPlayer() || !falcon.isActive()) return;
 
-            std::cout << "[PROJECTILE] Player projectile hit falcon enemy!" << std::endl;
-
             auto* health = falcon.getComponent<HealthComponent>();
             if (health) {
                 health->takeDamage(1);
                 if (!health->isAlive()) {
                     falcon.setActive(false);
-                    std::cout << "[PROJECTILE] Falcon enemy killed by projectile!" << std::endl;
 
                     EventSystem::getInstance().publish(
                         EnemyKilledEvent(falcon.getId(), proj.getId())
                     );
-                }
-                else {
-                    std::cout << "[PROJECTILE] Falcon enemy hit! Health: "
-                        << health->getHealth() << std::endl;
                 }
             }
 
@@ -479,9 +437,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
     // ===== Projectile vs Ground =====
     collisionSystem.registerHandler<ProjectileEntity, GroundEntity>(
         [](ProjectileEntity& proj, GroundEntity&) {
-            // Projectile hits ground - destroy it
-            std::cout << "[PROJECTILE] Projectile hit ground!" << std::endl;
-            
             // Create a simple visual effect (could be expanded)
             auto* render = proj.getComponent<RenderComponent>();
             if (render) {
@@ -498,8 +453,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
     collisionSystem.registerHandler<ProjectileEntity, PlayerEntity>(
         [](ProjectileEntity& proj, PlayerEntity& player) {
             if (proj.isFromPlayer() || !proj.isActive()) return;
-
-            std::cout << "[Collision] Enemy projectile hit player!" << std::endl;
 
             auto* playerHealth = player.getComponent<HealthComponent>();
             auto* playerPhysics = player.getComponent<PhysicsComponent>();
@@ -518,14 +471,10 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                 visualEffects->startDamageEffect();
 
                 if (!playerHealth->isAlive()) {
-                    std::cout << "[GAME] Player killed by enemy projectile!" << std::endl;
                     EventSystem::getInstance().publish(
                         PlayerDiedEvent(player.getId())
                     );
                 }
-            }
-            else if (playerHealth && playerHealth->isInvulnerable()) {
-                std::cout << "[Shield] Player is protected by shield!" << std::endl;
             }
 
             proj.setActive(false);
@@ -539,8 +488,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                     return;
                 }
 
-                std::cout << "[COLLISION] Player entered well - processing safely..." << std::endl;
-
                 // تفعيل البئر (يطلب تغيير المستوى)
                 well.onPlayerEnter();
 
@@ -548,11 +495,9 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                 if (auto* scoreManager = player.getScoreManager()) {
                     scoreManager->addScore(100);
                 }
-
-                std::cout << "[COLLISION] Well activated - level change requested" << std::endl;
             }
             catch (const std::exception& e) {
-                std::cerr << "[COLLISION] Exception: " << e.what() << std::endl;
+                // Exception caught but not logged to console
             }
         }
     );
@@ -645,7 +590,6 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
 
     // Register Square Enemy
     factory.registerCreator("z", [&](float x, float y) -> std::unique_ptr<Entity> {
-        std::cout << "[FACTORY] Creating Large SquareEnemyEntity at (" << x << ", " << y << ")" << std::endl;
         auto enemy = std::make_unique<SquareEnemyEntity>(
             g_nextEntityId++,
             world,
@@ -653,28 +597,24 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
             textures,
             SquareEnemyEntity::SizeType::Large
         );
-        std::cout << "[FACTORY] SquareEnemyEntity created with ID: " << enemy->getId() << std::endl;
         return enemy;
         }
     );
 
     // Register Smart Enemy
     factory.registerCreator("Z", [&](float x, float y) -> std::unique_ptr<Entity> {
-        std::cout << "[FACTORY] Creating SmartEnemyEntity at (" << x << ", " << y << ")" << std::endl;
         auto enemy = std::make_unique<SmartEnemyEntity>(g_nextEntityId++, world, x, y, textures);
-        std::cout << "[FACTORY] SmartEnemyEntity created with ID: " << enemy->getId() << std::endl;
         return enemy;
         });
 
     // Register Falcon Enemy
     factory.registerCreator("F", [&](float x, float y) -> std::unique_ptr<Entity> {
-        std::cout << "[FACTORY] Creating FalconEnemyEntity at (" << x << ", " << y << ")" << std::endl;
         auto enemy = std::make_unique<FalconEnemyEntity>(g_nextEntityId++, world, x, y, textures);
-        std::cout << "[FACTORY] FalconEnemyEntity created with ID: " << enemy->getId() << std::endl;
         return enemy;
         });
+    
+    // Register Well
     factory.registerCreator("W", [&](float x, float y) -> std::unique_ptr<Entity> {
-        std::cout << "[FACTORY] Creating Well at (" << x << ", " << y << ")" << std::endl;
         return std::make_unique<WellEntity>(g_nextEntityId++, world, x, y, textures);
         });
 }
