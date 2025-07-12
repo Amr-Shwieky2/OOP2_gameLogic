@@ -97,6 +97,10 @@ std::unique_ptr<Entity> LevelLoader::createEntityForChar(char tileChar, float x,
     case 'm': // Magnetic Gift
         return factory.create("m", x, y);
 
+    case 'P': // Player - Add case for player
+        std::cout << "[LEVEL DEBUG] Creating Player at (" << x << ", " << y << ")" << std::endl;
+        return factory.create("P", x, y);
+
         // TODO: Handle ground tiles, obstacles, etc.
         // For now, return nullptr for non-entity tiles
     case 'G': // Ground
@@ -154,7 +158,7 @@ sf::Vector2f LevelLoader::calculatePosition(int x, int y) const {
 }
 
 bool LevelLoader::isValidTileChar(char c) const {
-    const std::string validChars = "GLERMSBXc Cshprw*mzZ-";
+    const std::string validChars = "GLERMSBXc Cshprw*mzZP-";
     return validChars.find(c) != std::string::npos;
 }
 

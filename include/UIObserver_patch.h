@@ -1,4 +1,4 @@
-// UIObserver.h
+// UIObserver_patch.h
 #pragma once
 #include "EventSystem.h"
 #include "GameEvents.h"
@@ -18,8 +18,10 @@ public:
     void update(float dt);
     void render(sf::RenderWindow& window);
     
-    // Method to show a message with custom duration and color
-    void showMessage(const std::string& message, float duration = 2.0f, sf::Color color = sf::Color::White);
+    // Added method to show messages
+    void showMessage(const std::string& text, float duration = 2.0f, sf::Color color = sf::Color::White) {
+        addNotification(text, color);
+    }
 
 private:
     struct Notification {

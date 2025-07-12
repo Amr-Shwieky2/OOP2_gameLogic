@@ -3,7 +3,6 @@
 #include "PlayerEntity.h"
 #include "HealthComponent.h"
 #include "Transform.h"
-#include "UIObserver.h"
 #include "EventSystem.h"
 #include "GameEvents.h"
 #include "PhysicsComponent.h"
@@ -32,11 +31,8 @@ T* GameplayScreen::getSafeComponent(Entity* entity) const {
 GameplayScreen::GameplayScreen() : 
     m_initialized(false),
     m_isUnderground(false),
-    m_showingLevelComplete(false),
-    m_showingGameComplete(false),
+    m_isVoiceControlled(false),
     m_showingGameOver(false),
-    m_messageTimer(0.0f),
-    m_messageDuration(3.0f),
     m_levelTransitionInProgress(false),
     m_playerValid(false) {
     initializeComponents();
@@ -60,6 +56,7 @@ void GameplayScreen::initializeComponents() {
         m_backgroundRenderer = std::make_unique<BackgroundRenderer>(m_textures);
         m_ui = std::make_unique<UIOverlay>(WINDOW_WIDTH);
         m_darkLevelSystem = std::make_unique<DarkLevelSystem>();
+        m_voiceLevelSystem = std::make_unique<VoiceLevelSystem>();
 
         // Load font for UI
         if (!m_font.loadFromFile("arial.ttf")) {
@@ -91,22 +88,6 @@ void GameplayScreen::initializeComponents() {
  * Extracted to separate method to keep initializeComponents cleaner
  */
 void GameplayScreen::initializeUITexts() {
-    // Level complete text
-    m_levelCompleteText.setFont(m_font);
-    m_levelCompleteText.setCharacterSize(48);
-    m_levelCompleteText.setFillColor(sf::Color::Yellow);
-    m_levelCompleteText.setOutlineThickness(3.0f);
-    m_levelCompleteText.setOutlineColor(sf::Color::Black);
-    m_levelCompleteText.setString("Level Complete!");
-
-    // Game complete text
-    m_gameCompleteText.setFont(m_font);
-    m_gameCompleteText.setCharacterSize(54);
-    m_gameCompleteText.setFillColor(sf::Color::Yellow);
-    m_gameCompleteText.setOutlineThickness(3.0f);
-    m_gameCompleteText.setOutlineColor(sf::Color::Black);
-    m_gameCompleteText.setString("Game Complete! Congratulations!");
-
     // Game over text
     m_gameOverText.setFont(m_font);
     m_gameOverText.setCharacterSize(32);
@@ -121,11 +102,6 @@ void GameplayScreen::initializeUITexts() {
  * Extracted to separate method for better organization
  */
 void GameplayScreen::initializeBackgrounds() {
-    // Message background
-    m_messageBackground.setSize(sf::Vector2f(WINDOW_WIDTH, 200.0f));
-    m_messageBackground.setFillColor(sf::Color(0, 0, 0, 180));
-    m_messageBackground.setPosition(0, WINDOW_HEIGHT / 2 - 100);
-
     // Game over background
     m_gameOverBackground.setSize(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
     m_gameOverBackground.setFillColor(sf::Color(0, 0, 0, 150));
@@ -146,25 +122,14 @@ void GameplayScreen::loadGameOverSprite() {
     }
 }
 
-/**
- * Initialize the UI observer with proper error handling
- * Uses lazy initialization pattern - only creates if needed
- */
-void GameplayScreen::initializeUIObserver() {
-    if (m_font.getInfo().family.empty()) {
-        std::cout << "[WARNING] Cannot initialize UIObserver: font not loaded" << std::endl;
-        return;
-    }
-
-    try {
-        m_uiObserver = std::make_unique<UIObserver>(m_font);
-        m_uiObserver->initialize();
-        std::cout << "[GameplayScreen] UI Observer initialized" << std::endl;
-    }
-    catch (const std::exception& e) {
-        std::cerr << "[ERROR] Failed to initialize UIObserver: " << e.what() << std::endl;
-    }
-}
+///**
+// * Initialize the UI observer with proper error handling
+// * Uses lazy initialization pattern - only creates if needed
+// * DISABLED - UIObserver usage removed
+// */
+//void GameplayScreen::initializeUIObserver() {
+//    // UIObserver initialization removed
+//}
 
 /**
  * Handle all window events and user input
@@ -210,12 +175,14 @@ void GameplayScreen::initializeGameSession(sf::RenderWindow& window) {
         // Load initial level using the level manager
         m_gameSession->loadLevel("level1.txt");
 
-        // Initialize UI Observer
-        initializeUIObserver();
+        // Initialize UI Observer (DISABLED)
         setupLevelEventHandlers();
 
         // Initialize dark level system
         m_darkLevelSystem->initialize(window);
+        
+        // Initialize voice level system
+        m_voiceLevelSystem->initialize(window);
 
         m_initialized = true;
         std::cout << "[GameplayScreen] Initialized with SRP GameSession" << std::endl;
@@ -279,9 +246,6 @@ void GameplayScreen::update(float deltaTime) {
         return; // Exit update loop after loading level
     }
 
-    // Update message timers
-    updateMessageTimers(deltaTime);
-
     // Handle game over state
     if (m_showingGameOver) {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
@@ -305,18 +269,15 @@ void GameplayScreen::update(float deltaTime) {
             m_gameSession->update(deltaTime);
         }
         
-        // Update UI observer even without player
-        if (m_uiObserver) {
-            m_uiObserver->update(deltaTime);
-        }
-        
         return;
     }
 
     // Handle player input and update game state
     try {
-        // Handle player input
-        handlePlayerInput(*player);
+        // Handle player input - only if not in voice-controlled level
+        if (!m_isVoiceControlled) {
+            handlePlayerInput(*player);
+        }
         
         // Update the GameSession
         if (m_gameSession) {
@@ -337,12 +298,7 @@ void GameplayScreen::update(float deltaTime) {
             updateUI(*player);
         }
         
-        // Update UI observer
-        if (m_uiObserver) {
-            m_uiObserver->update(deltaTime);
-        }
-        
-        // Update dark level system
+        // Update dark level system if in dark level
         if (m_darkLevelSystem && m_isUnderground) {
             m_darkLevelSystem->update(deltaTime, player);
             
@@ -354,6 +310,11 @@ void GameplayScreen::update(float deltaTime) {
                 registerShadowCastingObjects();
                 obstacleUpdateTimer = 0.0f;
             }
+        }
+        
+        // Update voice level system if in voice-controlled level
+        if (m_voiceLevelSystem && m_isVoiceControlled) {
+            m_voiceLevelSystem->update(deltaTime, player);
         }
         
         // Check game over condition with the latest player reference
@@ -377,13 +338,27 @@ void GameplayScreen::registerShadowCastingObjects() {
     // Clear existing obstacles
     m_darkLevelSystem->clearObstacles();
     
-    // Create a simplified set of obstacles for the dark level
+    // Find all entities with physical bodies that could cast shadows
     std::vector<sf::FloatRect> obstacles;
     
-    // Add some fixed obstacles for now
-    obstacles.push_back(sf::FloatRect(100, 300, 200, 50));  // Ground platform
-    obstacles.push_back(sf::FloatRect(400, 250, 150, 30));  // Floating platform
-    obstacles.push_back(sf::FloatRect(700, 400, 300, 100)); // Large obstacle
+    // Find all ground entities and other obstacles
+    if (m_gameSession) {
+        for (auto* entity : m_gameSession->getEntityManager().getAllEntities()) {
+            if (!entity->isActive()) continue;
+            
+            // Skip player and projectiles
+            if (dynamic_cast<PlayerEntity*>(entity)) continue;
+            
+            auto* transform = entity->getComponent<Transform>();
+            if (transform) {
+                sf::Vector2f pos = transform->getPosition();
+                sf::Vector2f size(40.0f, 40.0f);  // Default size
+                
+                // Add to obstacles
+                obstacles.emplace_back(pos.x - size.x/2, pos.y - size.y/2, size.x, size.y);
+            }
+        }
+    }
     
     // Register obstacles with the dark level system
     if (!obstacles.empty()) {
@@ -397,12 +372,8 @@ void GameplayScreen::registerShadowCastingObjects() {
  * @return true if a level change was processed
  */
 bool GameplayScreen::handleWellLevelChangeRequests() {
-    // Early exit if no level change is requested or if we're already showing transition messages
-    // or if a level transition is already in progress
-    if (!WellEntity::isLevelChangeRequested() || 
-        m_showingLevelComplete || 
-        m_showingGameComplete || 
-        m_levelTransitionInProgress) {
+    // Early exit if no level change is requested or if a level transition is already in progress
+    if (!WellEntity::isLevelChangeRequested() || m_levelTransitionInProgress) {
         return false;
     }
 
@@ -421,26 +392,32 @@ bool GameplayScreen::handleWellLevelChangeRequests() {
  * @param levelName The name of the loaded level
  */
 void GameplayScreen::activateDarkLevelIfNeeded(const std::string& levelName) {
-    if (levelName.find("dark") != std::string::npos || 
-        levelName.find("underground") != std::string::npos) {
+    // Check if we should activate the dark level system
+    bool shouldActivate = 
+        levelName.find("dark") != std::string::npos || 
+        levelName.find("underground") != std::string::npos;
+        
+    // Current level index check (level 2 is dark)
+    if (m_gameSession && m_gameSession->getLevelManager().getCurrentLevelIndex() == 1) {
+        shouldActivate = true;
+    }
+    
+    if (shouldActivate && m_darkLevelSystem) {
+        m_darkLevelSystem->setEnabled(true);
+        m_darkLevelSystem->setDarknessLevel(0.92f);
+        m_isUnderground = true;
 
-        if (m_darkLevelSystem) {
-            m_darkLevelSystem->setEnabled(true);
-            m_darkLevelSystem->setDarknessLevel(0.92f);
-            m_isUnderground = true;
+        // Clear any existing light sources
+        m_darkLevelSystem->clearLightSources();
+        
+        // Add ambient light sources for the dark level
+        m_darkLevelSystem->addLightSource(sf::Vector2f(300, 400), 120.0f, sf::Color(255, 200, 100, 100)); // Warm torch
+        m_darkLevelSystem->addLightSource(sf::Vector2f(800, 300), 80.0f, sf::Color(100, 180, 255, 100)); // Cool blue light
 
-            // Clear any existing light sources
-            m_darkLevelSystem->clearLightSources();
-            
-            // Add ambient light sources for the dark level
-            m_darkLevelSystem->addLightSource(sf::Vector2f(300, 400), 120.0f, sf::Color(255, 200, 100, 100)); // Warm torch
-            m_darkLevelSystem->addLightSource(sf::Vector2f(800, 300), 80.0f, sf::Color(100, 180, 255, 100)); // Cool blue light
+        // Register obstacles for shadow casting
+        registerShadowCastingObjects();
 
-            // Register obstacles for shadow casting
-            registerShadowCastingObjects();
-
-            std::cout << "[GameplayScreen] Dark level system activated!" << std::endl;
-        }
+        std::cout << "[GameplayScreen] Dark level system activated!" << std::endl;
     } else {
         // Reset dark level settings for normal levels
         if (m_darkLevelSystem) {
@@ -451,17 +428,64 @@ void GameplayScreen::activateDarkLevelIfNeeded(const std::string& levelName) {
 }
 
 /**
- * Update message timers
- * @param deltaTime Time elapsed since last frame
+ * Activate voice level system if needed based on level name
+ * @param levelName The name of the loaded level
  */
-void GameplayScreen::updateMessageTimers(float deltaTime) {
-    if (m_showingLevelComplete || m_showingGameComplete) {
-        m_messageTimer += deltaTime;
-        if (m_messageTimer >= m_messageDuration) {
-            m_showingLevelComplete = false;
-            m_showingGameComplete = false;
-            m_messageTimer = 0.0f;
+void GameplayScreen::activateVoiceLevelIfNeeded(const std::string& levelName) {
+    // Check if we should activate the voice level system
+    bool shouldActivate = 
+        levelName.find("voice") != std::string::npos;
+        
+    // Current level index check (level 3 is voice)
+    if (m_gameSession && m_gameSession->getLevelManager().getCurrentLevelIndex() == 2) {
+        shouldActivate = true;
+    }
+    
+    if (shouldActivate && m_voiceLevelSystem) {
+        m_voiceLevelSystem->setEnabled(true);
+        m_isVoiceControlled = true;
+        
+        // Use NotificationEvent directly instead
+        EventSystem::getInstance().publish(
+            NotificationEvent("Voice Level: Use V key to simulate voice input", 5.0f)
+        );
+        
+        std::cout << "[GameplayScreen] Voice Level: Use V key to simulate voice input" << std::endl;
+    } else {
+        // Reset voice level settings for normal levels
+        if (m_voiceLevelSystem) {
+            m_voiceLevelSystem->setEnabled(false);
+            m_isVoiceControlled = false;
         }
+    }
+}
+
+/**
+ * Handle darkness level event from GameLevelManager
+ */
+void GameplayScreen::onDarknessLevelEvent(const DarknessLevelEvent& event) {
+    if (m_darkLevelSystem) {
+        m_darkLevelSystem->setEnabled(event.enabled);
+        m_darkLevelSystem->setDarknessLevel(event.darknessLevel);
+        m_isUnderground = event.enabled;
+        
+        if (event.enabled) {
+            registerShadowCastingObjects();
+        }
+        
+        std::cout << "[GameplayScreen] Darkness level " << (event.enabled ? "enabled" : "disabled") << std::endl;
+    }
+}
+
+/**
+ * Handle voice level event from GameLevelManager
+ */
+void GameplayScreen::onVoiceLevelEvent(const VoiceLevelEvent& event) {
+    if (m_voiceLevelSystem) {
+        m_voiceLevelSystem->setEnabled(event.enabled);
+        m_isVoiceControlled = event.enabled;
+        
+        std::cout << "[GameplayScreen] Voice level " << (event.enabled ? "enabled" : "disabled") << std::endl;
     }
 }
 
@@ -473,8 +497,10 @@ void GameplayScreen::updateMessageTimers(float deltaTime) {
 void GameplayScreen::updateGameState(float deltaTime, PlayerEntity& player) {
     // Handle player input first (before anything that might destroy the player)
     try {
-        // Handle player input
-        handlePlayerInput(player);
+        // Only handle direct input if not voice-controlled
+        if (!m_isVoiceControlled) {
+            handlePlayerInput(player);
+        }
     }
     catch (const std::exception& e) {
         std::cerr << "[ERROR] Exception handling player input: " << e.what() << std::endl;
@@ -499,16 +525,17 @@ void GameplayScreen::updateGameState(float deltaTime, PlayerEntity& player) {
         }
     }
 
-    // Update UI observer - doesn't depend on player
-    if (m_uiObserver) {
-        m_uiObserver->update(deltaTime);
-    }
-
-    // Update dark level system if it exists
-    if (m_darkLevelSystem) {
+    // Update special level systems as needed
+    if (m_darkLevelSystem && m_isUnderground) {
         // Re-get player - it might have changed again
         PlayerEntity* darkLevelPlayer = m_gameSession ? m_gameSession->getPlayer() : nullptr;
         m_darkLevelSystem->update(deltaTime, darkLevelPlayer);
+    }
+    
+    if (m_voiceLevelSystem && m_isVoiceControlled) {
+        // Re-get player - it might have changed again
+        PlayerEntity* voiceLevelPlayer = m_gameSession ? m_gameSession->getPlayer() : nullptr;
+        m_voiceLevelSystem->update(deltaTime, voiceLevelPlayer);
     }
 }
 
@@ -575,44 +602,19 @@ void GameplayScreen::render(sf::RenderWindow& window) {
         m_darkLevelSystem->render(window);
     }
 
-    // Switch to UI view
+    // Switch to UI view for all UI elements
     sf::View defaultView = window.getDefaultView();
     window.setView(defaultView);
+
+    // Render voice level UI if active
+    if (m_voiceLevelSystem && m_isVoiceControlled) {
+        m_voiceLevelSystem->render(window);
+    }
 
     // Render UI elements
     m_ui->draw(window);
 
-    // Render UI observer notifications
-    if (m_uiObserver) {
-        m_uiObserver->render(window);
-    }
-
-    // Render appropriate messages based on game state
-    renderGameMessages(window);
-}
-
-/**
- * Render game messages (level complete, game complete, game over)
- * @param window The render window
- */
-void GameplayScreen::renderGameMessages(sf::RenderWindow& window) {
-    if (m_showingLevelComplete) {
-        window.draw(m_messageBackground);
-
-        // Animate text with pulsing effect using sine wave
-        float alpha = 0.8f + 0.2f * std::sin(m_messageTimer * 8.0f);
-        sf::Color color = m_levelCompleteText.getFillColor();
-        color.a = static_cast<sf::Uint8>(255 * alpha);
-        m_levelCompleteText.setFillColor(color);
-
-        window.draw(m_levelCompleteText);
-    }
-
-    if (m_showingGameComplete) {
-        window.draw(m_messageBackground);
-        window.draw(m_gameCompleteText);
-    }
-
+    // Render game over state
     if (m_showingGameOver) {
         window.draw(m_gameOverBackground);
         window.draw(m_gameOverSprite);
@@ -625,6 +627,9 @@ void GameplayScreen::renderGameMessages(sf::RenderWindow& window) {
  * @param player Reference to the player entity
  */
 void GameplayScreen::handlePlayerInput(PlayerEntity& player) {
+    // Skip normal input handling if in voice-controlled level
+    if (m_isVoiceControlled) return;
+    
     // Player input handling
     try {
         // Player input handling
@@ -741,17 +746,31 @@ void GameplayScreen::setupLevelEventHandlers() {
         }
     );
 
-    // Flag reached events
-    EventSystem::getInstance().subscribe<FlagReachedEvent>(
-        [this](const FlagReachedEvent& event) {
-            this->showLevelCompleteMessage();
-        }
-    );
-
     // Well entered events
     EventSystem::getInstance().subscribe<WellEnteredEvent>(
         [this](const WellEnteredEvent& event) {
             this->handleWellEnteredEvent(event);
+        }
+    );
+    
+    // Darkness level events
+    EventSystem::getInstance().subscribe<DarknessLevelEvent>(
+        [this](const DarknessLevelEvent& event) {
+            this->onDarknessLevelEvent(event);
+        }
+    );
+    
+    // Voice level events
+    EventSystem::getInstance().subscribe<VoiceLevelEvent>(
+        [this](const VoiceLevelEvent& event) {
+            this->onVoiceLevelEvent(event);
+        }
+    );
+    
+    // Notification events
+    EventSystem::getInstance().subscribe<NotificationEvent>(
+        [](const NotificationEvent& event) {
+            std::cout << "[GameplayScreen] Notification: " << event.message << std::endl;
         }
     );
 }
@@ -767,14 +786,15 @@ void GameplayScreen::handleWellEnteredEvent(const WellEnteredEvent& event) {
     // Check for file existence
     std::string levelPath = event.targetLevel;
     if (levelPath.empty()) {
-        levelPath = "dark_level.txt";
-        std::cout << "[GameplayScreen] Using default dark level" << std::endl;
+        levelPath = "level2.txt";  // Default to next level in sequence
+        std::cout << "[GameplayScreen] Using default next level" << std::endl;
     }
 
     // Use our safe level transition method
     if (startLevelTransition(levelPath)) {
-        // Check if this is a dark level and activate darkness effects
+        // Check for special level types
         activateDarkLevelIfNeeded(levelPath);
+        activateVoiceLevelIfNeeded(levelPath);
     }
 }
 
@@ -783,76 +803,30 @@ void GameplayScreen::handleWellEnteredEvent(const WellEnteredEvent& event) {
  * @param event The level transition event
  */
 void GameplayScreen::onLevelTransition(const LevelTransitionEvent& event) {
-    // Handle game completion differently than level transitions
-    if (event.isGameComplete) {
-        showGameCompleteMessage();
+    std::cout << "[GameplayScreen] Level transition event received: " << event.toLevel << std::endl;
+    
+    // If we're already transitioning, don't start another transition
+    if (m_levelTransitionInProgress) {
+        std::cout << "[GameplayScreen] Level transition already in progress, ignoring event" << std::endl;
+        return;
     }
-    else {
-        std::cout << "[GameplayScreen] Level transition event received: " << event.toLevel << std::endl;
-        
-        // If we're already transitioning, don't start another transition
-        if (m_levelTransitionInProgress) {
-            std::cout << "[GameplayScreen] Level transition already in progress, ignoring event" << std::endl;
-            return;
-        }
-        
-        // Additional safety - check for empty level name
-        if (event.toLevel.empty()) {
-            std::cerr << "[GameplayScreen] WARNING: Empty level name in transition event" << std::endl;
-            return;
-        }
-        
-        // We don't call startLevelTransition here because GameLevelManager already handles the actual loading
-        // This event is just informing us about the transition - we just need to prepare our UI state
-        
-        // Reset game state for UI
-        m_showingGameOver = false;
-        m_showingLevelComplete = false;
-        m_showingGameComplete = false;
-        m_messageTimer = 0.0f;
-        m_playerValid = false; // Mark player as potentially invalid during transition
+    
+    // Additional safety - check for empty level name
+    if (event.toLevel.empty()) {
+        std::cerr << "[GameplayScreen] WARNING: Empty level name in transition event" << std::endl;
+        return;
     }
-}
-
-/**
- * Show level complete message
- */
-void GameplayScreen::showLevelCompleteMessage() {
-    m_showingLevelComplete = true;
-    m_messageTimer = 0.0f;
-
-    // Set level complete text
-    std::string levelText = "Level Complete!";
-    m_levelCompleteText.setString(levelText);
-
-    // Center the text
-    sf::FloatRect bounds = m_levelCompleteText.getLocalBounds();
-    m_levelCompleteText.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
-    m_levelCompleteText.setPosition(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
-
-    std::cout << "[GameplayScreen] Showing level complete message" << std::endl;
-}
-
-/**
- * Show game complete message
- */
-void GameplayScreen::showGameCompleteMessage() {
-    m_showingGameComplete = true;
-    m_messageTimer = 0.0f;
-
-    // Get player score if available
-    PlayerEntity* player = m_gameSession->getPlayer();
-    if (player) {
-        std::string completeText = std::format("Game Complete!\nFinal Score: {}", player->getScore());
-        m_gameCompleteText.setString(completeText);
-    }
-
-    // Center the text
-    sf::FloatRect bounds = m_gameCompleteText.getLocalBounds();
-    m_gameCompleteText.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
-    m_gameCompleteText.setPosition(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
-
-    std::cout << "[GameplayScreen] Showing game complete message" << std::endl;
+    
+    // We don't call startLevelTransition here because GameLevelManager already handles the actual loading
+    // This event is just informing us about the transition - we just need to prepare our UI state
+    
+    // Reset game state for UI
+    m_showingGameOver = false;
+    m_playerValid = false; // Mark player as potentially invalid during transition
+    
+    // Check for special level types
+    activateDarkLevelIfNeeded(event.toLevel);
+    activateVoiceLevelIfNeeded(event.toLevel);
 }
 
 /**
@@ -893,9 +867,6 @@ bool GameplayScreen::startLevelTransition(const std::string& targetLevel) {
     
     // Reset all UI state
     m_showingGameOver = false;
-    m_showingLevelComplete = false;
-    m_showingGameComplete = false;
-    m_messageTimer = 0.0f;
     
     try {
         bool success = m_gameSession->loadLevel(targetLevel);
@@ -907,6 +878,10 @@ bool GameplayScreen::startLevelTransition(const std::string& targetLevel) {
             // Check if player is valid after transition
             PlayerEntity* newPlayer = m_gameSession->getPlayer();
             m_playerValid = isPlayerValid(newPlayer);
+            
+            // Check for special level types
+            activateDarkLevelIfNeeded(targetLevel);
+            activateVoiceLevelIfNeeded(targetLevel);
             
             return true;
         }

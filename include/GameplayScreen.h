@@ -11,9 +11,9 @@
 #include "ResourceManager.h"
 #include "Entity.h"  // Added for Entity class
 #include <DarkLevelSystem.h>
+#include <VoiceLevelSystem.h>  // Added for VoiceLevelSystem
 
 // Forward declarations
-class UIObserver;
 class WellEnteredEvent;
 class LevelTransitionEvent;
 class PlayerEntity;
@@ -41,8 +41,8 @@ private:
     std::unique_ptr<CameraManager> m_cameraManager;
     std::unique_ptr<BackgroundRenderer> m_backgroundRenderer;
     std::unique_ptr<UIOverlay> m_ui;
-    std::unique_ptr<UIObserver> m_uiObserver;
     std::unique_ptr<DarkLevelSystem> m_darkLevelSystem;
+    std::unique_ptr<VoiceLevelSystem> m_voiceLevelSystem;  // Added for VoiceLevelSystem
     
     // Input handling
     InputService m_inputService;
@@ -63,6 +63,7 @@ private:
     // State flags
     bool m_initialized = false;
     bool m_isUnderground = false;
+    bool m_isVoiceControlled = false;  // Added for voice control state
     bool m_showingLevelComplete = false;
     bool m_showingGameComplete = false;
     bool m_showingGameOver = false;
@@ -76,7 +77,6 @@ private:
     void initializeUITexts();
     void initializeBackgrounds();
     void loadGameOverSprite();
-    void initializeUIObserver();
     void initializeGameSession(sf::RenderWindow& window);
 
     // Input handling
@@ -94,6 +94,7 @@ private:
     // Level handling
     bool handleWellLevelChangeRequests();
     void activateDarkLevelIfNeeded(const std::string& levelName);
+    void activateVoiceLevelIfNeeded(const std::string& levelName);  // Added for VoiceLevelSystem activation
     bool startLevelTransition(const std::string& targetLevel);
     void registerShadowCastingObjects();
 
@@ -101,6 +102,8 @@ private:
     void setupLevelEventHandlers();
     void handleWellEnteredEvent(const WellEnteredEvent& event);
     void onLevelTransition(const LevelTransitionEvent& event);
+    void onDarknessLevelEvent(const DarknessLevelEvent& event);  // Added for DarknessLevelSystem events
+    void onVoiceLevelEvent(const VoiceLevelEvent& event);        // Added for VoiceLevelSystem events
     void showLevelCompleteMessage();
     void showGameCompleteMessage();
     bool isPlayerValid(PlayerEntity* player);

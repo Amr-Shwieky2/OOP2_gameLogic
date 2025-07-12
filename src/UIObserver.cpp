@@ -83,6 +83,12 @@ void UIObserver::render(sf::RenderWindow& window) {
     }
 }
 
+// Temporary fix for missing showMessage method
+void UIObserver::showMessage(const std::string& message, float duration, sf::Color color) {
+    // Just forward to addNotification
+    addNotification(message, color);
+}
+
 void UIObserver::onScoreChanged(const ScoreChangedEvent& event) {
     std::stringstream ss;
     ss << "+" << event.delta << " points!";

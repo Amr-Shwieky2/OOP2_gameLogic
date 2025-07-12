@@ -9,6 +9,16 @@
 #include "PhysicsManager.h"
 #include "ResourceManager.h"
 
+
+// Forward declarations
+class GameSession;
+class PlayerEntity;
+class EntityFactory;
+
+// Global references
+extern int g_nextEntityId;
+extern GameSession* g_currentSession;
+
 /**
  * GameLevelManager - Single Responsibility: Handle all level operations
  *
@@ -51,7 +61,6 @@ private:
     // Event handlers
     void onFlagReached(const FlagReachedEvent& event);
     void onLevelTransition(const LevelTransitionEvent& event);
-
     void onWellEntered(const WellEnteredEvent& event);
 
     // Level transition state

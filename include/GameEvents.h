@@ -101,7 +101,9 @@ public:
     std::string newStateName;
 };
 
-// Add to GameEvents.h:
+/**
+ * Coin collected event
+ */
 class CoinCollectedEvent : public Event {
 public:
     CoinCollectedEvent(Entity::IdType playerId, int totalCoins)
@@ -131,7 +133,7 @@ public:
 };
 
 /**
- * Level transition event -
+ * Level transition event
  */
 class LevelTransitionEvent : public Event {
 public:
@@ -160,4 +162,48 @@ public:
     Entity::IdType playerId;
     Entity::IdType wellId;
     std::string targetLevel;
+};
+
+/**
+ * Darkness level event - toggles darkness system
+ */
+class DarknessLevelEvent : public Event {
+public:
+    DarknessLevelEvent(bool enabled, float darknessLevel)
+        : enabled(enabled), darknessLevel(darknessLevel) {
+    }
+
+    const char* getName() const override { return "DarknessLevel"; }
+
+    bool enabled;
+    float darknessLevel;
+};
+
+/**
+ * Voice level event - toggles voice control system
+ */
+class VoiceLevelEvent : public Event {
+public:
+    VoiceLevelEvent(bool enabled)
+        : enabled(enabled) {
+    }
+
+    const char* getName() const override { return "VoiceLevel"; }
+
+    bool enabled;
+};
+
+/**
+ * Notification event - displays a message to the player
+ */
+class NotificationEvent : public Event {
+public:
+    NotificationEvent(const std::string& message, float duration = 3.0f)
+        : message(message), duration(duration) {
+    }
+
+    const char* getName() const override { return "Notification"; }
+
+    std::string message;
+    float duration;
 };
