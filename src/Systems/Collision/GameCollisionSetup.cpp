@@ -28,9 +28,6 @@
 #include <WellEntity.h>
 #include <GameSession.h>
 
-// For entity ID generation
-int g_nextEntityId = 1;
-
 void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
     // ===== Player vs Coin =====
@@ -506,17 +503,17 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
     );
 }
 
-void registerGameEntities(b2World& world, TextureManager& textures) {
+void registerGameEntities(b2World& world, TextureManager& textures, EntityManager& entityManager) {
     EntityFactory& factory = EntityFactory::instance();
 
     // Register Player
     factory.registerCreator("Player", [&](float x, float y) -> std::unique_ptr<Entity> {
-        return std::make_unique<PlayerEntity>(g_nextEntityId++, world, x, y, textures);
+        return std::make_unique<PlayerEntity>(entityManager.generateId(), world, x, y, textures);
         });
 
     // Register Coin
     factory.registerCreator("C", [&](float x, float y) -> std::unique_ptr<Entity> {
-        auto entity = std::make_unique<CoinEntity>(g_nextEntityId++);
+        auto entity = std::make_unique<CoinEntity>(entityManager.generateId());
 
         sf::Vector2f coinPosition(x + TILE_SIZE / 4.f, y + TILE_SIZE / 4.f);
         entity->addComponent<Transform>(coinPosition);
@@ -549,7 +546,7 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
     // Register Gifts
     auto registerGift = [&](const std::string& levelChar, GiftEntity::GiftType type) {
         factory.registerCreator(levelChar, [&, type](float x, float y) -> std::unique_ptr<Entity> {
-            return std::make_unique<GiftEntity>(g_nextEntityId++, type, x, y, textures);
+            return std::make_unique<GiftEntity>(entityManager.generateId(), type, x, y, textures);
             });
         };
 
@@ -564,7 +561,7 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
     // Register Ground Tiles
     auto registerGround = [&](const std::string& levelChar, TileType type) {
         factory.registerCreator(levelChar, [&, type](float x, float y) -> std::unique_ptr<Entity> {
-            return std::make_unique<GroundEntity>(g_nextEntityId++, type, world, x, y, textures);
+            return std::make_unique<GroundEntity>(entityManager.generateId(), type, world, x, y, textures);
             });
         };
 
@@ -576,25 +573,25 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
 
     // Register remaining entity types
     factory.registerCreator("S", [&](float x, float y) -> std::unique_ptr<Entity> {
-        return std::make_unique<SeaEntity>(g_nextEntityId++, world, x, y, textures);
+        return std::make_unique<SeaEntity>(entityManager.generateId(), world, x, y, textures);
         });
 
     factory.registerCreator("X", [&](float x, float y) -> std::unique_ptr<Entity> {
-        return std::make_unique<FlagEntity>(g_nextEntityId++, world, x, y, textures);
+        return std::make_unique<FlagEntity>(entityManager.generateId(), world, x, y, textures);
         });
 
     factory.registerCreator("c", [&](float x, float y) -> std::unique_ptr<Entity> {
-        return std::make_unique<CactusEntity>(g_nextEntityId++, world, x, y, textures);
+        return std::make_unique<CactusEntity>(entityManager.generateId(), world, x, y, textures);
         });
 
     factory.registerCreator("B", [&](float x, float y) -> std::unique_ptr<Entity> {
-        return std::make_unique<BoxEntity>(g_nextEntityId++, world, x, y, textures);
+        return std::make_unique<BoxEntity>(entityManager.generateId(), world, x, y, textures);
         });
 
     // Register Square Enemy
     factory.registerCreator("z", [&](float x, float y) -> std::unique_ptr<Entity> {
         auto enemy = std::make_unique<SquareEnemyEntity>(
-            g_nextEntityId++,
+            entityManager.generateId(),
             world,
             x, y,
             textures,
@@ -606,18 +603,18 @@ void registerGameEntities(b2World& world, TextureManager& textures) {
 
     // Register Smart Enemy
     factory.registerCreator("Z", [&](float x, float y) -> std::unique_ptr<Entity> {
-        auto enemy = std::make_unique<SmartEnemyEntity>(g_nextEntityId++, world, x, y, textures);
+        auto enemy = std::make_unique<SmartEnemyEntity>(entityManager.generateId(), world, x, y, textures);
         return enemy;
         });
 
     // Register Falcon Enemy
     factory.registerCreator("F", [&](float x, float y) -> std::unique_ptr<Entity> {
-        auto enemy = std::make_unique<FalconEnemyEntity>(g_nextEntityId++, world, x, y, textures);
+        auto enemy = std::make_unique<FalconEnemyEntity>(entityManager.generateId(), world, x, y, textures);
         return enemy;
         });
     
     // Register Well
     factory.registerCreator("W", [&](float x, float y) -> std::unique_ptr<Entity> {
-        return std::make_unique<WellEntity>(g_nextEntityId++, world, x, y, textures);
+        return std::make_unique<WellEntity>(entityManager.generateId(), world, x, y, textures);
         });
 }

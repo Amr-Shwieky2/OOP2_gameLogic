@@ -4,8 +4,7 @@
 #include "GameSession.h"
 #include <iostream>
 
-// External references
-extern int g_nextEntityId;
+// External reference to current session for spawning projectiles
 extern GameSession* g_currentSession;
 
 PlayerWeaponSystem::PlayerWeaponSystem(PlayerEntity& player, b2World& world, TextureManager& textures)
@@ -209,7 +208,7 @@ void PlayerWeaponSystem::setWeaponType(WeaponType type) {
 void PlayerWeaponSystem::createProjectile(const sf::Vector2f& position, const sf::Vector2f& direction) {
     try {
         auto projectile = std::make_unique<ProjectileEntity>(
-            g_nextEntityId++,
+            g_currentSession->getEntityManager().generateId(),
             m_world,
             position.x,
             position.y,
@@ -229,7 +228,7 @@ void PlayerWeaponSystem::createGravityProjectile(const sf::Vector2f& position, c
     try {
         // Create a projectile with the special parameter to enable gravity
         auto projectile = std::make_unique<ProjectileEntity>(
-            g_nextEntityId++,
+            g_currentSession->getEntityManager().generateId(),
             m_world,
             position.x,
             position.y,

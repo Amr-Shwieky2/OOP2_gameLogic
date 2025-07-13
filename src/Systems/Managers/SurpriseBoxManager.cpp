@@ -13,8 +13,6 @@
 #include "GameEvents.h"
 #include <iostream>
 
-// For entity ID generation
-extern int g_nextEntityId;
 
 SurpriseBoxManager::SurpriseBoxManager(TextureManager& textures, sf::RenderWindow& window)
     : m_textures(textures)
@@ -136,7 +134,7 @@ void SurpriseBoxManager::spawnGiftEntity(SurpriseGiftType giftType, const sf::Ve
     try {
         // Create gift entity with physics so it falls
         auto giftEntity = std::make_unique<GiftEntity>(
-            g_nextEntityId++,
+            m_entityManager->generateId(),
             entityGiftType,
             position.x,
             position.y,

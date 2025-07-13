@@ -6,9 +6,10 @@
 #include <iostream>
 #include <PlayerEntity.h>
 #include "EntityFactory.h"
+#include "ResourcePaths.h"
 
 GameLevelManager::GameLevelManager() {
-    m_levelManager.addLevel("level1.txt");
+    m_levelManager.addLevel(ResourcePaths::LEVEL1);
 }
 
 void GameLevelManager::initialize(EntityManager& entityManager, PhysicsManager& physicsManager, TextureManager& textures) {
@@ -209,7 +210,7 @@ void GameLevelManager::onWellEntered(const WellEnteredEvent& event) {
     try {
         std::string targetLevel = event.targetLevel;
         if (targetLevel.empty()) {
-            targetLevel = "dark_level.txt";
+            targetLevel = ResourcePaths::DARK_LEVEL;
         }
         if (loadLevel(targetLevel)) {
         }

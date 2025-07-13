@@ -60,3 +60,7 @@ void EntityManager::removeInactiveEntities() {
         }
     }
 }
+
+EntityManager::IdType EntityManager::generateId() {
+    return m_nextId++;
+}

@@ -13,7 +13,6 @@
 #include <MovementComponent.h>
 #include <SmartEnemyEntity.h>
 
-extern int g_nextEntityId;
 extern GameSession* g_currentSession;
 
 SquareEnemyEntity::SquareEnemyEntity(IdType id, b2World& world, float x, float y,
@@ -97,7 +96,7 @@ void SquareEnemyEntity::spawnSplitEnemies(const sf::Vector2f& deathPosition) {
 
         try {
             auto smallEnemy = std::make_unique<SmartEnemyEntity>(
-                g_nextEntityId++,
+                g_currentSession->getEntityManager().generateId(),
                 world,
                 spawnPos.x - TILE_SIZE / 2.f,
                 spawnPos.y - TILE_SIZE / 2.f,
