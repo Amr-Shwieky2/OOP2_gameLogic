@@ -1,5 +1,4 @@
-﻿// GameCollisionSetup.cpp - Updated for refactored PlayerEntity
-#include "GameCollisionSetup.h"
+﻿#include "GameCollisionSetup.h"
 #include "MultiMethodCollisionSystem.h"
 #include "PlayerEntity.h"
 #include "PlayerScoreManager.h"
@@ -105,6 +104,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
     );
 
     // ===== Player vs Sea =====
+    // ===== Player vs Sea =====
     collisionSystem.registerHandler<PlayerEntity, SeaEntity>(
         [](PlayerEntity& player, SeaEntity&) {
             auto* health = player.getComponent<HealthComponent>();
@@ -112,9 +112,11 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             auto* visualEffects = player.getVisualEffects();
 
             if (health && !health->isInvulnerable()) {
-                health->setHealth(0);
+                // تغيير: خسارة كل الأرواح بدلاً من تحديد الصحة إلى 0
+                int currentHealth = health->getHealth();
+                health->takeDamage(currentHealth); // خسارة كل الأرواح
 
-                // Use visual effects system for death effect
+                // تأثيرات بصرية للموت
                 if (visualEffects) {
                     auto* render = player.getComponent<RenderComponent>();
                     if (render) {

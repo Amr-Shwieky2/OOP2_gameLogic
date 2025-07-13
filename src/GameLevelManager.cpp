@@ -8,7 +8,6 @@
 #include "EntityFactory.h"
 
 GameLevelManager::GameLevelManager() {
-    // Add default levels
     m_levelManager.addLevel("level1.txt");
     m_levelManager.addLevel("level2.txt");
 }
@@ -184,7 +183,6 @@ void GameLevelManager::setupEventHandlers() {
             }
         );
 
-        // إضافة handler للبئر - هذا مهم جداً!
         EventSystem::getInstance().subscribe<WellEnteredEvent>(
             [this](const WellEnteredEvent& event) {
                 this->onWellEntered(event);
@@ -208,16 +206,12 @@ void GameLevelManager::onLevelTransition(const LevelTransitionEvent& event) {
     }
 }
 
-// إضافة handler جديد للبئر
 void GameLevelManager::onWellEntered(const WellEnteredEvent& event) {
-    // تحميل المستوى المظلم مباشرة
     try {
         std::string targetLevel = event.targetLevel;
         if (targetLevel.empty()) {
             targetLevel = "dark_level.txt";
         }
-
-        // تحميل المستوى فوراً بدلاً من انتظار timer
         if (loadLevel(targetLevel)) {
         }
         else {
