@@ -86,7 +86,6 @@ private:
     // Shadow map rendering
     void renderShadowMap(const sf::Vector2f& lightPos, float radius, sf::RenderTexture& target);
     void castRays(const sf::Vector2f& origin, std::vector<Ray>& rays, float maxDistance);
-    void createShadowMesh(const std::vector<Ray>& rays, sf::VertexArray& shadowMesh);
 
     // Light rendering
     void renderFlashlight(sf::RenderWindow& window);
@@ -97,13 +96,11 @@ private:
     Intersection rayObstacleIntersection(const Ray& ray, const Obstacle& obstacle);
     sf::Vector2f calculateIntersection(const sf::Vector2f& rayStart, const sf::Vector2f& rayEnd,
                                         const sf::Vector2f& segStart, const sf::Vector2f& segEnd);
-    float calculateRaySegmentIntersection(const sf::Vector2f& p1, const sf::Vector2f& p2,
-                                          const sf::Vector2f& p3, const sf::Vector2f& p4);
     void updateBattery(float dt);
 
     // Main system state
     bool m_enabled = false;
-    float m_darknessLevel = 0.8f;
+    float m_darknessLevel = 0.5f;
 
     // Lighting system
     std::vector<LightSource> m_lightSources;
@@ -129,8 +126,8 @@ private:
     // Flashlight properties
     sf::Vector2f m_flashlightDirection = {1.0f, 0.0f}; // Default right direction
     float m_flashlightAngle = 45.0f;                  // Beam angle in degrees
-    float m_flashlightRange = 400.0f;                 // How far the light reaches
-    float m_flashlightIntensity = 0.9f;               // Brightness of light
+    float m_flashlightRange = 800.0f;                 // How far the light reaches
+    float m_flashlightIntensity = 2.0f;               // Brightness of light
     bool m_flashlightOn = true;                       // Is flashlight on
 
     // Battery system

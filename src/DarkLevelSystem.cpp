@@ -83,15 +83,14 @@ void DarkLevelSystem::initialize(sf::RenderWindow& window) {
 void DarkLevelSystem::update(float dt, PlayerEntity* player) {
     if (!m_enabled) return;
 
+    updatePlayerLight(player);  
+
     // Update animation timers
     m_flickerTimer += dt;
     m_ambientTimer += dt;
 
     // Update battery level
     updateBattery(dt);
-    
-    // Update player light position
-    updatePlayerLight(player);
 
     // Update flashlight direction based on player movement
     if (player) {
@@ -145,68 +144,56 @@ void DarkLevelSystem::updatePlayerLight(PlayerEntity* player) {
     auto* transform = player->getComponent<Transform>();
     if (transform) {
         m_playerLightPos = transform->getPosition();
-        
-        // Debug output occasionally to verify position sync
-        static int updateCount = 0;
-        updateCount++;
-        if (updateCount % 300 == 0) {
-            std::cout << "[DEBUG DarkLevelSystem] Player light position updated to: (" 
-                      << m_playerLightPos.x << ", " << m_playerLightPos.y << ")" << std::endl;
-        }
-    } else {
-        std::cout << "[DEBUG DarkLevelSystem] Player has no Transform component!" << std::endl;
+       
     }
 }
 
 void DarkLevelSystem::render(sf::RenderWindow& window) {
     if (!m_enabled) {
-        std::cout << "[DEBUG DarkLevelSystem] Render called but system is not enabled!" << std::endl;
         return;
     }
 
-    // Debug output occasionally
-    static int renderCount = 0;
-    renderCount++;
-    if (renderCount % 300 == 0) { // Every 5 seconds at 60 FPS
-        std::cout << "[DEBUG DarkLevelSystem] Rendering - Darkness level: " << m_darknessLevel 
-                  << ", Overlay alpha: " << static_cast<int>(m_darknessOverlay.getFillColor().a)
-                  << ", Light sources: " << m_lightSources.size() << std::endl;
-    }
-
-    // Store current view and get its bounds
     sf::View currentView = window.getView();
     sf::Vector2f viewCenter = currentView.getCenter();
     sf::Vector2f viewSize = currentView.getSize();
-    
-    // Create darkness overlay that covers the ENTIRE camera view
-    sf::RectangleShape dynamicDarknessOverlay;
-    dynamicDarknessOverlay.setSize(viewSize);
-    dynamicDarknessOverlay.setPosition(viewCenter.x - viewSize.x/2, viewCenter.y - viewSize.y/2);
-    dynamicDarknessOverlay.setFillColor(sf::Color(0, 0, 0, static_cast<sf::Uint8>(255 * m_darknessLevel)));
 
-    // Draw darkness overlay that follows the camera
-    window.draw(dynamicDarknessOverlay);
+    // 🔲 1. رسم العتمة الشفافة على كامل الشاشة (تغطي كل شيء)
+    sf::RectangleShape darknessOverlay;
+    darknessOverlay.setSize(viewSize);
+    darknessOverlay.setPosition(viewCenter - viewSize / 2.0f);
+    darknessOverlay.setFillColor(sf::Color(0, 0, 0, static_cast<sf::Uint8>(255 * m_darknessLevel)));
 
-    // Render shadow map for all light sources
-    m_shadowMapTexture->clear(sf::Color::Transparent);
-    m_shadowMapTexture->setView(currentView);
-    
-    // Render light sources with shadows and proper color illumination
-    for (const auto& light : m_lightSources) {
-        renderShadowMap(light.position, light.radius, *m_shadowMapTexture);
-    }
+    window.draw(darknessOverlay);  // تغطي كل الخلفية
 
-    // Render player light with shadows
-    if (!m_lightSources.empty()) {
-        sf::Sprite shadowSprite(m_shadowMapTexture->getTexture());
-        window.draw(shadowSprite, sf::RenderStates(sf::BlendAdd));
-    }
+    // 💡 2. تجهيز Texture للضوء (الكشاف والضوء المحيط)
+    m_flashlightTexture->setView(currentView);
+    m_flashlightTexture->clear(sf::Color::Transparent);
 
-    // Render flashlight if it's on and has battery
+    // ✨ 3. رسم الضوء حول اللاعب (هالة ثابتة)
+    sf::CircleShape playerLight;
+    float lightRadius = 50.0f;
+    playerLight.setRadius(lightRadius);
+    playerLight.setOrigin(lightRadius, lightRadius);
+    playerLight.setPosition(m_playerLightPos);
+    playerLight.setFillColor(sf::Color(255, 255, 220, 200));  // ضوء دافئ واضح
+
+    m_flashlightTexture->draw(playerLight, sf::BlendAdd);
+
+    // 🔦 4. إذا الكشاف شغال، ارسمه داخل نفس Texture
     if (m_flashlightOn && m_batteryLevel > 0.0f && m_playerLightPos.x != 0 && m_playerLightPos.y != 0) {
-        renderFlashlight(window);
+        drawFlashlightCone(m_flashlightIntensity * m_batteryLevel);
     }
+
+    // 🖼️ 5. عرض محتوى الضوء على الشاشة بعد رسم الكائنات
+    m_flashlightTexture->display();
+
+    sf::Sprite flashlightSprite(m_flashlightTexture->getTexture());
+    flashlightSprite.setPosition(window.mapPixelToCoords({ 0, 0 }));
+    flashlightSprite.setOrigin(0, 0);
+    window.draw(flashlightSprite, sf::RenderStates(sf::BlendAdd));
 }
+
+
 
 void DarkLevelSystem::renderShadowMap(const sf::Vector2f& lightPos, float radius, sf::RenderTexture& target) {
     // Cast rays in all directions from the light source
@@ -379,29 +366,32 @@ sf::Vector2f DarkLevelSystem::calculateIntersection(
 }
 
 void DarkLevelSystem::renderFlashlight(sf::RenderWindow& window) {
-    // Prepare flashlight texture
-    m_flashlightTexture->clear(sf::Color::Transparent);
-    m_flashlightTexture->setView(window.getView());
-
-    // Calculate flashlight intensity with battery and flicker effects
     float currentIntensity = m_flashlightIntensity * m_batteryLevel;
     float flicker = 1.0f;
-    
-    // Add flicker effect for low battery
+
     if (m_batteryLevel < 0.3f) {
         flicker = 0.7f + 0.3f * std::sin(m_flickerTimer * 20.0f);
     }
     currentIntensity *= flicker;
 
-    // Draw flashlight cone with shadows
-    drawFlashlightCone(currentIntensity);
-    m_flashlightTexture->display();
+    sf::VertexArray cone(sf::TriangleFan);
+    cone.append(sf::Vertex(m_playerLightPos, sf::Color(255, 255, 200, 200)));
 
-    // Create sprite from flashlight texture
-    sf::Sprite flashlightSprite(m_flashlightTexture->getTexture());
+    float spreadAngle = 60.0f;
+    float angleStep = spreadAngle / m_rayCount;
+    float startAngle = (m_flashlightDirection.x > 0 ? 0.0f : 180.0f) - spreadAngle / 2.0f;
 
-    // Draw with additive blending
-    window.draw(flashlightSprite, sf::RenderStates(sf::BlendAdd));
+    for (int i = 0; i <= m_rayCount; ++i) {
+        float angleDeg = startAngle + i * angleStep;
+        float angleRad = angleDeg * M_PI / 180.0f;
+
+        sf::Vector2f direction(std::cos(angleRad), std::sin(angleRad));
+        sf::Vector2f endPoint = m_playerLightPos + direction * 250.0f;
+
+        cone.append(sf::Vertex(endPoint, sf::Color(255, 255, 200, 0)));
+    }
+
+    m_flashlightTexture->draw(cone);  
 }
 
 void DarkLevelSystem::drawFlashlightCone(float intensity) {
@@ -478,19 +468,6 @@ void DarkLevelSystem::drawFlashlightCone(float intensity) {
     // Draw the flashlight cone
     m_flashlightTexture->draw(flashlightCone);
     
-    // Draw a bright halo around the player for better visibility
-    sf::CircleShape halo(80.0f); // Larger halo
-    halo.setOrigin(80.0f, 80.0f);
-    halo.setPosition(center);
-    halo.setFillColor(sf::Color(255, 255, 240, static_cast<sf::Uint8>(80 * intensity)));
-    m_flashlightTexture->draw(halo);
-    
-    // Add a smaller, brighter inner halo for better object visibility
-    sf::CircleShape innerHalo(40.0f);
-    innerHalo.setOrigin(40.0f, 40.0f);
-    innerHalo.setPosition(center);
-    innerHalo.setFillColor(sf::Color(255, 255, 255, static_cast<sf::Uint8>(120 * intensity)));
-    m_flashlightTexture->draw(innerHalo);
 }
 
 void DarkLevelSystem::toggleFlashlight() {
@@ -595,5 +572,4 @@ void DarkLevelSystem::setObstacles(const std::vector<sf::FloatRect>& obstacles) 
     for (const auto& rect : obstacles) {
         registerObstacle(rect);
     }
-    std::cout << "[DarkLevelSystem] Set " << obstacles.size() << " shadow casting obstacles" << std::endl;
 }
