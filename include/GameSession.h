@@ -10,6 +10,7 @@
 #include "SurpriseBoxManager.h"
 #include "PlayerEntity.h"
 #include "ResourceManager.h"
+#include <DarkLevelSystem.h>
 
 
 // Global pointer for backwards compatibility
@@ -25,6 +26,8 @@ class GameSession {
 public:
     GameSession();
     ~GameSession();
+    DarkLevelSystem& getDarkLevelSystem() { return m_darkLevelSystem; }
+
 
     void initialize(TextureManager& textures, sf::RenderWindow& window);
     void update(float deltaTime);
@@ -49,6 +52,8 @@ public:
     GameLevelManager& getLevelManager() { return m_levelManager; }
 
 private:
+    DarkLevelSystem m_darkLevelSystem;
+
     // All the single-responsibility managers
     EntityManager m_entityManager;
     PhysicsManager m_physicsManager;

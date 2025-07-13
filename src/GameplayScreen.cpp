@@ -607,6 +607,7 @@ void GameplayScreen::render(sf::RenderWindow& window) {
         }
         
         m_darkLevelSystem->render(window);
+        m_darkLevelSystem->drawRedEyes(window, m_gameSession->getEntityManager());
     }
 
     // Switch to UI view
