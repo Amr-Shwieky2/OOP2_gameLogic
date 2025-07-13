@@ -9,7 +9,6 @@
 
 GameLevelManager::GameLevelManager() {
     m_levelManager.addLevel("level1.txt");
-    m_levelManager.addLevel("level2.txt");
 }
 
 void GameLevelManager::initialize(EntityManager& entityManager, PhysicsManager& physicsManager, TextureManager& textures) {
