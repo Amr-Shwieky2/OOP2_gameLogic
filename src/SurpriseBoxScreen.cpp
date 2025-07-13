@@ -262,7 +262,7 @@ void SurpriseBoxScreen::update(float deltaTime) {
     }
 }
 
-void SurpriseBoxScreen::updateBoxAnimation(float deltaTime) {
+void SurpriseBoxScreen::updateBoxAnimation(float) {
     switch (m_phase) {
     case AnimationPhase::WaitingToOpen:
         // Breathing animation

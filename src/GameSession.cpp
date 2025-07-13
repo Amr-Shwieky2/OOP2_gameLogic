@@ -14,62 +14,47 @@ extern int g_nextEntityId;
 
 GameSession::GameSession() {
     g_currentSession = this;
-    std::cout << "[GameSession] Created - SRP compliant!" << std::endl;
 }
 
 GameSession::~GameSession() {
-    std::cout << "[GameSession] Starting destruction..." << std::endl;
-
     // FIRST: Clear global pointer to prevent any access
     if (g_currentSession == this) {
-        std::cout << "[GameSession] Clearing global session pointer" << std::endl;
         g_currentSession = nullptr;
     }
 
     try {
         // Clear player cache immediately
-        std::cout << "[GameSession] Clearing player cache" << std::endl;
         m_player = nullptr;
 
         // Shutdown surprise box manager FIRST (it has event subscriptions)
-        std::cout << "[GameSession] Destroying surprise box manager..." << std::endl;
         if (m_surpriseBoxManager) {
             m_surpriseBoxManager->reset();
             m_surpriseBoxManager.reset();
         }
 
         // Clear all event handlers
-        std::cout << "[GameSession] Shutting down event coordinator..." << std::endl;
         m_eventCoordinator.shutdown();
 
         // Clear collision system
-        std::cout << "[GameSession] Clearing collision handlers..." << std::endl;
         m_collisionManager.clearHandlers();
 
         // Force cleanup of entities
-        std::cout << "[GameSession] Force cleaning entities..." << std::endl;
         m_cleanupManager.forceCleanup(m_entityManager);
 
         // Clear all entities
-        std::cout << "[GameSession] Clearing entity manager..." << std::endl;
         m_entityManager.clear();
 
         // Clear any remaining event system listeners
-        std::cout << "[GameSession] Clearing event system..." << std::endl;
         EventSystem::getInstance().clear();
-
-        std::cout << "[GameSession] Destruction complete successfully" << std::endl;
-
     }
     catch (const std::exception& e) {
-        std::cout << "[GameSession] Exception during destruction: " << e.what() << std::endl;
+		std::cerr << "[ERROR] Exception during GameSession destruction: " << e.what() << std::endl;
+		
     }
 }
 
 void GameSession::initialize(TextureManager& textures, sf::RenderWindow& window) {
     m_textures = &textures;
-
-    std::cout << "[GameSession] Initializing all managers..." << std::endl;
 
     // Initialize all managers in proper order
     // 1. Physics first (others depend on it)
@@ -91,8 +76,6 @@ void GameSession::initialize(TextureManager& textures, sf::RenderWindow& window)
     m_surpriseBoxManager = std::make_unique<SurpriseBoxManager>(textures, window);
     m_surpriseBoxManager->setEntityManager(&m_entityManager);
     m_surpriseBoxManager->setPhysicsWorld(&m_physicsManager.getWorld());
-
-    std::cout << "[GameSession] All managers initialized successfully!" << std::endl;
 }
 
 void GameSession::update(float deltaTime) {

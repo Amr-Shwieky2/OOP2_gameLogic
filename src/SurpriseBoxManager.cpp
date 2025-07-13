@@ -26,7 +26,7 @@ SurpriseBoxManager::SurpriseBoxManager(TextureManager& textures, sf::RenderWindo
 
     // Subscribe to coin collected events
     EventSystem::getInstance().subscribe<CoinCollectedEvent>(
-        [this](const CoinCollectedEvent& event) {
+        [this](const CoinCollectedEvent&) {
             this->onCoinCollected();
         }
     );

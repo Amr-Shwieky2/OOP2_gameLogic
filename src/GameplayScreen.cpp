@@ -421,13 +421,24 @@ bool GameplayScreen::handleWellLevelChangeRequests() {
  * @param levelName The name of the loaded level
  */
 void GameplayScreen::activateDarkLevelIfNeeded(const std::string& levelName) {
-    if (levelName.find("dark") != std::string::npos || 
-        levelName.find("underground") != std::string::npos) {
+    std::cout << "[DEBUG] Checking level name for dark activation: '" << levelName << "'" << std::endl;
+    
+    bool isDarkLevel = (levelName.find("dark") != std::string::npos || 
+                        levelName.find("underground") != std::string::npos);
+    
+    std::cout << "[DEBUG] Is dark level: " << (isDarkLevel ? "YES" : "NO") << std::endl;
+    
+    if (isDarkLevel) {
+        std::cout << "[DEBUG] Activating dark level system..." << std::endl;
 
         if (m_darkLevelSystem) {
             m_darkLevelSystem->setEnabled(true);
             m_darkLevelSystem->setDarknessLevel(0.92f);
             m_isUnderground = true;
+
+            std::cout << "[DEBUG] Dark level system enabled: " << m_darkLevelSystem->isEnabled() << std::endl;
+            std::cout << "[DEBUG] Underground flag set: " << m_isUnderground << std::endl;
+            std::cout << "[DEBUG] Darkness level: " << m_darkLevelSystem->getDarknessLevel() << std::endl;
 
             // Clear any existing light sources
             m_darkLevelSystem->clearLightSources();
@@ -440,8 +451,11 @@ void GameplayScreen::activateDarkLevelIfNeeded(const std::string& levelName) {
             registerShadowCastingObjects();
 
             std::cout << "[GameplayScreen] Dark level system activated!" << std::endl;
+        } else {
+            std::cout << "[ERROR] Dark level system is null!" << std::endl;
         }
     } else {
+        std::cout << "[DEBUG] Normal level - disabling dark effects" << std::endl;
         // Reset dark level settings for normal levels
         if (m_darkLevelSystem) {
             m_darkLevelSystem->setEnabled(false);
@@ -553,11 +567,31 @@ void GameplayScreen::render(sf::RenderWindow& window) {
     // Render game session (uses SRP RenderSystem internally)
     m_gameSession->render(window);
 
+    // Debug: Print dark level system status occasionally
+    static int frameCount = 0;
+    frameCount++;
+    if (frameCount % 300 == 0) { // Every 5 seconds at 60 FPS
+        std::cout << "[DEBUG RENDER] Frame " << frameCount 
+                  << " - Dark system: " << (m_darkLevelSystem ? "exists" : "null")
+                  << ", Underground: " << (m_isUnderground ? "yes" : "no");
+        if (m_darkLevelSystem) {
+            std::cout << ", Enabled: " << (m_darkLevelSystem->isEnabled() ? "yes" : "no");
+        }
+        std::cout << std::endl;
+    }
+
     // Render darkness system if in underground level
     if (m_darkLevelSystem && m_isUnderground) {
-        // Update player light position before rendering
+        if (frameCount % 300 == 0) {
+            std::cout << "[DEBUG RENDER] Rendering dark level effects" << std::endl;
+        }
+        
+        // Update player light position before rendering - CRITICAL for proper positioning
         PlayerEntity* player = m_gameSession ? m_gameSession->getPlayer() : nullptr;
         if (player) {
+            // Force update player light position every frame
+            m_darkLevelSystem->updatePlayerLight(player);
+            
             auto* transform = getSafeComponent<Transform>(player);
             if (transform) {
                 // Update flashlight direction based on player movement or mouse
@@ -568,6 +602,11 @@ void GameplayScreen::render(sf::RenderWindow& window) {
                     sf::Vector2i mousePos = sf::Mouse::getPosition(*m_window);
                     sf::Vector2f worldPos = m_window->mapPixelToCoords(mousePos);
                     m_darkLevelSystem->updateFlashlightDirection(playerPos, worldPos);
+                }
+                
+                // Debug output for position verification
+                if (frameCount % 300 == 0) {
+                    std::cout << "[DEBUG RENDER] Player position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
                 }
             }
         }
@@ -695,6 +734,69 @@ void GameplayScreen::handleDebugKeys(PlayerEntity& player) {
             }
         }
     }
+
+    // DEBUG: Force toggle dark level system with F7
+    if (m_inputService.isKeyPressed(sf::Keyboard::F7)) {
+        std::cout << "[DEBUG] F7 pressed - Force toggling dark level system" << std::endl;
+        if (m_darkLevelSystem) {
+            bool wasEnabled = m_darkLevelSystem->isEnabled();
+            if (wasEnabled) {
+                // Disable dark level
+                m_darkLevelSystem->setEnabled(false);
+                m_isUnderground = false;
+                std::cout << "[DEBUG] Dark level system DISABLED" << std::endl;
+            } else {
+                // Enable dark level with maximum visibility settings
+                m_darkLevelSystem->setEnabled(true);
+                m_darkLevelSystem->setDarknessLevel(0.85f); // Slightly less dark for testing
+                m_isUnderground = true;
+                
+                // Clear and add light sources
+                m_darkLevelSystem->clearLightSources();
+                
+                // Add a light source at player position for testing
+                auto* transform = getSafeComponent<Transform>(&player);
+                if (transform) {
+                    sf::Vector2f playerPos = transform->getPosition();
+                    m_darkLevelSystem->addLightSource(playerPos, 150.0f, sf::Color(255, 255, 255, 150));
+                    std::cout << "[DEBUG] Added test light at player position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
+                }
+                
+                // Add ambient lights
+                m_darkLevelSystem->addLightSource(sf::Vector2f(300, 400), 120.0f, sf::Color(255, 200, 100, 100));
+                m_darkLevelSystem->addLightSource(sf::Vector2f(800, 300), 80.0f, sf::Color(100, 180, 255, 100));
+                
+                // Ensure flashlight is on
+                m_darkLevelSystem->chargeBattery(1.0f); // Full battery
+                
+                registerShadowCastingObjects();
+                
+                std::cout << "[DEBUG] Dark level system ENABLED - Underground: " << m_isUnderground << std::endl;
+                std::cout << "[DEBUG] Flashlight battery: " << m_darkLevelSystem->getBatteryLevel() << std::endl;
+            }
+        } else {
+            std::cout << "[DEBUG] Dark level system is null!" << std::endl;
+        }
+    }
+
+    // DEBUG: Add F8 key to test flashlight positioning
+    if (m_inputService.isKeyPressed(sf::Keyboard::F8)) {
+        if (m_darkLevelSystem && m_isUnderground) {
+            auto* transform = getSafeComponent<Transform>(&player);
+            if (transform) {
+                sf::Vector2f playerPos = transform->getPosition();
+                std::cout << "[DEBUG F8] Current player position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
+                std::cout << "[DEBUG F8] Flashlight battery: " << m_darkLevelSystem->getBatteryLevel() << std::endl;
+                
+                // Force update player light position
+                m_darkLevelSystem->updatePlayerLight(&player);
+                
+                // Add a temporary bright light at player position
+                m_darkLevelSystem->addLightSource(playerPos, 200.0f, sf::Color(255, 255, 255, 200));
+                std::cout << "[DEBUG F8] Added bright test light at player position" << std::endl;
+            }
+        }
+    }
 }
 
 /**
@@ -743,7 +845,7 @@ void GameplayScreen::setupLevelEventHandlers() {
 
     // Flag reached events
     EventSystem::getInstance().subscribe<FlagReachedEvent>(
-        [this](const FlagReachedEvent& event) {
+        [this](const FlagReachedEvent& ) {
             this->showLevelCompleteMessage();
         }
     );
@@ -903,6 +1005,9 @@ bool GameplayScreen::startLevelTransition(const std::string& targetLevel) {
         
         if (success) {
             std::cout << "[GameplayScreen] Level transition complete: " << targetLevel << std::endl;
+            
+            // IMPORTANT: Activate dark level system if needed
+            activateDarkLevelIfNeeded(targetLevel);
             
             // Check if player is valid after transition
             PlayerEntity* newPlayer = m_gameSession->getPlayer();

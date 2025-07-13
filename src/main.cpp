@@ -14,7 +14,8 @@ int main() {
         }
     }
     catch (const std::exception& e) {
-        std::cerr << "Failed to create logs directory: " << e.what() << std::endl;
+        // Log error instead of using std::cerr
+        GameExceptions::getLogger().error(std::string("Failed to create logs directory: ") + e.what());
         // Continue anyway
     }
     
@@ -26,17 +27,14 @@ int main() {
     }
     catch (const GameExceptions::Exception& e) {
         GameExceptions::getLogger().logException(e, GameExceptions::LogLevel::Critical);
-        std::cerr << "[FATAL] Unhandled exception: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
     catch (const std::exception& e) {
         GameExceptions::getLogger().error(std::string("Unhandled standard exception: ") + e.what());
-        std::cerr << "[FATAL] Unhandled exception: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
     catch (...) {
         GameExceptions::getLogger().critical("Unknown exception occurred");
-        std::cerr << "[FATAL] Unknown exception occurred." << std::endl;
         return EXIT_FAILURE;
     }
     

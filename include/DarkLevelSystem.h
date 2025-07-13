@@ -50,6 +50,9 @@ public:
     void setFlashlightIntensity(float intensity) { m_flashlightIntensity = intensity; }
     void setFlashlightAngle(float angle) { m_flashlightAngle = angle; }
 
+
+    void updatePlayerLight(PlayerEntity* player);
+
 private:
     // Light source structure
     struct LightSource {
@@ -87,7 +90,6 @@ private:
 
     // Light rendering
     void renderFlashlight(sf::RenderWindow& window);
-    void updatePlayerLight(PlayerEntity* player);
     void drawFlashlightCone(float intensity);
     void renderLightSources(sf::RenderTexture& target);
 

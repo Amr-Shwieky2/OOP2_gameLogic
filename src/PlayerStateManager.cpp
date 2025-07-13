@@ -27,9 +27,6 @@ void PlayerStateManager::changeState(PlayerState* newState) {
     std::string oldStateName = m_currentState ? m_currentState->getName() : "None";
     std::string newStateName = newState ? newState->getName() : "None";
 
-    std::cout << "[StateManager] State change: " << oldStateName
-        << " -> " << newStateName << std::endl;
-
     // Exit current state
     if (m_currentState) {
         m_currentState->exit(m_player);
@@ -49,27 +46,22 @@ void PlayerStateManager::changeState(PlayerState* newState) {
     );
 }
 
-void PlayerStateManager::applySpeedBoost(float duration) {
-    std::cout << "[StateManager] Applying speed boost for " << duration << " seconds" << std::endl;
+void PlayerStateManager::applySpeedBoost(float ) {
     changeState(BoostedState::getInstance());
 }
 
-void PlayerStateManager::applyShield(float duration) {
-    std::cout << "[StateManager] Applying shield for " << duration << " seconds" << std::endl;
+void PlayerStateManager::applyShield(float ) {
     changeState(ShieldedState::getInstance());
 }
 
-void PlayerStateManager::applyMagneticEffect(float duration) {
-    std::cout << "[StateManager] Applying magnetic effect for " << duration << " seconds" << std::endl;
+void PlayerStateManager::applyMagneticEffect(float ) {
     changeState(MagneticState::getInstance());
 }
 
-void PlayerStateManager::applyReverseEffect(float duration) {
-    std::cout << "[StateManager] Applying reverse effect for " << duration << " seconds" << std::endl;
+void PlayerStateManager::applyReverseEffect(float ) {
     changeState(ReversedState::getInstance());
 }
 
-void PlayerStateManager::applyHeadwindEffect(float duration) {
-    std::cout << "[StateManager] Applying headwind effect for " << duration << " seconds" << std::endl;
+void PlayerStateManager::applyHeadwindEffect(float ) {
     changeState(HeadwindState::getInstance());
 }

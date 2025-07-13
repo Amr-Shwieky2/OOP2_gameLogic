@@ -35,11 +35,11 @@ void NormalState::enter(PlayerEntity& player) {
     }
 }
 
-void NormalState::exit(PlayerEntity& player) {
+void NormalState::exit(PlayerEntity&) {
     // Nothing special to do when leaving normal state
 }
 
-void NormalState::update(PlayerEntity& player, float dt) {
+void NormalState::update(PlayerEntity& , float ) {
     // Normal state has no special update logic
 }
 
