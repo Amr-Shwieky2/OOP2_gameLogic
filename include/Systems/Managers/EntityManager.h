@@ -38,6 +38,13 @@ public:
     void addEntity(std::unique_ptr<Entity> entity);
     void removeInactiveEntities();
 
+    /**
+     * Generate a unique identifier for a new entity.
+     * Useful when entities are created outside of EntityManager
+     * (e.g. via factories).
+     */
+    IdType generateId();
+
 
 private:
     std::unordered_map<IdType, std::unique_ptr<Entity>> m_entities;
@@ -47,8 +54,9 @@ private:
 template <typename T, typename... Args>
 T* EntityManager::createEntity(Args&&... args) {
 	static_assert(std::is_base_of<Entity, T>::value, "T must inherit from Entity");
-	auto entity = std::make_unique<T>(std::forward<Args>(args)...);
-	T* ptr = entity.get();
-	m_entities[m_nextId++] = std::move(entity);
-	return ptr;
+        auto id = generateId();
+        auto entity = std::make_unique<T>(id, std::forward<Args>(args)...);
+        T* ptr = entity.get();
+        m_entities[id] = std::move(entity);
+        return ptr;
 }

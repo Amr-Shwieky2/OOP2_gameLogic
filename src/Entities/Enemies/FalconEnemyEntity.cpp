@@ -11,7 +11,6 @@
 #include <cmath>
 #include "PlayerEntity.h"
 
-extern int g_nextEntityId;
 extern GameSession* g_currentSession;
 
 FalconEnemyEntity::FalconEnemyEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
@@ -229,7 +228,7 @@ void FalconEnemyEntity::shootProjectile() {
     try {
         // Create enemy projectile
         auto projectile = std::make_unique<ProjectileEntity>(
-            g_nextEntityId++, world,
+            g_currentSession->getEntityManager().generateId(), world,
             bulletSpawnPos.x, bulletSpawnPos.y,
             shootDir, getTextures(), false // false = enemy projectile
         );

@@ -5,6 +5,7 @@
 #include "RenderComponent.h"
 #include "CollisionComponent.h"
 #include "Constants.h"
+#include "ResourcePaths.h"
 #include <iostream>
 #include <cmath>
 
@@ -59,7 +60,7 @@ void WellEntity::onPlayerEnter() {
     // طلب تغيير المستوى بدلاً من التحميل المباشر
     std::string targetLevel = getTargetLevel();
     if (targetLevel.empty()) {
-        targetLevel = "dark_level.txt";
+        targetLevel = ResourcePaths::DARK_LEVEL;
     }
 
     requestLevelChange(targetLevel);

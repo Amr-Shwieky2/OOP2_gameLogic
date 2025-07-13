@@ -6,6 +6,7 @@
 #include "UIObserver.h"
 #include "EventSystem.h"
 #include "GameEvents.h"
+#include "ResourcePaths.h"
 #include "PhysicsComponent.h"
 #include <iostream>
 #include <format>
@@ -208,7 +209,7 @@ void GameplayScreen::initializeGameSession(sf::RenderWindow& window) {
         m_gameSession->initialize(m_textures, window);
 
         // Load initial level using the level manager
-        m_gameSession->loadLevel("level1.txt");
+        m_gameSession->loadLevel(ResourcePaths::LEVEL1);
 
         // Initialize UI Observer
         initializeUIObserver();
@@ -234,7 +235,7 @@ void GameplayScreen::handleKeyboardInput(sf::Keyboard::Key keyCode) {
     switch (keyCode) {
     case sf::Keyboard::F1:
         // Reset to first level
-        m_gameSession->loadLevel("level1.txt");
+        m_gameSession->loadLevel(ResourcePaths::LEVEL1);
         std::cout << "[GameplayScreen] Reset to first level" << std::endl;
         break;
     case sf::Keyboard::F2:
@@ -857,7 +858,7 @@ void GameplayScreen::handleWellEnteredEvent(const WellEnteredEvent& event) {
     // Check for file existence
     std::string levelPath = event.targetLevel;
     if (levelPath.empty()) {
-        levelPath = "dark_level.txt";
+        levelPath = ResourcePaths::DARK_LEVEL;
         std::cout << "[GameplayScreen] Using default dark level" << std::endl;
     }
 
