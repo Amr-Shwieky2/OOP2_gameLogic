@@ -82,20 +82,59 @@ void SmartEnemyEntity::setupComponents(b2World& world, float x, float y, Texture
     if (ai && g_currentSession && g_currentSession->getPlayer()) {
         ai->setTarget(g_currentSession->getPlayer());
     }
+    setupEyes();
 
     std::cout << "[SMART ENEMY] Enhanced smart enemy setup complete" << std::endl;
 }
+
+void SmartEnemyEntity::setupEyes() {
+    m_leftEye.setRadius(4.f);
+    m_leftEye.setFillColor(sf::Color::Red);
+    m_leftEye.setOutlineThickness(1.5f);
+    m_leftEye.setOrigin(4.f, 4.f); 
+
+    m_rightEye.setRadius(4.f);
+    m_rightEye.setFillColor(sf::Color::Red);
+    m_rightEye.setOutlineThickness(1.5f);
+    m_rightEye.setOrigin(4.f, 4.f); 
+}
+
+void SmartEnemyEntity::updateEyePositions() {
+    auto* transform = getComponent<Transform>();
+    if (!transform) {
+        return;
+    }
+
+    sf::Vector2f pos = transform->getPosition();
+
+    m_leftEye.setRadius(10.f);  
+    m_rightEye.setRadius(10.f);
+    m_leftEye.setOrigin(10.f, 10.f);
+    m_rightEye.setOrigin(10.f, 10.f);
+
+    m_leftEye.setPosition(pos.x - 20.f, pos.y - 50.f);
+    m_rightEye.setPosition(pos.x + 17.f, pos.y - 50.f);
+}
+
 
 void SmartEnemyEntity::update(float dt) {
     EnemyEntity::update(dt);
 
     m_decisionTimer += dt;
 
+    m_blinkTimer += dt;
+    if (m_blinkTimer >= m_eyeBlinkInterval) {
+        m_blinkTimer = 0.0f;
+        m_eyesVisible = !m_eyesVisible; 
+        m_eyeBlinkInterval = 1.5f + (rand() % 3) * 0.5f;
+    }
+
     // Make decisions at regular intervals
     if (m_decisionTimer >= m_decisionInterval) {
         analyzeAndDecide();
         m_decisionTimer = 0.0f;
     }
+    updateEyePositions();
 
     // FORCE MOVEMENT DEBUG - Remove this after testing
     auto* ai = getComponent<AIComponent>();
@@ -119,7 +158,7 @@ void SmartEnemyEntity::update(float dt) {
             sf::Vector2f pos = physics->getPosition();
             std::cout << "[SMART ENEMY " << getId() << "] Pos: (" << pos.x << "," << pos.y
                 << ") Vel: (" << vel.x << "," << vel.y << ") Strategy: "
-                << (int)m_currentSmartStrategy << std::endl;
+                << (int)m_currentSmartStrategy << " Eyes: " << (m_eyesVisible ? "Visible" : "Hidden") << std::endl;
         }
     }
 
@@ -157,6 +196,24 @@ void SmartEnemyEntity::update(float dt) {
 
         render->getSprite().setColor(baseColor);
     }
+    updateEyeColors();
+}
+
+void SmartEnemyEntity::updateEyeColors() {
+    if (!g_currentSession) return;
+
+    float darkness = g_currentSession->getDarkLevelSystem().getDarknessLevel();
+
+    sf::Uint8 intensity = static_cast<sf::Uint8>(std::min(255.0f, 150.0f + (darkness * 105.0f)));
+
+    sf::Color eyeColor = sf::Color::Red;
+
+    m_leftEye.setFillColor(eyeColor);
+    m_rightEye.setFillColor(eyeColor);
+
+    sf::Color outlineColor(255, 255, 255, intensity / 2);
+    m_leftEye.setOutlineColor(outlineColor);
+    m_rightEye.setOutlineColor(outlineColor);
 }
 
 void SmartEnemyEntity::analyzeAndDecide() {
@@ -457,4 +514,34 @@ void SmartEnemyEntity::communicateWithNearbyEnemies() {
     // Could implement enemy-to-enemy communication here
     // For example, alerting nearby enemies about player position
     // This would require a messaging system between entities
+}
+
+void SmartEnemyEntity::drawEyes(sf::RenderWindow& window) {
+    if (!g_currentSession) {
+        return;
+    }
+    float darkness = g_currentSession->getDarkLevelSystem().getDarknessLevel();
+
+    if (darkness < 0.5f || !m_eyesVisible) return;
+
+    auto* transform = getComponent<Transform>();
+    if (!transform) {
+        return;
+    }
+
+    sf::Vector2f pos = transform->getPosition();
+
+    sf::Color leftColor = m_leftEye.getFillColor();
+    sf::Color rightColor = m_rightEye.getFillColor();
+
+    m_leftEye.setRadius(10.f);
+    m_rightEye.setRadius(10.f);
+    m_leftEye.setFillColor(sf::Color(255, 0, 0, 255)); 
+    m_rightEye.setFillColor(sf::Color(255, 0, 0, 255));
+    m_leftEye.setOutlineThickness(3.f);
+    m_rightEye.setOutlineThickness(3.f);
+
+    window.draw(m_leftEye);
+    window.draw(m_rightEye);
+
 }

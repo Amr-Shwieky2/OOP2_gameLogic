@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <PhysicsComponent.h>
 #include <numeric>
+#include <SmartEnemyEntity.h>
 
 // Define M_PI if not already defined
 #ifndef M_PI
@@ -524,5 +525,13 @@ void DarkLevelSystem::setObstacles(const std::vector<sf::FloatRect>& obstacles) 
     m_obstacles.clear();
     for (const auto& rect : obstacles) {
         registerObstacle(rect);
+    }
+}
+
+void DarkLevelSystem::drawRedEyes(sf::RenderWindow& window, EntityManager& entityManager) {
+    for (Entity* entity : entityManager.getAllEntities()) {
+        if (auto* smart = dynamic_cast<SmartEnemyEntity*>(entity)) {
+            smart->drawEyes(window); // ترسم فوق الظلام
+        }
     }
 }

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "EnemyEntity.h"
 #include <map>
 
@@ -11,9 +11,16 @@ public:
     SmartEnemyEntity(IdType id, b2World& world, float x, float y, TextureManager& textures);
 
     void update(float dt) override;
+    void updateEyeColors();
+    void drawEyes(sf::RenderWindow& window);
+
 
 protected:
     void setupComponents(b2World& world, float x, float y, TextureManager& textures) override;
+
+    void setupEyes();
+
+    void updateEyePositions();
 
 private:
     // Smart decision making
@@ -91,4 +98,11 @@ private:
     sf::Vector2f predictPlayerPosition(float timeAhead) const;
     sf::Vector2f findBestAmbushPosition() const;
     sf::Vector2f findBestFlankingPosition() const;
+
+    bool m_eyesVisible = true;
+    float m_blinkTimer = 0.0f;
+    float m_eyeBlinkInterval = 2.0f; 
+    sf::CircleShape m_leftEye;
+    sf::CircleShape m_rightEye;
+
 };

@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <cmath>
+#include <EntityManager.h>
 
 class PlayerEntity;
 class Entity;
@@ -32,6 +33,8 @@ public:
     void registerObstacle(const sf::FloatRect& bounds);
     void clearObstacles();
     void setObstacles(const std::vector<sf::FloatRect>& obstacles);
+
+    void drawRedEyes(sf::RenderWindow& window, EntityManager& entityManager);
 
     // Enable/disable the system
     void setEnabled(bool enabled) { m_enabled = enabled; }
