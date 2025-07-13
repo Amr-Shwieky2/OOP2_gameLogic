@@ -48,7 +48,8 @@ GameSession::~GameSession() {
         EventSystem::getInstance().clear();
     }
     catch (const std::exception& e) {
-        // Silently handle the exception - removed std::cout
+		std::cerr << "[ERROR] Exception during GameSession destruction: " << e.what() << std::endl;
+		
     }
 }
 

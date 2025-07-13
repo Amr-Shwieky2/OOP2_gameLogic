@@ -65,6 +65,7 @@ bool GameLevelManager::loadLevel(const std::string& levelPath) {
                     }
                 }
                 catch (const std::exception& e) {
+					std::cerr << "[ERROR] Failed to create default player entity: " << e.what() << std::endl;
                 }
             }
         }
@@ -72,6 +73,7 @@ bool GameLevelManager::loadLevel(const std::string& levelPath) {
         return success;
     }
     catch (const std::exception& e) {
+		std::cerr << "[ERROR] Failed to load level '" << levelPath << "': " << e.what() << std::endl;
         return false;
     }
 }
@@ -93,6 +95,7 @@ bool GameLevelManager::loadNextLevel() {
                 );
             }
             catch (const std::exception& e) {
+				std::cerr << "[ERROR] Failed to publish level transition event: " << e.what() << std::endl;
             }
 
             return true;
@@ -105,6 +108,8 @@ bool GameLevelManager::loadNextLevel() {
             );
         }
         catch (const std::exception& e) {
+			std::cerr << "[ERROR] Failed to publish game complete event: " << e.what() << std::endl;
+            
         }
     }
 
@@ -142,6 +147,7 @@ void GameLevelManager::update(float deltaTime) {
             loadLevel(m_nextLevelPath);
         }
         catch (const std::exception& e) {
+			std::cerr << "[ERROR] Failed to switch to next level '" << m_nextLevelPath << "': " << e.what() << std::endl;
         }
         return;
     }
@@ -158,6 +164,7 @@ void GameLevelManager::update(float deltaTime) {
                 }
             }
             catch (const std::exception& e) {
+				std::cerr << "[ERROR] Failed to load next level: " << e.what() << std::endl;
             }
         }
     }
@@ -185,6 +192,7 @@ void GameLevelManager::setupEventHandlers() {
         );
     }
     catch (const std::exception& e) {
+		std::cerr << "[ERROR] Failed to set up event handlers: " << e.what() << std::endl;
     }
 }
 
@@ -216,5 +224,6 @@ void GameLevelManager::onWellEntered(const WellEnteredEvent& event) {
         }
     }
     catch (const std::exception& e) {
+		std::cerr << "[ERROR] Failed to handle well entered event: " << e.what() << std::endl;
     }
 }

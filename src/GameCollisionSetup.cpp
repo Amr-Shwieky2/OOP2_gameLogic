@@ -497,7 +497,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                 }
             }
             catch (const std::exception& e) {
-                // Exception caught but not logged to console
+				std::cerr << "[ERROR] Exception in Player vs Well collision: " << e.what() << std::endl;
             }
         }
     );

@@ -43,7 +43,7 @@ bool LevelLoader::loadFromFile(const std::string& path,
 }
 
 std::unique_ptr<Entity> LevelLoader::createEntityForChar(char tileChar, float x, float y,
-    b2World& world, TextureManager& textures) {
+    b2World& , TextureManager& ) {
 
     EntityFactory& factory = EntityFactory::instance();
 

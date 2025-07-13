@@ -42,22 +42,22 @@ void DarkLevelSystem::initialize(sf::RenderWindow& window) {
         return;
     }
 
-    // Initialize flashlight settings
-    m_flashlightRange = 400.0f;
-    m_flashlightAngle = 45.0f;
-    m_flashlightIntensity = 0.9f;
+    // Initialize flashlight settings for better visibility
+    m_flashlightRange = 500.0f; // Increased range
+    m_flashlightAngle = 60.0f;  // Wider angle
+    m_flashlightIntensity = 1.0f; // Full intensity
     m_flashlightOn = true;
 
     // Initialize battery system
     m_batteryLevel = 1.0f;
-    m_batteryDrainRate = 0.02f;
+    m_batteryDrainRate = 0.01f; // Slower drain rate
     m_lowBatteryWarning = false;
 
     // Set default darkness level
     m_darknessLevel = 0.92f;
 
-    // Initialize darkness overlay
-    m_darknessOverlay.setSize(sf::Vector2f(windowSize.x, windowSize.y));
+    // Initialize darkness overlay - this will be updated dynamically in render()
+    m_darknessOverlay.setSize(sf::Vector2f(static_cast<float>(windowSize.x), static_cast<float>(windowSize.y)));
     m_darknessOverlay.setFillColor(sf::Color(0, 0, 0, static_cast<sf::Uint8>(255 * m_darknessLevel)));
 
     // Try to load shadow shader
@@ -66,7 +66,7 @@ void DarkLevelSystem::initialize(sf::RenderWindow& window) {
             m_useShaders = m_shadowShader.loadFromFile("resources/shaders/shadow.frag", sf::Shader::Fragment);
             if (m_useShaders) {
                 std::cout << "[DarkLevelSystem] Successfully loaded shadow shader" << std::endl;
-                m_shadowShader.setUniform("u_resolution", sf::Glsl::Vec2(windowSize.x, windowSize.y));
+                m_shadowShader.setUniform("u_resolution", sf::Glsl::Vec2(static_cast<float>(windowSize.x), static_cast<float>(windowSize.y)));
             } else {
                 std::cout << "[DarkLevelSystem] Failed to load shadow shader, using fallback" << std::endl;
             }
@@ -76,7 +76,8 @@ void DarkLevelSystem::initialize(sf::RenderWindow& window) {
         m_useShaders = false;
     }
 
-    std::cout << "[DarkLevelSystem] Advanced shadow casting system initialized" << std::endl;
+    std::cout << "[DarkLevelSystem] Advanced shadow casting system initialized with improved settings" << std::endl;
+    std::cout << "[DarkLevelSystem] Flashlight range: " << m_flashlightRange << ", angle: " << m_flashlightAngle << std::endl;
 }
 
 void DarkLevelSystem::update(float dt, PlayerEntity* player) {
@@ -136,27 +137,61 @@ void DarkLevelSystem::updateBattery(float dt) {
 }
 
 void DarkLevelSystem::updatePlayerLight(PlayerEntity* player) {
-    if (!player) return;
+    if (!player) {
+        std::cout << "[DEBUG DarkLevelSystem] No player provided for light update" << std::endl;
+        return;
+    }
+    
     auto* transform = player->getComponent<Transform>();
     if (transform) {
         m_playerLightPos = transform->getPosition();
+        
+        // Debug output occasionally to verify position sync
+        static int updateCount = 0;
+        updateCount++;
+        if (updateCount % 300 == 0) {
+            std::cout << "[DEBUG DarkLevelSystem] Player light position updated to: (" 
+                      << m_playerLightPos.x << ", " << m_playerLightPos.y << ")" << std::endl;
+        }
+    } else {
+        std::cout << "[DEBUG DarkLevelSystem] Player has no Transform component!" << std::endl;
     }
 }
 
 void DarkLevelSystem::render(sf::RenderWindow& window) {
-    if (!m_enabled) return;
+    if (!m_enabled) {
+        std::cout << "[DEBUG DarkLevelSystem] Render called but system is not enabled!" << std::endl;
+        return;
+    }
 
-    // Store current view
+    // Debug output occasionally
+    static int renderCount = 0;
+    renderCount++;
+    if (renderCount % 300 == 0) { // Every 5 seconds at 60 FPS
+        std::cout << "[DEBUG DarkLevelSystem] Rendering - Darkness level: " << m_darknessLevel 
+                  << ", Overlay alpha: " << static_cast<int>(m_darknessOverlay.getFillColor().a)
+                  << ", Light sources: " << m_lightSources.size() << std::endl;
+    }
+
+    // Store current view and get its bounds
     sf::View currentView = window.getView();
+    sf::Vector2f viewCenter = currentView.getCenter();
+    sf::Vector2f viewSize = currentView.getSize();
+    
+    // Create darkness overlay that covers the ENTIRE camera view
+    sf::RectangleShape dynamicDarknessOverlay;
+    dynamicDarknessOverlay.setSize(viewSize);
+    dynamicDarknessOverlay.setPosition(viewCenter.x - viewSize.x/2, viewCenter.y - viewSize.y/2);
+    dynamicDarknessOverlay.setFillColor(sf::Color(0, 0, 0, static_cast<sf::Uint8>(255 * m_darknessLevel)));
 
-    // Draw darkness overlay
-    window.draw(m_darknessOverlay);
+    // Draw darkness overlay that follows the camera
+    window.draw(dynamicDarknessOverlay);
 
     // Render shadow map for all light sources
     m_shadowMapTexture->clear(sf::Color::Transparent);
     m_shadowMapTexture->setView(currentView);
     
-    // Render light sources with shadows
+    // Render light sources with shadows and proper color illumination
     for (const auto& light : m_lightSources) {
         renderShadowMap(light.position, light.radius, *m_shadowMapTexture);
     }
@@ -168,7 +203,7 @@ void DarkLevelSystem::render(sf::RenderWindow& window) {
     }
 
     // Render flashlight if it's on and has battery
-    if (m_flashlightOn && m_batteryLevel > 0.0f) {
+    if (m_flashlightOn && m_batteryLevel > 0.0f && m_playerLightPos.x != 0 && m_playerLightPos.y != 0) {
         renderFlashlight(window);
     }
 }
@@ -178,25 +213,42 @@ void DarkLevelSystem::renderShadowMap(const sf::Vector2f& lightPos, float radius
     std::vector<Ray> rays;
     castRays(lightPos, rays, radius);
     
-    // Create a vertex array to draw the light with shadows
+    // Create a vertex array to draw the light with shadows and better color preservation
     sf::VertexArray shadowMesh(sf::TriangleFan);
     
-    // Start at the light source position
-    shadowMesh.append(sf::Vertex(lightPos, sf::Color(255, 255, 200, 255)));
+    // Start at the light source position with brighter center
+    shadowMesh.append(sf::Vertex(lightPos, sf::Color(255, 255, 255, 255)));
     
-    // Add vertices for each ray's endpoint
+    // Add vertices for each ray's endpoint with better light distribution
     for (const auto& ray : rays) {
-        sf::Color rayColor = sf::Color(255, 255, 200, 50); // Light color fading at edges
+        // Calculate distance-based alpha for realistic light falloff
+        float distanceFactor = 1.0f - (ray.distance / radius);
+        distanceFactor = std::max(0.0f, distanceFactor);
+        
+        // Use brighter, more natural light color that preserves object colors
+        sf::Uint8 alpha = static_cast<sf::Uint8>(150 * distanceFactor);
+        sf::Color rayColor = sf::Color(255, 255, 240, alpha); // Warm white light
+        
         shadowMesh.append(sf::Vertex(ray.endPoint, rayColor));
     }
     
     // Close the shape by adding the first ray endpoint again
     if (!rays.empty()) {
-        shadowMesh.append(sf::Vertex(rays[0].endPoint, sf::Color(255, 255, 200, 50)));
+        float distanceFactor = 1.0f - (rays[0].distance / radius);
+        distanceFactor = std::max(0.0f, distanceFactor);
+        sf::Uint8 alpha = static_cast<sf::Uint8>(150 * distanceFactor);
+        shadowMesh.append(sf::Vertex(rays[0].endPoint, sf::Color(255, 255, 240, alpha)));
     }
     
-    // Draw the shadow mesh
+    // Draw the shadow mesh with additive blending for better color mixing
     target.draw(shadowMesh, sf::BlendAdd);
+    
+    // Add a secondary light layer for better object illumination
+    sf::CircleShape lightGlow(radius * 0.7f);
+    lightGlow.setOrigin(radius * 0.7f, radius * 0.7f);
+    lightGlow.setPosition(lightPos);
+    lightGlow.setFillColor(sf::Color(255, 255, 240, 60)); // Subtle glow
+    target.draw(lightGlow, sf::BlendAdd);
 }
 
 void DarkLevelSystem::castRays(const sf::Vector2f& origin, std::vector<Ray>& rays, float maxDistance) {
@@ -355,32 +407,32 @@ void DarkLevelSystem::renderFlashlight(sf::RenderWindow& window) {
 void DarkLevelSystem::drawFlashlightCone(float intensity) {
     if (m_playerLightPos.x == 0 && m_playerLightPos.y == 0) return;
 
-    // Create a vertex array for the flashlight cone
+    // Create a vertex array for the flashlight cone with better illumination
     sf::VertexArray flashlightCone(sf::TriangleFan);
     
-    // Start at the player position
+    // Start at the player position (flashlight center)
     sf::Vector2f center = m_playerLightPos;
-    flashlightCone.append(sf::Vertex(center, sf::Color(255, 255, 200, static_cast<sf::Uint8>(255 * intensity))));
+    flashlightCone.append(sf::Vertex(center, sf::Color(255, 255, 255, static_cast<sf::Uint8>(255 * intensity))));
 
     // Calculate the cone direction and angle
     float angleRad = m_flashlightAngle * static_cast<float>(M_PI) / 180.0f;
     float directionAngle = std::atan2(m_flashlightDirection.y, m_flashlightDirection.x);
     
-    // Create the cone segments
-    int segments = 20;
+    // Create the cone segments with better light distribution
+    int segments = 30; // More segments for smoother cone
     std::vector<Ray> flashlightRays;
     
     for (int i = 0; i <= segments; ++i) {
         float segmentAngle = directionAngle - angleRad / 2 + (angleRad * i / segments);
         
-        // Create ray for shadow casting
+        // Create ray for shadow casting and light refraction
         Ray ray;
         ray.origin = center;
         ray.direction = sf::Vector2f(std::cos(segmentAngle), std::sin(segmentAngle));
         ray.distance = m_flashlightRange;
         ray.endPoint = center + ray.direction * m_flashlightRange;
         
-        // Check for obstacles in the ray's path
+        // Check for obstacles and create light refraction effect
         float minDist = m_flashlightRange;
         sf::Vector2f closestPoint;
         bool hitObstacle = false;
@@ -398,25 +450,47 @@ void DarkLevelSystem::drawFlashlightCone(float intensity) {
         if (hitObstacle) {
             ray.distance = minDist;
             ray.endPoint = closestPoint;
+            
+            // Add light refraction/reflection effect
+            sf::Vector2f reflectionDir = ray.direction;
+            // Simple reflection calculation (bounce off surface)
+            reflectionDir.x = -reflectionDir.x * 0.3f; // Reduced reflection
+            reflectionDir.y = -reflectionDir.y * 0.3f;
+            
+            // Create secondary light ray for reflection
+            sf::Vector2f reflectedEnd = closestPoint + reflectionDir * (m_flashlightRange * 0.2f);
+            
+            // Add reflection light vertex with dimmer intensity
+            sf::Uint8 reflectionAlpha = static_cast<sf::Uint8>(30 * intensity);
+            flashlightCone.append(sf::Vertex(reflectedEnd, sf::Color(255, 255, 200, reflectionAlpha)));
         }
         
-        // Calculate alpha for this segment
-        sf::Uint8 alpha = static_cast<sf::Uint8>(100 * intensity * (1.0f - static_cast<float>(i) / segments));
+        // Calculate alpha based on distance and angle for realistic light falloff
+        float distanceFactor = 1.0f - (ray.distance / m_flashlightRange);
+        float angleFactor = 1.0f - (std::abs(static_cast<float>(i) - segments/2.0f) / (segments/2.0f));
+        sf::Uint8 alpha = static_cast<sf::Uint8>(200 * intensity * distanceFactor * angleFactor);
         
-        // Add ray endpoint to the cone
-        flashlightCone.append(sf::Vertex(ray.endPoint, sf::Color(255, 255, 180, alpha)));
+        // Use brighter, more natural light color that reveals object colors
+        flashlightCone.append(sf::Vertex(ray.endPoint, sf::Color(255, 255, 240, alpha)));
         flashlightRays.push_back(ray);
     }
     
     // Draw the flashlight cone
     m_flashlightTexture->draw(flashlightCone);
     
-    // Draw a soft halo around the player
-    sf::CircleShape halo(50.0f);
-    halo.setOrigin(50.0f, 50.0f);
+    // Draw a bright halo around the player for better visibility
+    sf::CircleShape halo(80.0f); // Larger halo
+    halo.setOrigin(80.0f, 80.0f);
     halo.setPosition(center);
-    halo.setFillColor(sf::Color(255, 255, 200, static_cast<sf::Uint8>(50 * intensity)));
+    halo.setFillColor(sf::Color(255, 255, 240, static_cast<sf::Uint8>(80 * intensity)));
     m_flashlightTexture->draw(halo);
+    
+    // Add a smaller, brighter inner halo for better object visibility
+    sf::CircleShape innerHalo(40.0f);
+    innerHalo.setOrigin(40.0f, 40.0f);
+    innerHalo.setPosition(center);
+    innerHalo.setFillColor(sf::Color(255, 255, 255, static_cast<sf::Uint8>(120 * intensity)));
+    m_flashlightTexture->draw(innerHalo);
 }
 
 void DarkLevelSystem::toggleFlashlight() {

@@ -46,22 +46,22 @@ void PlayerStateManager::changeState(PlayerState* newState) {
     );
 }
 
-void PlayerStateManager::applySpeedBoost(float duration) {
+void PlayerStateManager::applySpeedBoost(float ) {
     changeState(BoostedState::getInstance());
 }
 
-void PlayerStateManager::applyShield(float duration) {
+void PlayerStateManager::applyShield(float ) {
     changeState(ShieldedState::getInstance());
 }
 
-void PlayerStateManager::applyMagneticEffect(float duration) {
+void PlayerStateManager::applyMagneticEffect(float ) {
     changeState(MagneticState::getInstance());
 }
 
-void PlayerStateManager::applyReverseEffect(float duration) {
+void PlayerStateManager::applyReverseEffect(float ) {
     changeState(ReversedState::getInstance());
 }
 
-void PlayerStateManager::applyHeadwindEffect(float duration) {
+void PlayerStateManager::applyHeadwindEffect(float ) {
     changeState(HeadwindState::getInstance());
 }

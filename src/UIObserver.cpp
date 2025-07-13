@@ -36,7 +36,7 @@ void UIObserver::initialize() {
     );
 
     eventSystem.subscribe<PlayerDiedEvent>(
-        [this](const PlayerDiedEvent& event) {
+        [this](const PlayerDiedEvent& ) {
         }
     );
 }
@@ -112,7 +112,7 @@ void UIObserver::onPlayerStateChanged(const PlayerStateChangedEvent& event) {
     }
 }
 
-void UIObserver::onEnemyKilled(const EnemyKilledEvent& event) {
+void UIObserver::onEnemyKilled(const EnemyKilledEvent& ) {
     addNotification("Enemy defeated!", sf::Color::Red);
 }
 
