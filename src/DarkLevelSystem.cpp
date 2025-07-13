@@ -93,19 +93,9 @@ void DarkLevelSystem::update(float dt, PlayerEntity* player) {
     // Update player light position
     updatePlayerLight(player);
 
-    // Update flashlight direction based on player movement
-    if (player) {
-        auto* transform = player->getComponent<Transform>();
-        if (transform) {
-            auto* physics = player->getComponent<PhysicsComponent>();
-            if (physics) {
-                sf::Vector2f velocity = physics->getVelocity();
-                if (std::abs(velocity.x) > 0.1f) {
-                    m_flashlightDirection = sf::Vector2f(velocity.x > 0 ? 1.0f : -1.0f, 0.0f);
-                }
-            }
-        }
-    }
+    // NOTE: Removed automatic flashlight direction update based on player movement
+    // The flashlight direction is now controlled exclusively by mouse input in GameplayScreen::render()
+    // This prevents the flashlight from getting "stuck" when the player moves horizontally
 }
 
 void DarkLevelSystem::updateBattery(float dt) {
@@ -507,7 +497,19 @@ void DarkLevelSystem::updateFlashlightDirection(const sf::Vector2f& playerPos, c
     sf::Vector2f direction = targetPos - playerPos;
     float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
     if (length > 0) {
+        sf::Vector2f oldDirection = m_flashlightDirection;
         m_flashlightDirection = direction / length;
+        
+        // Debug output to track flashlight direction changes and diagnose camera issues
+        static int callCount = 0;
+        callCount++;
+        if (callCount % 60 == 0) { // Every second at 60 FPS
+            std::cout << "[DEBUG FLASHLIGHT] Direction update #" << callCount 
+                      << " - Player: (" << playerPos.x << ", " << playerPos.y 
+                      << ") Target: (" << targetPos.x << ", " << targetPos.y 
+                      << ") Old Dir: (" << oldDirection.x << ", " << oldDirection.y
+                      << ") New Dir: (" << m_flashlightDirection.x << ", " << m_flashlightDirection.y << ")" << std::endl;
+        }
     }
 }
 

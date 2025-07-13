@@ -600,7 +600,29 @@ void GameplayScreen::render(sf::RenderWindow& window) {
                 // If mouse input is available, use it for flashlight direction
                 if (m_window) {
                     sf::Vector2i mousePos = sf::Mouse::getPosition(*m_window);
-                    sf::Vector2f worldPos = m_window->mapPixelToCoords(mousePos);
+                    
+                    // FIX: Calculate mouse world coordinates manually to account for camera constraints
+                    // The camera stops moving when player.x < WINDOW_WIDTH/2, which causes coordinate issues
+                    sf::Vector2f cameraCenter = m_cameraManager->getCamera().getCenter();
+                    sf::Vector2f cameraSize = m_cameraManager->getCamera().getSize();
+                    
+                    // Convert mouse to world coordinates manually to handle camera constraints properly
+                    sf::Vector2f worldPos;
+                    worldPos.x = cameraCenter.x + (mousePos.x - WINDOW_WIDTH/2.0f);
+                    worldPos.y = cameraCenter.y + (mousePos.y - WINDOW_HEIGHT/2.0f);
+                    
+                    // Debug camera and coordinates every second to diagnose the issue
+                    if (frameCount % 60 == 0) {
+                        sf::Vector2f direction = worldPos - playerPos;
+                        float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+                        
+                        std::cout << "[DEBUG FLASHLIGHT] Mouse(" << mousePos.x << "," << mousePos.y 
+                                  << ") -> World(" << worldPos.x << "," << worldPos.y 
+                                  << ") Player(" << playerPos.x << "," << playerPos.y 
+                                  << ") Camera(" << cameraCenter.x << "," << cameraCenter.y 
+                                  << ") Distance: " << distance << std::endl;
+                    }
+                    
                     m_darkLevelSystem->updateFlashlightDirection(playerPos, worldPos);
                 }
                 
@@ -794,6 +816,40 @@ void GameplayScreen::handleDebugKeys(PlayerEntity& player) {
                 // Add a temporary bright light at player position
                 m_darkLevelSystem->addLightSource(playerPos, 200.0f, sf::Color(255, 255, 255, 200));
                 std::cout << "[DEBUG F8] Added bright test light at player position" << std::endl;
+            }
+        }
+    }
+
+    // DEBUG: F9 - Test flashlight directions manually to isolate the camera issue
+    if (m_inputService.isKeyPressed(sf::Keyboard::F9)) {
+        if (m_darkLevelSystem && m_isUnderground) {
+            auto* transform = getSafeComponent<Transform>(&player);
+            if (transform) {
+                sf::Vector2f playerPos = transform->getPosition();
+                
+                // Cycle through different directions
+                static int directionIndex = 0;
+                sf::Vector2f directions[] = {
+                    {1.0f, 0.0f},   // Right
+                    {0.0f, -1.0f},  // Up  
+                    {-1.0f, 0.0f},  // Left
+                    {0.0f, 1.0f},   // Down
+                    {1.0f, -1.0f},  // Up-Right
+                    {-1.0f, -1.0f}, // Up-Left
+                    {1.0f, 1.0f},   // Down-Right
+                    {-1.0f, 1.0f}   // Down-Left
+                };
+                
+                sf::Vector2f targetDir = directions[directionIndex % 8];
+                sf::Vector2f targetPos = playerPos + targetDir * 200.0f;
+                
+                m_darkLevelSystem->updateFlashlightDirection(playerPos, targetPos);
+                m_darkLevelSystem->chargeBattery(1.0f); // Ensure battery is full
+                
+                std::cout << "[DEBUG F9] Flashlight direction " << (directionIndex % 8) 
+                          << ": (" << targetDir.x << ", " << targetDir.y << ")" << std::endl;
+                
+                directionIndex++;
             }
         }
     }
