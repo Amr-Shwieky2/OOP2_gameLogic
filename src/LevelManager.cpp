@@ -1,9 +1,6 @@
 ﻿#include "LevelManager.h"
 
-LevelManager::LevelManager() {
-    addLevel("level1.txt");
-    addLevel("level2.txt");
-}
+LevelManager::LevelManager() {}
 
 void LevelManager::addLevel(const std::string& path) {
     m_levels.push_back(path);

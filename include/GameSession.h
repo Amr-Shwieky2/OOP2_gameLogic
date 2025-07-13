@@ -28,6 +28,8 @@ public:
     ~GameSession();
     DarkLevelSystem& getDarkLevelSystem() { return m_darkLevelSystem; }
 
+    void showWinningScreen();
+    sf::RenderWindow& getWindow();  
 
     void initialize(TextureManager& textures, sf::RenderWindow& window);
     void update(float deltaTime);
@@ -79,4 +81,6 @@ private:
 
     float m_falconSpawnTimer = 0.f;
     bool m_falconSpawned = false;
+    sf::RenderWindow* m_window = nullptr;
+
 };

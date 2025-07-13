@@ -26,6 +26,7 @@
 #include <Constants.h>
 #include <SquareEnemyEntity.h>
 #include <WellEntity.h>
+#include <GameSession.h>
 
 // For entity ID generation
 int g_nextEntityId = 1;
@@ -177,16 +178,19 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             }
 
             flag.setCompleted(true);
-            EventSystem::getInstance().publish(
-                FlagReachedEvent(player.getId(), flag.getId(), "current_level")
-            );
 
-            // Use score manager for flag bonus
+            // عرض صورة الفوز
+            if (g_currentSession) {
+                g_currentSession->showWinningScreen();  // ← تأكد أن هذه الدالة موجودة
+            }
+
+            // إضافة نقاط المكافأة
             if (auto* scoreManager = player.getScoreManager()) {
                 scoreManager->addScore(500);
             }
         }
     );
+
 
     // ===== Player vs Square Enemy =====
     collisionSystem.registerHandler<PlayerEntity, SquareEnemyEntity>(
@@ -490,10 +494,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                     return;
                 }
 
-                // تفعيل البئر (يطلب تغيير المستوى)
                 well.onPlayerEnter();
-
-                // إضافة النقاط
                 if (auto* scoreManager = player.getScoreManager()) {
                     scoreManager->addScore(100);
                 }
