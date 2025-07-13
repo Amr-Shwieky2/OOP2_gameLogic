@@ -38,18 +38,11 @@ public:
     bool isEnabled() const { return m_enabled; }
 
     void updateFlashlightDirection(const sf::Vector2f& playerPos, const sf::Vector2f& mousePos);
-    void toggleFlashlight();
-
-    // Battery management
-    void chargeBattery(float amount) { m_batteryLevel = std::min(1.0f, m_batteryLevel + amount); }
-    void setMaxBatteryLevel(float level) { m_batteryLevel = level; }
-    float getBatteryLevel() const { return m_batteryLevel; }
 
     // Flashlight settings
     void setFlashlightRange(float range) { m_flashlightRange = range; }
     void setFlashlightIntensity(float intensity) { m_flashlightIntensity = intensity; }
     void setFlashlightAngle(float angle) { m_flashlightAngle = angle; }
-
 
     void updatePlayerLight(PlayerEntity* player);
 
@@ -96,7 +89,6 @@ private:
     Intersection rayObstacleIntersection(const Ray& ray, const Obstacle& obstacle);
     sf::Vector2f calculateIntersection(const sf::Vector2f& rayStart, const sf::Vector2f& rayEnd,
                                         const sf::Vector2f& segStart, const sf::Vector2f& segEnd);
-    void updateBattery(float dt);
 
     // Main system state
     bool m_enabled = false;
@@ -129,11 +121,6 @@ private:
     float m_flashlightRange = 800.0f;                 // How far the light reaches
     float m_flashlightIntensity = 2.0f;               // Brightness of light
     bool m_flashlightOn = true;                       // Is flashlight on
-
-    // Battery system
-    float m_batteryLevel = 1.0f;                      // Battery level (0-1)
-    float m_batteryDrainRate = 0.02f;                 // How fast battery drains
-    bool m_lowBatteryWarning = false;                 // Low battery warning triggered
 
     // Shader for advanced effects
     sf::Shader m_shadowShader;

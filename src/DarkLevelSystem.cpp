@@ -48,11 +48,6 @@ void DarkLevelSystem::initialize(sf::RenderWindow& window) {
     m_flashlightIntensity = 1.0f; // Full intensity
     m_flashlightOn = true;
 
-    // Initialize battery system
-    m_batteryLevel = 1.0f;
-    m_batteryDrainRate = 0.01f; // Slower drain rate
-    m_lowBatteryWarning = false;
-
     // Set default darkness level
     m_darknessLevel = 0.92f;
 
@@ -89,9 +84,6 @@ void DarkLevelSystem::update(float dt, PlayerEntity* player) {
     m_flickerTimer += dt;
     m_ambientTimer += dt;
 
-    // Update battery level
-    updateBattery(dt);
-
     // Update flashlight direction based on player movement
     if (player) {
         auto* transform = player->getComponent<Transform>();
@@ -103,34 +95,6 @@ void DarkLevelSystem::update(float dt, PlayerEntity* player) {
                     m_flashlightDirection = sf::Vector2f(velocity.x > 0 ? 1.0f : -1.0f, 0.0f);
                 }
             }
-        }
-    }
-}
-
-void DarkLevelSystem::updateBattery(float dt) {
-    if (!m_flashlightOn) return;
-
-    // Drain battery when flashlight is on
-    m_batteryLevel -= m_batteryDrainRate * dt;
-    m_batteryLevel = std::max(0.0f, m_batteryLevel);
-
-    // Low battery warning
-    if (m_batteryLevel < 0.2f && !m_lowBatteryWarning) {
-        m_lowBatteryWarning = true;
-        std::cout << "[Flashlight] LOW BATTERY WARNING!" << std::endl;
-    }
-
-    // Battery depleted
-    if (m_batteryLevel <= 0.0f) {
-        m_flashlightOn = false;
-        std::cout << "[Flashlight] Battery depleted - flashlight OFF!" << std::endl;
-    }
-
-    // Flashlight flickers when battery is low
-    if (m_batteryLevel < 0.1f && m_flashlightOn) {
-        float flickerChance = (0.1f - m_batteryLevel) * 10.0f;
-        if ((rand() % 100) < flickerChance * 30) {
-            m_flashlightOn = false;
         }
     }
 }
@@ -180,8 +144,8 @@ void DarkLevelSystem::render(sf::RenderWindow& window) {
     m_flashlightTexture->draw(playerLight, sf::BlendAdd);
 
     // 🔦 4. إذا الكشاف شغال، ارسمه داخل نفس Texture
-    if (m_flashlightOn && m_batteryLevel > 0.0f && m_playerLightPos.x != 0 && m_playerLightPos.y != 0) {
-        drawFlashlightCone(m_flashlightIntensity * m_batteryLevel);
+    if (m_flashlightOn && m_playerLightPos.x != 0 && m_playerLightPos.y != 0) {
+        drawFlashlightCone(m_flashlightIntensity);
     }
 
     // 🖼️ 5. عرض محتوى الضوء على الشاشة بعد رسم الكائنات
@@ -366,12 +330,9 @@ sf::Vector2f DarkLevelSystem::calculateIntersection(
 }
 
 void DarkLevelSystem::renderFlashlight(sf::RenderWindow& window) {
-    float currentIntensity = m_flashlightIntensity * m_batteryLevel;
+    float currentIntensity = m_flashlightIntensity ;
     float flicker = 1.0f;
 
-    if (m_batteryLevel < 0.3f) {
-        flicker = 0.7f + 0.3f * std::sin(m_flickerTimer * 20.0f);
-    }
     currentIntensity *= flicker;
 
     sf::VertexArray cone(sf::TriangleFan);
@@ -470,15 +431,7 @@ void DarkLevelSystem::drawFlashlightCone(float intensity) {
     
 }
 
-void DarkLevelSystem::toggleFlashlight() {
-    if (m_batteryLevel > 0.0f) {
-        m_flashlightOn = !m_flashlightOn;
-        std::cout << "[Flashlight] " << (m_flashlightOn ? "ON" : "OFF") << std::endl;
-    }
-    else {
-        std::cout << "[Flashlight] Cannot turn on - battery depleted!" << std::endl;
-    }
-}
+
 
 void DarkLevelSystem::updateFlashlightDirection(const sf::Vector2f& playerPos, const sf::Vector2f& targetPos) {
     sf::Vector2f direction = targetPos - playerPos;

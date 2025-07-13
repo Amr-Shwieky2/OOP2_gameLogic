@@ -243,12 +243,7 @@ void GameplayScreen::handleKeyboardInput(sf::Keyboard::Key keyCode) {
             std::cout << "[GameplayScreen] Manually switched to next level" << std::endl;
         }
         break;
-    case sf::Keyboard::F:
-        // Toggle flashlight
-        if (m_darkLevelSystem && m_isUnderground) {
-            m_darkLevelSystem->toggleFlashlight();
-        }
-        break;
+    
     case sf::Keyboard::Space:
         if (m_showingGameOver) {
             std::cout << "[GameplayScreen] Restarting level after Game Over..." << std::endl;
@@ -765,14 +760,8 @@ void GameplayScreen::handleDebugKeys(PlayerEntity& player) {
                 // Add ambient lights
                 m_darkLevelSystem->addLightSource(sf::Vector2f(300, 400), 120.0f, sf::Color(255, 200, 100, 100));
                 m_darkLevelSystem->addLightSource(sf::Vector2f(800, 300), 80.0f, sf::Color(100, 180, 255, 100));
-                
-                // Ensure flashlight is on
-                m_darkLevelSystem->chargeBattery(1.0f); // Full battery
-                
+               
                 registerShadowCastingObjects();
-                
-                std::cout << "[DEBUG] Dark level system ENABLED - Underground: " << m_isUnderground << std::endl;
-                std::cout << "[DEBUG] Flashlight battery: " << m_darkLevelSystem->getBatteryLevel() << std::endl;
             }
         } else {
             std::cout << "[DEBUG] Dark level system is null!" << std::endl;
@@ -785,8 +774,6 @@ void GameplayScreen::handleDebugKeys(PlayerEntity& player) {
             auto* transform = getSafeComponent<Transform>(&player);
             if (transform) {
                 sf::Vector2f playerPos = transform->getPosition();
-                std::cout << "[DEBUG F8] Current player position: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
-                std::cout << "[DEBUG F8] Flashlight battery: " << m_darkLevelSystem->getBatteryLevel() << std::endl;
                 
                 // Force update player light position
                 m_darkLevelSystem->updatePlayerLight(&player);
