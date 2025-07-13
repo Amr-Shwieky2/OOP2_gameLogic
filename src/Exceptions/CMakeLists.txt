@@ -12,8 +12,6 @@ set(EXCEPTIONS_HEADERS
     ${CMAKE_SOURCE_DIR}/include/Exceptions/Exception.h
     ${CMAKE_SOURCE_DIR}/include/Exceptions/GameExceptions.h
     ${CMAKE_SOURCE_DIR}/include/Exceptions/Logger.h
-    ${CMAKE_SOURCE_DIR}/include/Exceptions/SafeResource.h
-    ${CMAKE_SOURCE_DIR}/include/Exceptions/DebugUtils.h
     # Add any other header files here
 )
 
