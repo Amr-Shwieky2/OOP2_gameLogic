@@ -22,8 +22,8 @@ public:
     void render(sf::RenderWindow& window) override;
 
     // Screen lifecycle
-    void onEnter();
-    void onExit();
+    void onEnter() override;
+    void onExit() override;
 
     // Configuration
     void setAnimationSpeed(float speed);

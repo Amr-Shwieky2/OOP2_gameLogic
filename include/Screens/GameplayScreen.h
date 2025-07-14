@@ -35,6 +35,10 @@ public:
     void update(float deltaTime) override;
     void render(sf::RenderWindow& window) override;
 
+    // Lifecycle hooks
+    void onEnter() override {}
+    void onExit() override {}
+
 private:
     // Core systems
     std::unique_ptr<GameSession> m_gameSession;
