@@ -1,43 +1,19 @@
-// main.cpp
-#include "App.h"
-#include "Exceptions/Logger.h"
-#include "Exceptions/GameExceptions.h"
-#include <iostream>
-#include <filesystem>
+#include "../include/Application/App.h"
+#include "Logger.h"
+#include <Services/Logger.h>
 
 int main() {
-    // Create logs directory if it doesn't exist
+    App app;
     try {
-        std::filesystem::path logDir = "logs";
-        if (!std::filesystem::exists(logDir)) {
-            std::filesystem::create_directory(logDir);
-        }
-    }
-    catch (const std::exception& e) {
-        // Log error instead of using std::cerr
-        GameExceptions::getLogger().error(std::string("Failed to create logs directory: ") + e.what());
-        // Continue anyway
-    }
-    
-    // Initialize exception system before any other code
-    try {
-        // Run the application
-        App app;
         app.run();
     }
-    catch (const GameExceptions::Exception& e) {
-        GameExceptions::getLogger().logException(e, GameExceptions::LogLevel::Critical);
-        return EXIT_FAILURE;
-    }
     catch (const std::exception& e) {
-        GameExceptions::getLogger().error(std::string("Unhandled standard exception: ") + e.what());
-        return EXIT_FAILURE;
+        Logger::log("Unhandled exception: " + std::string(e.what()), LogLevel::Error);
+        return -1;
     }
     catch (...) {
-        GameExceptions::getLogger().critical("Unknown exception occurred");
-        return EXIT_FAILURE;
+        Logger::log("Unknown error occurred", LogLevel::Error);
+        return -1;
     }
-    
-    GameExceptions::getLogger().info("Game exited successfully");
-    return EXIT_SUCCESS;
+    return 0;
 }

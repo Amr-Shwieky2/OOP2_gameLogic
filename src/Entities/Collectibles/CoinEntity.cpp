@@ -1,5 +1,4 @@
-﻿// CoinEntity.cpp - مع الحركة الدائرية الموحدة باستخدام قيم عشوائية ثابتة
-#include "CoinEntity.h"
+﻿#include "CoinEntity.h"
 #include "Transform.h"
 #include "MovementComponent.h"
 #include "RenderComponent.h"

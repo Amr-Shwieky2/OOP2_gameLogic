@@ -34,8 +34,6 @@ target_link_libraries (${CMAKE_PROJECT_NAME}
     sfml-main
 )
 target_link_libraries (${CMAKE_PROJECT_NAME} box2d)
-target_sources(oop2_ex04 PRIVATE include/miniaudio.h)
-
 
 include (cmake/SFML.cmake)
 
