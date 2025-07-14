@@ -27,6 +27,7 @@
 #include <SquareEnemyEntity.h>
 #include <WellEntity.h>
 #include <GameSession.h>
+#include <WinningScreen.h>
 
 void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
@@ -176,9 +177,10 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
             flag.setCompleted(true);
 
-            // عرض صورة الفوز
+            // Display winning screen using dedicated class
             if (g_currentSession) {
-                g_currentSession->showWinningScreen();  // ← تأكد أن هذه الدالة موجودة
+                WinningScreen screen;
+                screen.show(g_currentSession->getWindow());
             }
 
             // إضافة نقاط المكافأة
