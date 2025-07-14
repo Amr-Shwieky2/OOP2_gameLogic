@@ -1,4 +1,3 @@
-// AIStrategy.cpp - Base implementation
 #include "AIStrategy.h"
 #include <cmath>
 
