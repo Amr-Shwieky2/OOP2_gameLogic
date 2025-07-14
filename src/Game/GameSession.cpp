@@ -10,7 +10,6 @@
 
 // Global pointer for backwards compatibility
 GameSession* g_currentSession = nullptr;
-extern int g_nextEntityId;
 
 GameSession::GameSession() {
     g_currentSession = this;
@@ -71,7 +70,7 @@ void GameSession::initialize(TextureManager& textures, sf::RenderWindow& window)
     m_eventCoordinator.initialize();
 
     // 5. Register entities for factory (needed for level loading)
-    registerGameEntities(m_physicsManager.getWorld(), textures);
+    registerGameEntities(m_physicsManager.getWorld(), textures, m_entityManager);
 
     // 6. Setup surprise box manager
     m_surpriseBoxManager = std::make_unique<SurpriseBoxManager>(textures, window);
@@ -210,7 +209,7 @@ void GameSession::spawnFalconEnemy() {
     float spawnX = playerTransform->getPosition().x + WINDOW_WIDTH / 2.0f + 300.0f;
 
     auto enemy = std::make_unique<FalconEnemyEntity>(
-        g_nextEntityId++,
+        m_entityManager.generateId(),
         m_physicsManager.getWorld(),
         spawnX,
         0.0f,

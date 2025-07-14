@@ -1,43 +1,54 @@
-# OOP2 Game Logic
+# 🎮 OOP2 Game Logic - 2D Platformer Adventure
 
-This project implements the core game logic for a small 2D platformer built in C++.
-It uses [SFML](https://www.sfml-dev.org/) for graphics and window management and [Box2D](https://box2d.org/) for physics simulation. The code is organized using an entity-component system and applies several design patterns including the State pattern for player behavior.
+A sophisticated 2D platformer game built with modern C++ design patterns, featuring dynamic lighting, physics simulation, and a complete three-level adventure journey.
 
-## Building
+![Language](https://img.shields.io/badge/C%2B%2B-23-blue.svg)
+![Graphics](https://img.shields.io/badge/SFML-2.6.1-green.svg)
+![Physics](https://img.shields.io/badge/Box2D-Latest-orange.svg)
+![Build](https://img.shields.io/badge/CMake-3.26%2B-red.svg)
 
-The project uses CMake. A preset file `CMakePresets.json` is provided. To build the debug configuration run:
+## 🌟 Game Features
 
-```bash
-cmake --preset x64-Debug
-cmake --build --preset x64-Debug
-```
+### 🔥 Core Gameplay
+- **Three Unique Levels**: Normal Level → Dark Level → Voice Level
+- **Dynamic Lighting System**: Advanced dark level with flashlight mechanics
+- **Physics-Based Movement**: Powered by Box2D for realistic interactions
+- **Multiple Enemy Types**: Smart AI with different behaviors
+- **Collectible System**: Coins, gifts, and power-ups
 
-Assets from `resources/` are copied to the build directory at configure time.
+### 🌙 Dark Level System
+- **Realistic Lighting**: Dynamic shadows and light sources
+- **Mouse-Controlled Flashlight**: Full directional control with camera-aware coordinates
+- **Shadow Casting**: Objects cast realistic shadows from light sources
+- **Atmospheric Effects**: Ambient lighting and flickering effects
+- **Battery System**: Flashlight management with battery depletion
 
-## Key Modules
+### 🎯 Player Mechanics
+- **State Pattern Implementation**: Normal, Shielded, and Boosted states
+- **Responsive Controls**: Smooth movement and jumping
+- **Health System**: Lives management with game over handling
+- **Score System**: Point collection and tracking
+- **Power-ups**: Speed boost, shield, and special abilities
 
-- **Entity & Components** – `Entity` is the base class for all objects in the game. Entities own components such as `PhysicsComponent`, `RenderComponent`, `InputComponent` and `AIComponent` to implement behavior.
-- **EntityManager** – Keeps track of all entities and updates them every frame.
-- **GameSession** – Manages the Box2D world, entity manager, collision system and loading of levels.
- - **PlayerEntity** – Represents the player. It uses a State pattern (`PlayerState`) with concrete states `NormalState`, `ShieldedState` and `BoostedState` implemented in separate source files such as `NormalState.cpp`.
-- **EnemyEntity** – Base class for enemies. Derived classes include `SquareEnemyEntity`, `FalconEnemyEntity` and `SmartEnemyEntity` which use different AI strategies.
-- **CollectibleEntity** – Base for collectible items. `CoinEntity` and `GiftEntity` inherit from it and trigger events on collection.
-- **SurpriseBoxManager** – After collecting a certain number of coins it opens a bonus screen (`SurpriseBoxScreen`) that spawns special gifts.
-- **Events** – `GameEvents.h` defines event types like `ScoreChangedEvent` and `PlayerStateChangedEvent` to decouple game logic.
+### 🤖 Enemy AI
+- **FalconEnemyEntity**: Flying enemies with patrol patterns
+- **SmartEnemyEntity**: Adaptive AI that responds to player actions
+- **SquareEnemyEntity**: Ground-based enemies with collision detection
 
-## Player States
+## 🏗️ Architecture & Design Patterns
 
-Player behavior changes at runtime through state classes:
+### 🧩 Entity-Component System (ECS)Entity → Base class for all game objects
+├── PlayerEntity → Player character with state management
+├── EnemyEntity → Base for all enemy types
+├── CoinEntity → Collectible items
+├── WellEntity → Level transition portals
+└── FlagEntity → Level completion triggers
+### 🎨 Design Patterns Used
+- **Entity-Component System**: Modular game object composition
+- **State Pattern**: Player behavior management
+- **Observer Pattern**: Event-driven communication
+- **Factory Pattern**: Entity creation and management
+- **Singleton Pattern**: Resource and system management
+- **Strategy Pattern**: AI behavior implementation
 
-- **NormalState** – Default movement and abilities.
-- **ShieldedState** – Grants temporary invulnerability and uses a transparent texture.
-- **BoostedState** – Increases movement speed and jump impulse for a short duration.
-
-`PlayerEntity` holds a pointer to the current `PlayerState` and delegates input handling to it.
-
-## Levels and Assets
-
-Level descriptions reside in `resources/levels/`. Images, fonts and other assets live under `resources/images/`, `resources/icons/`, and `resources/fonts/`. They are copied next to the executable via CMake rules.
-
----
-This README only covers the main classes and game status system. See the source files in `include/` and `src/` for detailed implementation.
+### 🏛️ System ArchitectureGameSession

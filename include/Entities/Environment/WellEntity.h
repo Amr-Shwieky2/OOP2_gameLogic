@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include <Box2D/Box2D.h>
 #include "ResourceManager.h"
+#include "ResourcePaths.h"
 
 /**
  * WellEntity - Portal to dark underground levels
@@ -29,7 +30,7 @@ private:
     void updateAnimation(float dt);
 
     bool m_activated = false;
-    std::string m_targetLevel = "dark_level.txt"; // Default underground level
+    std::string m_targetLevel = ResourcePaths::DARK_LEVEL; // Default underground level
 
     // Animation variables
     float m_animationTimer = 0.0f;
