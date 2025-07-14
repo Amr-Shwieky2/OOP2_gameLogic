@@ -4,9 +4,11 @@
 #include "Transform.h"
 #include "GameCollisionSetup.h"
 #include "WellEntity.h"
+#include "SeaEntity.h"
 #include "PlayerEntity.h"
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 
 CollisionManager::CollisionManager() {
     std::cout << "[CollisionManager] Created" << std::endl;
@@ -116,7 +118,7 @@ bool CollisionManager::areColliding(Entity& a, Entity& b) const {
     float dy = posA.y - posB.y;
     float distSq = dx * dx + dy * dy;
 
-    // Use larger collision distance for wells to make them easier to enter
+    // Base collision radius
     float collisionDistance = 100.0f;
 
     // Special handling for wells - larger collision radius
@@ -125,6 +127,11 @@ bool CollisionManager::areColliding(Entity& a, Entity& b) const {
 
     if (well) {
         collisionDistance = 150.0f; // Much larger radius for wells
+    }
+
+    // Hazards like the sea cover a full tile which is larger
+    if (dynamic_cast<SeaEntity*>(&a) || dynamic_cast<SeaEntity*>(&b)) {
+        collisionDistance = std::max(collisionDistance, 150.0f);
     }
 
     return distSq < (collisionDistance * collisionDistance);

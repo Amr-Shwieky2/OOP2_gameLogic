@@ -539,6 +539,14 @@ void GameplayScreen::checkGameOverCondition(PlayerEntity* player) {
     if (health && !health->isAlive() && !m_showingGameOver) {
         m_showingGameOver = true;
 
+        if (auto* scoreManager = player->getScoreManager()) {
+            scoreManager->resetScore();
+        }
+
+        if (m_ui) {
+            m_ui->reset();
+        }
+
         // Position the game over text
         sf::FloatRect bounds = m_gameOverText.getLocalBounds();
         m_gameOverText.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);

@@ -10,6 +10,9 @@ public:
     void update(int score, int lives);
     void draw(sf::RenderWindow& window);
 
+    /// Reset the in-game timer
+    void reset();
+
     bool isPaused() const;
 
 private:
