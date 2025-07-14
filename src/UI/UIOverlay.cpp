@@ -66,3 +66,7 @@ void UIOverlay::draw(sf::RenderWindow& window) {
 bool UIOverlay::isPaused() const {
     return m_paused;
 }
+
+void UIOverlay::reset() {
+    m_timer.restart();
+}
