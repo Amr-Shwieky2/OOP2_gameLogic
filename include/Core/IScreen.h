@@ -19,4 +19,8 @@ public:
 
     // Draw everything to screen (sprites, text, UI)
     virtual void render(sf::RenderWindow& window) = 0;
+
+    // Optional lifecycle hooks
+    virtual void onEnter() {}
+    virtual void onExit() {}
 };

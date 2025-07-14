@@ -6,8 +6,19 @@ void ScreenManager::registerScreen(ScreenType type, std::function<std::unique_pt
 
 void ScreenManager::changeScreen(ScreenType type) {
     auto it = m_creators.find(type);
-    if (it != m_creators.end()) {
-        m_currentScreen = it->second();
+    if (it == m_creators.end()) {
+        return;
+    }
+
+    if (m_currentScreen) {
+        m_currentScreen->onExit();
+    }
+
+    m_currentScreen.reset();
+    m_currentScreen = it->second();
+
+    if (m_currentScreen) {
+        m_currentScreen->onEnter();
     }
 }
 
