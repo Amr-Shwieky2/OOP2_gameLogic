@@ -218,31 +218,6 @@ void GameSession::spawnFalconEnemy() {
     spawnEntity(std::move(enemy));
 }
 
-void GameSession::showWinningScreen() {
-    sf::Texture texture;
-    if (!texture.loadFromFile("winning.png")) {
-        std::cerr << "[ERROR] Could not load winning.png" << std::endl;
-        return;
-    }
-
-    sf::Sprite sprite(texture);
-
-    sf::RenderWindow& window = getWindow();  
-    while (window.isOpen()) {
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed ||
-                (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape)) {
-                window.close();
-            }
-        }
-
-        window.clear();
-        window.draw(sprite);
-        window.display();
-    }
-}
-
 sf::RenderWindow& GameSession::getWindow() {
     return *m_window;
 }

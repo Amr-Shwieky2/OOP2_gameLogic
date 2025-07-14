@@ -28,8 +28,7 @@ public:
     ~GameSession();
     DarkLevelSystem& getDarkLevelSystem() { return m_darkLevelSystem; }
 
-    void showWinningScreen();
-    sf::RenderWindow& getWindow();  
+    sf::RenderWindow& getWindow();
 
     void initialize(TextureManager& textures, sf::RenderWindow& window);
     void update(float deltaTime);
