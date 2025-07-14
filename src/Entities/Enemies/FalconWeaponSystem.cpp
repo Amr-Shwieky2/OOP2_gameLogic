@@ -5,6 +5,7 @@
 #include "PhysicsComponent.h"
 #include "GameSession.h"
 #include "Constants.h"
+#include <iostream>
 
 extern GameSession* g_currentSession;
 
