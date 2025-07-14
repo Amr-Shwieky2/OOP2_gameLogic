@@ -5,6 +5,7 @@
 #include "HealthComponent.h"
 #include "CollisionComponent.h"
 #include "ProjectileEntity.h"
+#include "FalconWeaponSystem.h"
 #include "GameSession.h"
 #include "Constants.h"
 #include <iostream>
@@ -16,6 +17,8 @@ extern GameSession* g_currentSession;
 FalconEnemyEntity::FalconEnemyEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : EnemyEntity(id, EnemyType::Falcon, world, x, y, textures) {
     setupComponents(world, x, y, textures);
+    m_weaponSystem = std::make_unique<FalconWeaponSystem>(*this);
+    m_weaponSystem->reset();
 }
 
 void FalconEnemyEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
@@ -68,10 +71,8 @@ void FalconEnemyEntity::setupComponents(b2World& world, float x, float y, Textur
 
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Enemy);
 
-    // Initialize shooting state - starts disabled until visible
-    m_readyToShoot = false;
-    m_shootTimer = 0.0f;
-    m_hasEnteredScreen = false;
+    if (m_weaponSystem)
+        m_weaponSystem->reset();
 }
 
 void FalconEnemyEntity::updateFlightPattern(float dt) {
@@ -109,16 +110,14 @@ void FalconEnemyEntity::updateFlightPattern(float dt) {
     }
 
     // Enable shooting when entering the zone (simplified condition)
-    if (inShootingZone && !m_readyToShoot) {
-        m_readyToShoot = true;
-        m_hasEnteredScreen = true;
-        m_shootTimer = 0.0f;
+    if (inShootingZone && m_weaponSystem && !m_weaponSystem->isReadyToShoot()) {
+        m_weaponSystem->setReadyToShoot(true);
         std::cout << "[FALCON] Entering shooting zone!" << std::endl;
     }
 
     // Disable shooting only when FAR outside
-    if ((farLeft || farRight) && m_readyToShoot) {
-        m_readyToShoot = false;
+    if ((farLeft || farRight) && m_weaponSystem && m_weaponSystem->isReadyToShoot()) {
+        m_weaponSystem->setReadyToShoot(false);
         std::cout << "[FALCON] Leaving shooting zone!" << std::endl;
     }
 
@@ -126,9 +125,8 @@ void FalconEnemyEntity::updateFlightPattern(float dt) {
     if (currentPos.x < cameraLeft - 400.0f) {
         float newX = cameraRight + 300.0f;
         physics->setPosition(newX, m_flightAltitude);
-        m_shootTimer = 0.0f;
-        m_readyToShoot = false;
-        m_hasEnteredScreen = false;
+        if (m_weaponSystem)
+            m_weaponSystem->reset();
         std::cout << "[FALCON] Looping back to position: " << newX << std::endl;
     }
 
@@ -138,23 +136,6 @@ void FalconEnemyEntity::updateFlightPattern(float dt) {
     }
 }
 
-void FalconEnemyEntity::updateShooting(float dt) {
-    if (!m_readyToShoot) {
-        return;
-    }
-
-    m_shootTimer += dt;
-    if (m_shootTimer >= m_shootCooldown) {
-        shootProjectile();
-        m_shootTimer = 0.0f;
-        // Debug logging occasionally
-        static int shotCount = 0;
-        shotCount++;
-        if (shotCount % 5 == 0) {
-            std::cout << "[FALCON] Shot #" << shotCount << " fired!" << std::endl;
-        }
-    }
-}
 
 void FalconEnemyEntity::update(float dt) {
     // Debug every 3 seconds instead of 1
@@ -176,7 +157,8 @@ void FalconEnemyEntity::update(float dt) {
     EnemyEntity::update(dt);
     updateAnimation(dt);
     updateFlightPattern(dt);
-    updateShooting(dt);
+    if (m_weaponSystem)
+        m_weaponSystem->update(dt);
 
     // Sync visual position
     auto* physics = getComponent<PhysicsComponent>();
@@ -206,43 +188,4 @@ void FalconEnemyEntity::switchTexture() {
     // Maintain the negative X scale when switching textures to keep the sprite facing left
     float currentScaleY = sprite.getScale().y;
     sprite.setScale(-abs(sprite.getScale().x), currentScaleY);
-}
-
-void FalconEnemyEntity::shootProjectile() {
-    if (!g_currentSession) return;
-
-    auto* transform = getComponent<Transform>();
-    auto* physics = getComponent<PhysicsComponent>();
-    if (!transform || !physics) return;
-
-    b2Body* body = physics->getBody();
-    if (!body) return;
-
-    b2World& world = *body->GetWorld();
-    sf::Vector2f falconPos = transform->getPosition();
-    
-    // Calculate bullet spawn position below the falcon
-    sf::Vector2f bulletSpawnPos = falconPos + sf::Vector2f(0.0f, 60.0f);
-    sf::Vector2f shootDir(0.0f, 1.0f); // Shoot downward
-
-    try {
-        // Create enemy projectile
-        auto projectile = std::make_unique<ProjectileEntity>(
-            g_currentSession->getEntityManager().generateId(), world,
-            bulletSpawnPos.x, bulletSpawnPos.y,
-            shootDir, getTextures(), false // false = enemy projectile
-        );
-        
-        // Make sure projectile is active
-        projectile->setActive(true);
-        
-        g_currentSession->spawnEntity(std::move(projectile));
-        
-        // Debug info
-        std::cout << "[FALCON] Shot projectile at position: (" 
-                  << bulletSpawnPos.x << "," << bulletSpawnPos.y << ")" << std::endl;
-    }
-    catch (const std::exception& e) {
-        std::cerr << "[FALCON] Error shooting: " << e.what() << std::endl;
-    }
 }
