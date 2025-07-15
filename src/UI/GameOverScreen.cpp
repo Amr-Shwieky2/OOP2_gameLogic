@@ -1,14 +1,13 @@
-#include "WinningScreen.h"
-#include <iostream>
+#include "GameOverScreen.h"
 #include "../Core/AudioManager.h"
+#include <iostream>
 
-WinningScreen::WinningScreen(const std::string& textureFile)
-    : m_textureFile(textureFile) {
-}
+GameOverScreen::GameOverScreen(const std::string& textureFile)
+    : m_textureFile(textureFile) {}
 
-void WinningScreen::show(sf::RenderWindow& window) {
+void GameOverScreen::show(sf::RenderWindow& window) {
     AudioManager::instance().stopAllSounds();
-    AudioManager::instance().playSound("win");
+    AudioManager::instance().playSound("gameover");
 
     sf::Texture texture;
     if (!texture.loadFromFile(m_textureFile)) {
@@ -17,8 +16,8 @@ void WinningScreen::show(sf::RenderWindow& window) {
     }
 
     sf::Sprite sprite(texture);
-
     bool running = true;
+
     while (running && window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {

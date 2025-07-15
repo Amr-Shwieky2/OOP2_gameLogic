@@ -13,6 +13,9 @@
 #include <WellEntity.h>
 #include <typeinfo>
 #include "../Core/AudioManager.h"
+#include "../UI/GameOverScreen.h"
+#include <Application/AppContext.h>
+#include <Config/ScreenTypes.h>
 
 // Define PIXEL_PER_METER if not already defined in Constants.h
 #ifndef PIXEL_PER_METER
@@ -556,6 +559,12 @@ void GameplayScreen::checkGameOverCondition(PlayerEntity* player) {
         m_gameOverText.setPosition(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f + 320.0f);
 
         std::cout << "[GameplayScreen] Game over state activated" << std::endl;
+
+        if (m_window) {
+            GameOverScreen screen;
+            screen.show(*m_window);
+            AppContext::instance().screenManager().changeScreen(ScreenType::MENU);
+        }
     }
 }
 
