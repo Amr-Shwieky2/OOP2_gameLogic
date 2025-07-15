@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "GameExceptions.h"
+#include <Services/GameExceptions.h>
 
 SettingsScreen::SettingsScreen() {
     try {

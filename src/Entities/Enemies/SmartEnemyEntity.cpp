@@ -107,13 +107,13 @@ void SmartEnemyEntity::updateEyePositions() {
 
     sf::Vector2f pos = transform->getPosition();
 
-    m_leftEye.setRadius(10.f);  
-    m_rightEye.setRadius(10.f);
-    m_leftEye.setOrigin(10.f, 10.f);
-    m_rightEye.setOrigin(10.f, 10.f);
+    m_leftEye.setRadius(6.f);  
+    m_rightEye.setRadius(6.f);
+    m_leftEye.setOrigin(6.f, 6.f);
+    m_rightEye.setOrigin(6.f, 6.f);
 
-    m_leftEye.setPosition(pos.x - 20.f, pos.y - 50.f);
-    m_rightEye.setPosition(pos.x + 17.f, pos.y - 50.f);
+    m_leftEye.setPosition(pos.x - 38.f, pos.y - 50.f);
+    m_rightEye.setPosition(pos.x - 10.f , pos.y - 45.f);
 }
 
 
@@ -534,8 +534,8 @@ void SmartEnemyEntity::drawEyes(sf::RenderWindow& window) {
     sf::Color leftColor = m_leftEye.getFillColor();
     sf::Color rightColor = m_rightEye.getFillColor();
 
-    m_leftEye.setRadius(10.f);
-    m_rightEye.setRadius(10.f);
+    m_leftEye.setRadius(6.f);
+    m_rightEye.setRadius(6.f);
     m_leftEye.setFillColor(sf::Color(255, 0, 0, 255)); 
     m_rightEye.setFillColor(sf::Color(255, 0, 0, 255));
     m_leftEye.setOutlineThickness(3.f);

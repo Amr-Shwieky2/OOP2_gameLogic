@@ -5,11 +5,12 @@
 #include <Services/Logger.h>
 #include <Application/AppContext.h>
 
+//-------------------------------------------------------------------------------------
 GameLoop::GameLoop(WindowManager& windowManager)
     : m_windowManager(windowManager) {
     Logger::log("GameLoop created");
 }
-
+//-------------------------------------------------------------------------------------
 void GameLoop::run() {
     Logger::log("Starting main game loop...");
 
@@ -22,10 +23,9 @@ void GameLoop::run() {
         Logger::log("Game loop error: " + std::string(e.what()), LogLevel::Error);
         throw;
     }
-
     Logger::log("Game loop ended");
 }
-
+//-------------------------------------------------------------------------------------
 void GameLoop::processFrame() {
     float deltaTime = calculateDeltaTime();
 
@@ -35,7 +35,7 @@ void GameLoop::processFrame() {
     // Render frame
     renderGame();
 }
-
+//-------------------------------------------------------------------------------------
 void GameLoop::updateGame(float deltaTime) {
     try {
         auto& screenManager = AppContext::instance().screenManager();
@@ -48,10 +48,9 @@ void GameLoop::updateGame(float deltaTime) {
     }
     catch (const std::exception& e) {
         Logger::log("Update error: " + std::string(e.what()), LogLevel::Error);
-        // Continue running - don't crash on update errors
     }
 }
-
+//-------------------------------------------------------------------------------------
 void GameLoop::renderGame() {
     try {
         auto& window = m_windowManager.getWindow();
@@ -68,18 +67,15 @@ void GameLoop::renderGame() {
     }
     catch (const std::exception& e) {
         Logger::log("Render error: " + std::string(e.what()), LogLevel::Error);
-        // Continue running - don't crash on render errors
     }
 }
-
+//-------------------------------------------------------------------------------------
 float GameLoop::calculateDeltaTime() {
     float deltaTime = m_clock.restart().asSeconds();
-
-    // Cap delta time to prevent huge jumps
     if (deltaTime > MAX_DELTA_TIME) {
         deltaTime = MAX_DELTA_TIME;
         Logger::log("Delta time capped to prevent frame skip", LogLevel::Warning);
     }
-
     return deltaTime;
 }
+//-------------------------------------------------------------------------------------

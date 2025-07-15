@@ -10,12 +10,6 @@ AppContext& AppContext::instance() {
 
 // Private constructor - initializes all services using smart pointers
 AppContext::AppContext() {
-    // Create unique instances of template-based resource loaders
-    // Order of initialization may be important for service dependencies
-    m_textureLoader = std::make_unique<TextureLoader>();
-    m_fontLoader = std::make_unique<FontLoader>();
-    m_soundLoader = std::make_unique<SoundLoader>();
-
     // Initialize other services
     m_screenManager = std::make_unique<ScreenManager>();
     m_commandInvoker = std::make_unique<CommandInvoker>();
@@ -24,20 +18,24 @@ AppContext::AppContext() {
 // Service accessor implementations - return dereferenced smart pointers
 // These methods provide direct access to service instances
 
-TextureLoader& AppContext::textures() {
-    // Dereference to provide access to texture/image management
-    return *m_textureLoader;
+TextureManager& AppContext::textures() {
+    if (!m_textureManager)
+        m_textureManager = std::make_unique<TextureManager>();
+    return *m_textureManager;
 }
 
-FontLoader& AppContext::fonts() {
-    // Dereference to provide access to font resource management
-    return *m_fontLoader;
+FontManager& AppContext::fonts() {
+    if (!m_fontManager)
+        m_fontManager = std::make_unique<FontManager>();
+    return *m_fontManager;
 }
 
-SoundLoader& AppContext::sounds() {
-    // Dereference to provide access to sound effect management
-    return *m_soundLoader;
+SoundManager& AppContext::sounds() {
+    if (!m_soundManager)
+        m_soundManager = std::make_unique<SoundManager>();
+    return *m_soundManager;
 }
+
 
 ScreenManager& AppContext::screenManager() {
     return *m_screenManager;

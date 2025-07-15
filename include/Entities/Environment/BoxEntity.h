@@ -1,4 +1,4 @@
-// BoxEntity.h
+﻿// BoxEntity.h
 #pragma once
 #include "Entity.h"
 #include <Box2D/Box2D.h>

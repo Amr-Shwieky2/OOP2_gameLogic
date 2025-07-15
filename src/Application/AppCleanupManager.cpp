@@ -5,6 +5,7 @@
 #include <Services/Logger.h>
 #include <Application/AppContext.h>
 
+//-------------------------------------------------------------------------------------
 void AppCleanupManager::performCleanup() {
     Logger::log("Starting application cleanup...");
 
@@ -16,7 +17,7 @@ void AppCleanupManager::performCleanup() {
 
     Logger::log("Application cleanup completed");
 }
-
+//-------------------------------------------------------------------------------------
 void AppCleanupManager::cleanupAudioSystem() {
     try {
         Logger::log("Cleaning up audio system...");
@@ -33,7 +34,7 @@ void AppCleanupManager::cleanupAudioSystem() {
         handleCleanupError("Audio system cleanup", e);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void AppCleanupManager::saveUserSettings() {
     try {
         Logger::log("Saving user settings...");
@@ -54,13 +55,11 @@ void AppCleanupManager::saveUserSettings() {
         handleCleanupError("User settings save", e);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void AppCleanupManager::cleanupResources() {
     try {
         Logger::log("Cleaning up resources...");
 
-        // Resource managers clean up automatically via RAII
-        // But we can log the cleanup for debugging
         auto& context = AppContext::instance();
 
         // Get resource counts for logging
@@ -78,30 +77,25 @@ void AppCleanupManager::cleanupResources() {
         handleCleanupError("Resource cleanup", e);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void AppCleanupManager::cleanupTempFiles() {
     try {
         Logger::log("Cleaning up temporary files...");
-
-        // Future: Clean up any temporary files created during runtime
-        // - Log files (if rotation is needed)
-        // - Cache files
-        // - Temporary save files
-
         logCleanupOperation("Temporary files cleanup", true);
     }
     catch (const std::exception& e) {
         handleCleanupError("Temporary files cleanup", e);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void AppCleanupManager::handleCleanupError(const std::string& operation, const std::exception& e) {
     Logger::log("Error during " + operation + ": " + e.what(), LogLevel::Warning);
     logCleanupOperation(operation, false);
 
 }
-
+//-------------------------------------------------------------------------------------
 void AppCleanupManager::logCleanupOperation(const std::string& operation, bool success) {
     std::string status = success ? "SUCCESS" : "FAILED";
     Logger::log("Cleanup operation: " + operation + " - " + status);
 }
+//-------------------------------------------------------------------------------------

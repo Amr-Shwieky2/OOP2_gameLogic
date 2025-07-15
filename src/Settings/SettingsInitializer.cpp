@@ -1,6 +1,7 @@
 #include "../../include/Settings/SettingsInitializer.h"
 #include <Application/AppContext.h>
 #include "GameExceptions.h"
+#include <Services/GameExceptions.h>
 
 SettingsInitializer::InitResult SettingsInitializer::initialize() {
     InitResult result;

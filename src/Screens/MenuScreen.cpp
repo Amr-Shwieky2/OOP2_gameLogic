@@ -2,6 +2,8 @@
 #include <iostream>
 #include <Application/AppContext.h>
 #include "GameExceptions.h"
+#include <Services/GameExceptions.h>
+#include "../Core/AudioManager.h"
 
 MenuScreen::MenuScreen() {
     std::cout << "MenuScreen: Creating with SRP-compliant architecture..." << std::endl;
@@ -14,6 +16,8 @@ MenuScreen::MenuScreen() {
 
     m_isInitialized = true;
     std::cout << "MenuScreen: Initialized successfully with specialized components" << std::endl;
+    AudioManager::instance().pauseMusic();
+    AudioManager::instance().resumeMusic();
 }
 
 bool MenuScreen::initializeComponents() {

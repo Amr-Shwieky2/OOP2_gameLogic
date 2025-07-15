@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cmath>
 #include <sstream>
+#include "../Core/AudioManager.h"
 
 SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerType& textures)
     : m_window(window)
@@ -163,11 +164,18 @@ void SurpriseBoxScreen::handleEvents() {
                 m_phase = AnimationPhase::Opening;
                 createParticles();
                 GameExceptions::getLogger().debug("Box opened!");
+                AudioManager::instance().pauseMusic(); 
+                AudioManager::instance().playSound("openbox");
+
+
                 break;
 
             case AnimationPhase::WaitingToContinue:
                 // Return to game
                 m_isRunning = false;
+                AudioManager::instance().stopSound("openbox");
+                AudioManager::instance().resumeMusic(); 
+
                 GameExceptions::getLogger().debug("Returning to game");
                 break;
 

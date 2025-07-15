@@ -25,6 +25,7 @@ void WinningScreen::show(sf::RenderWindow& window) {
             if (event.type == sf::Event::Closed ||
                 (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape)) {
                 running = false;
+                AudioManager::instance().stopSound("win");
             }
         }
 

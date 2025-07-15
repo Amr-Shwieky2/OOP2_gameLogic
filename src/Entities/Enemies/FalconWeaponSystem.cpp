@@ -6,11 +6,13 @@
 #include "GameSession.h"
 #include "Constants.h"
 #include <iostream>
+#include "AudioManager.h"
 
 extern GameSession* g_currentSession;
 
 FalconWeaponSystem::FalconWeaponSystem(FalconEnemyEntity& falcon)
-    : m_falcon(falcon) {}
+    : m_falcon(falcon) {
+}
 
 void FalconWeaponSystem::reset() {
     m_shootTimer = 0.0f;
@@ -19,12 +21,19 @@ void FalconWeaponSystem::reset() {
 }
 
 void FalconWeaponSystem::setReadyToShoot(bool ready) {
-    if (!ready) {
-        m_hasEnteredScreen = false;
-        m_shootTimer = 0.0f;
+    if (ready && !m_hasEnteredScreen) {
+        m_hasEnteredScreen = true;
+        AudioManager::instance().playSoundLoop("falcon");
     }
+
+    if (!ready && m_hasEnteredScreen) {
+        m_hasEnteredScreen = false;
+        AudioManager::instance().stopSound("falcon");
+    }
+
     m_readyToShoot = ready;
 }
+
 
 void FalconWeaponSystem::update(float dt) {
     if (!m_readyToShoot)

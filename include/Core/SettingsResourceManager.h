@@ -1,4 +1,3 @@
-// File: include/Screens/SettingsResourceManager.h
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <string>

@@ -6,7 +6,7 @@ GameOverScreen::GameOverScreen(const std::string& textureFile)
     : m_textureFile(textureFile) {}
 
 void GameOverScreen::show(sf::RenderWindow& window) {
-    AudioManager::instance().stopAllSounds();
+    AudioManager::instance().pauseMusic();
     AudioManager::instance().playSound("gameover");
 
     sf::Texture texture;
@@ -24,6 +24,8 @@ void GameOverScreen::show(sf::RenderWindow& window) {
             if (event.type == sf::Event::Closed ||
                 (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape)) {
                 running = false;
+                AudioManager::instance().stopSound("gameover");
+                AudioManager::instance().playMusic("loading_music", true);
             }
         }
 
