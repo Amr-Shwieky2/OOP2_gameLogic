@@ -182,15 +182,16 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
             flag.setCompleted(true);
 
+            // Award score before the session potentially ends
+            if (auto* scoreManager = player.getScoreManager()) {
+                scoreManager->addScore(500);
+            }
+
             // Display winning screen then return to main menu
             if (g_currentSession) {
                 WinningScreen screen;
                 screen.show(g_currentSession->getWindow());
                 AppContext::instance().screenManager().changeScreen(ScreenType::MENU);
-            }
-
-            if (auto* scoreManager = player.getScoreManager()) {
-                scoreManager->addScore(500);
             }
         }
     );
