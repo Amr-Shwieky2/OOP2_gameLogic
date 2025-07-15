@@ -563,7 +563,7 @@ void GameplayScreen::checkGameOverCondition(PlayerEntity* player) {
         if (m_window) {
             GameOverScreen screen;
             screen.show(*m_window);
-            AppContext::instance().screenManager().changeScreen(ScreenType::MENU);
+            AppContext::instance().screenManager().requestScreenChange(ScreenType::MENU);
         }
     }
 }

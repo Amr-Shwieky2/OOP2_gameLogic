@@ -47,7 +47,7 @@ void LoadingScreen::update(float deltaTime) {
 
     if (m_progress >= 1.0f && !m_finished) {
         m_finished = true;
-        AppContext::instance().screenManager().changeScreen(ScreenType::MENU);
+        AppContext::instance().screenManager().requestScreenChange(ScreenType::MENU);
     }
 }
 

@@ -191,7 +191,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             if (g_currentSession) {
                 WinningScreen screen;
                 screen.show(g_currentSession->getWindow());
-                AppContext::instance().screenManager().changeScreen(ScreenType::MENU);
+                AppContext::instance().screenManager().requestScreenChange(ScreenType::MENU);
             }
         }
     );

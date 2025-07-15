@@ -22,15 +22,30 @@ void ScreenManager::changeScreen(ScreenType type) {
     }
 }
 
+void ScreenManager::requestScreenChange(ScreenType type) {
+    m_screenChangeRequested = true;
+    m_nextScreen = type;
+}
+
 void ScreenManager::handleEvents(sf::RenderWindow& window) {
     if (m_currentScreen) {
         m_currentScreen->handleEvents(window);
+    }
+
+    if (m_screenChangeRequested) {
+        changeScreen(m_nextScreen);
+        m_screenChangeRequested = false;
     }
 }
 
 void ScreenManager::update(float deltaTime) {
     if (m_currentScreen) {
         m_currentScreen->update(deltaTime);
+    }
+
+    if (m_screenChangeRequested) {
+        changeScreen(m_nextScreen);
+        m_screenChangeRequested = false;
     }
 }
 

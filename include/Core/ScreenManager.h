@@ -16,8 +16,11 @@ public:
     // Register a screen factory function for a given screen type
     void registerScreen(ScreenType type, std::function<std::unique_ptr<IScreen>()> creator);
 
-    // Change to a different screen
+    // Change to a different screen immediately
     void changeScreen(ScreenType type);
+
+    // Request a screen change to be processed after the current update cycle
+    void requestScreenChange(ScreenType type);
 
     // Handle SFML events for the current screen
     void handleEvents(sf::RenderWindow& window);
@@ -34,4 +37,7 @@ public:
 private:
     std::unordered_map<ScreenType, std::function<std::unique_ptr<IScreen>()>> m_creators;
     std::unique_ptr<IScreen> m_currentScreen;
+
+    bool m_screenChangeRequested = false;
+    ScreenType m_nextScreen = ScreenType::MENU;
 };
