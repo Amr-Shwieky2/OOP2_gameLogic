@@ -2,11 +2,8 @@
 #include "Constants.h"
 #include <stdexcept>
 
-BackgroundRenderer::BackgroundRenderer(TextureManager&) {
-    if (!m_backgroundTexture.loadFromFile("backGroundGame.jpeg")) {
-        throw std::runtime_error("Failed to load background image.");
-    }
-
+BackgroundRenderer::BackgroundRenderer(TextureManager& textures) {
+    m_backgroundTexture = textures.getResource("backGroundGame.jpeg");
     setupBackground();
 }
 

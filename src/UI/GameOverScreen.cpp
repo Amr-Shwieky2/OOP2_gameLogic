@@ -1,5 +1,6 @@
 #include "GameOverScreen.h"
 #include "../Core/AudioManager.h"
+#include <Application/AppContext.h>
 #include <iostream>
 
 GameOverScreen::GameOverScreen(const std::string& textureFile)
@@ -9,12 +10,7 @@ void GameOverScreen::show(sf::RenderWindow& window) {
     AudioManager::instance().pauseMusic();
     AudioManager::instance().playSound("gameover");
 
-    sf::Texture texture;
-    if (!texture.loadFromFile(m_textureFile)) {
-        std::cerr << "[ERROR] Could not load " << m_textureFile << std::endl;
-        return;
-    }
-
+    sf::Texture& texture = AppContext::instance().getTexture(m_textureFile);
     sf::Sprite sprite(texture);
     bool running = true;
 

@@ -69,9 +69,12 @@ void GameplayScreen::initializeComponents() {
         m_ui = std::make_unique<UIOverlay>(WINDOW_WIDTH);
         m_darkLevelSystem = std::make_unique<DarkLevelSystem>();
 
-        // Load font for UI
-        if (!m_font.loadFromFile("arial.ttf")) {
-            std::cerr << "[WARNING] Failed to load font" << std::endl;
+        // Load font for UI from centralized resource manager
+        try {
+            m_font = AppContext::instance().getFont("arial.ttf");
+        }
+        catch (const std::exception& e) {
+            std::cerr << "[WARNING] Failed to load font: " << e.what() << std::endl;
         }
 
         // Initialize camera

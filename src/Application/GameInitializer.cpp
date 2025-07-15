@@ -1,3 +1,4 @@
+#include <vector>
 ﻿#include <Application/GameInitializer.h>
 #include <Services/Logger.h>
 #include <Screens/GameplayScreen.h>
@@ -74,6 +75,34 @@ void GameInitializer::setDefaultAudioVolumes() {
     AudioSettingsManager::save(settings);
     Logger::log("Set default audio volumes");
 }
+
+void GameInitializer::loadDefaultTextures() {
+    auto& textures = AppContext::instance().textures();
+    const std::vector<std::string> files = {
+        "AboutButton.png", "About_UsScreen.png", "ExitButtonEnglish.png",
+        "GameOver.png", "HelpButtonEnglish.png", "HelpScreen.png",
+        "LoadingScreen.png", "MenuScreen.png", "SettingsButtonEnglish.png",
+        "SettingsScreen.png", "StartButtonEnglish.png", "Winning.png",
+        "warningScreen.png", "BoxBackground.png", "Bullet.png", "Cactus.png",
+        "CloseBox.png", "Coin.png", "Edge.png", "FalconEnemy.png",
+        "FalconEnemy2.png", "HeadwindStormGift.png", "LifeHeartGift.png",
+        "MagneticBall.png", "MagneticGift.png", "NormalBall.png", "OpenBox.png",
+        "ProtectiveShieldGift.png", "RareCoinGift.png", "ReverseMovementGift.png",
+        "SpeedGift.png", "SquareEnemy.png", "SquareEnemy2.png",
+        "TransparentBall.png", "redFlag.png", "shootEnemy1.png",
+        "shootEnemy2.png", "well.png", "wooden_box.png", "Sea.png",
+        "left.png", "middle.png", "right.png", "ground.png",
+        "backGroundGame.jpeg"
+    };
+    for (const auto& f : files) {
+        textures.preload(f);
+    }
+}
+
+void GameInitializer::loadDefaultFonts() {
+    auto& fonts = AppContext::instance().fonts();
+    fonts.preload("arial.ttf");
+}
 //-------------------------------------------------------------------------------------
 void GameInitializer::initializeResourceSystem() {
     try {
@@ -82,6 +111,9 @@ void GameInitializer::initializeResourceSystem() {
         auto& textures = AppContext::instance().textures();
         auto& fonts = AppContext::instance().fonts();
         auto& sounds = AppContext::instance().sounds();
+
+        loadDefaultTextures();
+        loadDefaultFonts();
 
         Logger::log("Resource system initialized successfully");
     }
