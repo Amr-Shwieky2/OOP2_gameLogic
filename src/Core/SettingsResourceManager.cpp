@@ -1,4 +1,5 @@
 #include "../../include/core/SettingsResourceManager.h"
+#include <Application/AppContext.h>
 #include <iostream>
 
 //-------------------------------------------------------------------------------------
@@ -6,23 +7,21 @@ SettingsResourceManager::SettingsResourceManager() : m_initialized(false) {}
 //-------------------------------------------------------------------------------------
 bool SettingsResourceManager::initializeResources() {
     try {
-        // Load font first - most critical resource for UI
-        if (!loadFont()) {
-            std::cout << "Warning: Using default SFML font for Settings UI" << std::endl;
-            // Note: We continue even if external font fails (graceful degradation)
-        }
+        // Acquire resources from the shared managers
+        m_font = &AppContext::instance().getFont(FONT_PATH);
 
-        // Load background texture with fallback strategy
-        if (!loadBackgroundTexture()) {
+        try {
+            m_backgroundTexture = &AppContext::instance().getTexture(BACKGROUND_PATH);
+            m_backgroundSprite.setTexture(*m_backgroundTexture);
+            scaleBackgroundToWindow();
+        }
+        catch (const std::exception&) {
             std::cout << "External background not found, generating procedural background..." << std::endl;
             setupFallbackBackground();
         }
-        else {
-            scaleBackgroundToWindow();
-        }
 
         m_initialized = true;
-        std::cout << "Settings resources initialized successfully using RAII principles" << std::endl;
+        std::cout << "Settings resources initialized successfully using shared managers" << std::endl;
         return true;
 
     }
@@ -33,38 +32,9 @@ bool SettingsResourceManager::initializeResources() {
     }
 }
 //-------------------------------------------------------------------------------------
-bool SettingsResourceManager::loadFont() {
-    try {
-        if (m_font.loadFromFile(FONT_PATH)) {
-            return true;
-        }
-        return false;
-
-    }
-    catch (const std::exception& e) {
-        std::cout << "Exception loading font: " << e.what() << std::endl;
-        return false;
-    }
-}
-//-------------------------------------------------------------------------------------
-bool SettingsResourceManager::loadBackgroundTexture() {
-    try {
-        bool loaded = m_backgroundTexture.loadFromFile(BACKGROUND_PATH);
-        if (loaded) {
-            m_backgroundSprite.setTexture(m_backgroundTexture);
-        }
-        return loaded;
-
-    }
-    catch (const std::exception& e) {
-        std::cout << "Exception loading background texture: " << e.what() << std::endl;
-        return false;
-    }
-}
-//-------------------------------------------------------------------------------------
 void SettingsResourceManager::setupFallbackBackground() {
     // Create texture programmatically
-    m_backgroundTexture.create(WINDOW_WIDTH, WINDOW_HEIGHT);
+    m_fallbackTexture.create(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     // Allocate pixel data - using RAII-like cleanup pattern
     sf::Uint8* pixels = new sf::Uint8[WINDOW_WIDTH * WINDOW_HEIGHT * 4];
@@ -85,8 +55,9 @@ void SettingsResourceManager::setupFallbackBackground() {
             }
         }
 
-        m_backgroundTexture.update(pixels);
-        m_backgroundSprite.setTexture(m_backgroundTexture);
+        m_fallbackTexture.update(pixels);
+        m_backgroundTexture = &m_fallbackTexture;
+        m_backgroundSprite.setTexture(m_fallbackTexture);
     }
     catch (const std::exception& e) {
         std::cout << "Error generating procedural background: " << e.what() << std::endl;
@@ -97,7 +68,10 @@ void SettingsResourceManager::setupFallbackBackground() {
 }
 //-------------------------------------------------------------------------------------
 void SettingsResourceManager::scaleBackgroundToWindow() {
-    sf::Vector2u textureSize = m_backgroundTexture.getSize();
+    if (!m_backgroundTexture)
+        return;
+
+    sf::Vector2u textureSize = m_backgroundTexture->getSize();
 
     if (textureSize.x > 0 && textureSize.y > 0) {
         sf::Vector2f targetSize(static_cast<float>(WINDOW_WIDTH), static_cast<float>(WINDOW_HEIGHT));

@@ -23,23 +23,22 @@ public:
     bool initializeResources();
 
     // Resource accessors with const correctness
-    const sf::Font& getFont() const { return m_font; }
-    const sf::Texture& getBackgroundTexture() const { return m_backgroundTexture; }
+    const sf::Font& getFont() const { return *m_font; }
+    const sf::Texture& getBackgroundTexture() const { return *m_backgroundTexture; }
     const sf::Sprite& getBackgroundSprite() const { return m_backgroundSprite; }
 
     // Resource validation
     bool isInitialized() const { return m_initialized; }
 
 private:
-    // Resource objects - managed automatically by RAII
-    sf::Font m_font;
-    sf::Texture m_backgroundTexture;
+    // Resource objects fetched from the shared resource managers
+    const sf::Font* m_font = nullptr;
+    const sf::Texture* m_backgroundTexture = nullptr;
+    sf::Texture m_fallbackTexture;
     sf::Sprite m_backgroundSprite;
     bool m_initialized = false;
 
-    // Individual resource loaders - single purpose methods
-    bool loadFont();
-    bool loadBackgroundTexture();
+    // Helper methods
     void setupFallbackBackground();
     void scaleBackgroundToWindow();
 
