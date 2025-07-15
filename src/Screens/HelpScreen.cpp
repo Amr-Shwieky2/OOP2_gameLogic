@@ -38,6 +38,12 @@ void HelpScreen::handleEvents(sf::RenderWindow& window) {
 }
 //-------------------------------------------------------------------------------------
 void HelpScreen::update(float deltaTime) {
+    m_elapsedTime += deltaTime;
+
+    if (!m_startRequested && m_elapsedTime >= m_displayDuration) {
+        m_startRequested = true;
+        AppContext::instance().screenManager().requestScreenChange(ScreenType::PLAY);
+    }
 }
 //-------------------------------------------------------------------------------------
 void HelpScreen::render(sf::RenderWindow& window) {
