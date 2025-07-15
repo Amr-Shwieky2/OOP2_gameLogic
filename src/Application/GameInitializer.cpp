@@ -1,5 +1,5 @@
 #include <vector>
-﻿#include <Application/GameInitializer.h>
+#include <Application/GameInitializer.h>
 #include <Services/Logger.h>
 #include <Screens/GameplayScreen.h>
 

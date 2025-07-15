@@ -75,7 +75,7 @@ void App::handleApplicationError(const std::exception& e) {
             m_cleanupManager->performCleanup();
         }
     }
-    catch (const std::exception& e) {
+    catch (const std::exception&) {
         Logger::log("Emergency cleanup failed", LogLevel::Error);
     }
     Logger::log("Application terminated due to error");
