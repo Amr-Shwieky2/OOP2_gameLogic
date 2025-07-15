@@ -86,6 +86,22 @@ void GameplayScreen::initializeComponents() {
         // Try to load Game Over sprite with proper exception handling
         loadGameOverSprite();
 
+        // Load help overlay
+        try {
+            m_helpSprite.setTexture(m_textures.getResource("HelpScreen.png"));
+            sf::Vector2u texSize = m_helpSprite.getTexture()->getSize();
+            if (texSize.x > 0 && texSize.y > 0) {
+                float scaleX = WINDOW_WIDTH / static_cast<float>(texSize.x);
+                float scaleY = WINDOW_HEIGHT / static_cast<float>(texSize.y);
+                m_helpSprite.setScale(scaleX, scaleY);
+            }
+            m_showHelpImage = true;
+            m_helpTimer = 0.0f;
+        } catch (const std::exception& e) {
+            std::cerr << "[WARNING] Could not load HelpScreen.png: " << e.what() << std::endl;
+            m_showHelpImage = false;
+        }
+
         std::cout << "[GameplayScreen] Components initialized with SRP GameSession" << std::endl;
     }
     catch (const std::exception& e) {
@@ -274,6 +290,14 @@ void GameplayScreen::handleKeyboardInput(sf::Keyboard::Key keyCode) {
  * @param deltaTime Time elapsed since last frame
  */
 void GameplayScreen::update(float deltaTime) {
+
+    if (m_showHelpImage) {
+        m_helpTimer += deltaTime;
+        if (m_helpTimer >= m_helpDuration) {
+            m_showHelpImage = false;
+        }
+        return;
+    }
 
     // Check for level change requests from well
     if (handleWellLevelChangeRequests()) {
@@ -644,6 +668,10 @@ void GameplayScreen::render(sf::RenderWindow& window) {
 
     // Render appropriate messages based on game state
     renderGameMessages(window);
+
+    if (m_showHelpImage) {
+        window.draw(m_helpSprite);
+    }
 }
 
 /**
