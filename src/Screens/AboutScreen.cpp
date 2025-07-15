@@ -4,6 +4,7 @@
 #include "AudioManager.h"
 #include <Application/AppContext.h>
 
+//-------------------------------------------------------------------------------------
 AboutScreen::AboutScreen() {
     try {
         m_backgroundTexture = AppContext::instance().getTexture("About_UsScreen.png");
@@ -19,11 +20,11 @@ AboutScreen::AboutScreen() {
 
         std::cout << "About screen image loaded successfully: AboutScreen.png" << std::endl;
     }
-    catch (...) {
+    catch (const std::exception& e) {
         std::cout << "Error: Could not load AboutScreen.png!" << std::endl;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void AboutScreen::handleEvents(sf::RenderWindow& window) {
     sf::Event event;
     while (window.pollEvent(event)) {
@@ -38,9 +39,10 @@ void AboutScreen::handleEvents(sf::RenderWindow& window) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void AboutScreen::update(float deltaTime) {}
-
+//-------------------------------------------------------------------------------------
 void AboutScreen::render(sf::RenderWindow& window) {
     window.draw(m_backgroundSprite);
 }
+//-------------------------------------------------------------------------------------

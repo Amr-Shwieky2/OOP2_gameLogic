@@ -14,7 +14,6 @@ class MenuButtonObserver;
  */
 class ButtonFactory {
 public:
-    // Factory methods for specific button types
     static std::unique_ptr<ObservableButton> createAboutButton(
         const sf::Vector2f& position,
         const sf::Vector2f& size,

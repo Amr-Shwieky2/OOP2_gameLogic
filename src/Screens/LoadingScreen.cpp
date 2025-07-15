@@ -3,6 +3,7 @@
 #include "../../include/Screens/LoadingScreen.h"
 #include "../Core/AudioManager.h"
 
+//-------------------------------------------------------------------------------------
 LoadingScreen::LoadingScreen() {
     try {
         m_backgroundTexture = AppContext::instance().getTexture("LoadingScreen.png");
@@ -16,7 +17,7 @@ LoadingScreen::LoadingScreen() {
         m_backgroundSprite.setScale(scaleX, scaleY);
 
     }
-    catch (...) {
+    catch (const std::exception& e) {
         // If image fails to load, create a simple colored background
         m_backgroundTexture.create(800, 600);
         sf::Uint8* pixels = new sf::Uint8[800 * 600 * 4];
@@ -32,7 +33,7 @@ LoadingScreen::LoadingScreen() {
     }
     AudioManager::instance().playMusic("loading_music", true);
 }
-
+//-------------------------------------------------------------------------------------
 void LoadingScreen::handleEvents(sf::RenderWindow& window) {
     sf::Event event;
     while (window.pollEvent(event)) {
@@ -41,7 +42,7 @@ void LoadingScreen::handleEvents(sf::RenderWindow& window) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void LoadingScreen::update(float deltaTime) {
     m_progress += deltaTime * 0.5f; // Loading speed
 
@@ -72,3 +73,4 @@ void LoadingScreen::render(sf::RenderWindow& window) {
     progressFrame.setOutlineColor(sf::Color::White);
     window.draw(progressFrame);
 }
+//-------------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 #include <SFML/Graphics.hpp>
 
 /**
- * SquareEnemyEntity - Splits into 3 small enemies when large enemy dies
+ * SquareEnemyEntity - Splits into 2 small enemies when large enemy dies
  */
 class SquareEnemyEntity : public EnemyEntity {
 public:

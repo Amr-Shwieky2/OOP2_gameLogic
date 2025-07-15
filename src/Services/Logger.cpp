@@ -1,6 +1,7 @@
 #include <iostream>
 #include <Services/Logger.h>
 
+
 void Logger::log(const std::string& message, LogLevel level) {
     switch (level) {
     case LogLevel::Info:

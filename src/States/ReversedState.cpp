@@ -9,13 +9,14 @@
 
 std::unique_ptr<ReversedState> ReversedState::s_instance = nullptr;
 
+//-------------------------------------------------------------------------------------
 PlayerState* ReversedState::getInstance() {
     if (!s_instance) {
         s_instance = std::unique_ptr<ReversedState>(new ReversedState());
     }
     return s_instance.get();
 }
-
+//-------------------------------------------------------------------------------------
 void ReversedState::enter(PlayerEntity& player) {
     std::cout << "[State] Entering Reversed state - Controls inverted!" << std::endl;
     m_duration = 10.0f;
@@ -25,7 +26,7 @@ void ReversedState::enter(PlayerEntity& player) {
         render->getSprite().setColor(sf::Color(200, 150, 255));
     }
 }
-
+//-------------------------------------------------------------------------------------
 void ReversedState::exit(PlayerEntity& player) {
     std::cout << "[State] Exiting Reversed state - Controls normal" << std::endl;
 
@@ -34,7 +35,7 @@ void ReversedState::exit(PlayerEntity& player) {
         render->getSprite().setColor(sf::Color::White);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void ReversedState::update(PlayerEntity& player, float dt) {
     m_duration -= dt;
 
@@ -44,7 +45,7 @@ void ReversedState::update(PlayerEntity& player, float dt) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void ReversedState::handleInput(PlayerEntity& player, const InputService& input) {
     auto* physics = player.getComponent<PhysicsComponent>();
     if (!physics) return;
@@ -80,3 +81,4 @@ void ReversedState::handleInput(PlayerEntity& player, const InputService& input)
         }
     }
 }
+//-------------------------------------------------------------------------------------

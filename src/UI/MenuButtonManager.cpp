@@ -2,21 +2,17 @@
 #include "../../include/Application/AppContext.h"
 #include <iostream>
 
+//-------------------------------------------------------------------------------------
 MenuButtonManager::MenuButtonManager() {
     m_buttonObserver = std::make_shared<MenuButtonObserver>();
-    std::cout << "MenuButtonManager: Initialized for button management only" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void MenuButtonManager::initializeButtons(const sf::Font& font) {
-    std::cout << "MenuButtonManager: Setting up buttons..." << std::endl;
-
     clearButtons();
     createAboutButton(font);
     createMenuButtons(font);
-
-    std::cout << "MenuButtonManager: " << m_buttons.size() << " buttons created successfully" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void MenuButtonManager::createAboutButton(const sf::Font& font) {
     auto aboutBtn = ButtonFactory::createAboutButton(
         sf::Vector2f(m_layout.aboutButtonX, m_layout.aboutButtonY),
@@ -26,7 +22,7 @@ void MenuButtonManager::createAboutButton(const sf::Font& font) {
     );
     m_buttons.push_back(std::move(aboutBtn));
 }
-
+//-------------------------------------------------------------------------------------
 void MenuButtonManager::createMenuButtons(const sf::Font& font) {
     const std::vector<ButtonFactory::ButtonType> buttonTypes = {
         ButtonFactory::ButtonType::START,
@@ -54,7 +50,7 @@ void MenuButtonManager::createMenuButtons(const sf::Font& font) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void MenuButtonManager::updateButtons(float deltaTime) {
     for (auto& button : m_buttons) {
         if (button) {
@@ -62,7 +58,7 @@ void MenuButtonManager::updateButtons(float deltaTime) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void MenuButtonManager::renderButtons(sf::RenderWindow& window) {
     for (auto& button : m_buttons) {
         if (button) {
@@ -70,7 +66,7 @@ void MenuButtonManager::renderButtons(sf::RenderWindow& window) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool MenuButtonManager::handleButtonClick(const sf::Vector2f& mousePos) {
     for (auto& button : m_buttons) {
         if (button && button->handleClick(mousePos)) {
@@ -79,7 +75,7 @@ bool MenuButtonManager::handleButtonClick(const sf::Vector2f& mousePos) {
     }
     return false;
 }
-
+//-------------------------------------------------------------------------------------
 void MenuButtonManager::handleButtonHover(const sf::Vector2f& mousePos) {
     for (auto& button : m_buttons) {
         if (button) {
@@ -87,13 +83,14 @@ void MenuButtonManager::handleButtonHover(const sf::Vector2f& mousePos) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void MenuButtonManager::setButtonLayout(float centerX, float startY, float spacing) {
     m_layout.centerX = centerX;
     m_layout.startY = startY;
     m_layout.spacing = spacing;
 }
-
+//-------------------------------------------------------------------------------------
 void MenuButtonManager::clearButtons() {
     m_buttons.clear();
 }
+//-------------------------------------------------------------------------------------

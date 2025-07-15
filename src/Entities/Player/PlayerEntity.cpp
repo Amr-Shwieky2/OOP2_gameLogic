@@ -12,6 +12,7 @@
 #include "Constants.h"
 #include "NormalState.h"
 
+//-------------------------------------------------------------------------------------
 PlayerEntity::PlayerEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : Entity(id), m_textures(textures), m_world(world) {
 
@@ -27,7 +28,7 @@ PlayerEntity::PlayerEntity(IdType id, b2World& world, float x, float y, TextureM
     // Initialize to normal state
     m_stateManager->changeState(NormalState::getInstance());
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
     // Add transform
     addComponent<Transform>(sf::Vector2f(x, y));
@@ -56,7 +57,7 @@ void PlayerEntity::setupComponents(b2World& world, float x, float y, TextureMana
     // Add collision
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Player);
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerEntity::update(float dt) {
     // Update base entity components
     Entity::update(dt);
@@ -74,42 +75,41 @@ void PlayerEntity::update(float dt) {
         m_weaponSystem->update(dt);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerEntity::handleInput(const InputService& input) {
     if (m_inputHandler) {
         m_inputHandler->handleInput(input);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerEntity::addScore(int points) {
     if (m_scoreManager) {
         m_scoreManager->addScore(points);
     }
 }
-
+//-------------------------------------------------------------------------------------
 int PlayerEntity::getScore() const {
     return m_scoreManager ? m_scoreManager->getScore() : 0;
 }
-
+//-------------------------------------------------------------------------------------
 sf::Vector2f PlayerEntity::getPosition() const {
     auto* transform = getComponent<Transform>();
     return transform ? transform->getPosition() : sf::Vector2f(0, 0);
 }
-
+//-------------------------------------------------------------------------------------
 sf::Vector2f PlayerEntity::getVelocity() const {
     auto* physics = getComponent<PhysicsComponent>();
     return physics ? physics->getVelocity() : sf::Vector2f(0, 0);
 }
-
+//-------------------------------------------------------------------------------------
 bool PlayerEntity::isOnGround() const {
     auto* physics = getComponent<PhysicsComponent>();
     if (!physics) return false;
 
-    // Simple ground detection - check if vertical velocity is near zero
     sf::Vector2f vel = physics->getVelocity();
     return std::abs(vel.y) < 0.1f;
 }
-
+//-------------------------------------------------------------------------------------
 sf::Keyboard::Key PlayerEntity::getJumpKey() const {
     // Check if we're in reversed state to return appropriate jump key
     if (m_stateManager && m_stateManager->getCurrentState()) {
@@ -120,7 +120,8 @@ sf::Keyboard::Key PlayerEntity::getJumpKey() const {
     }
     return sf::Keyboard::Up;  // Normal jump key
 }
-
+//-------------------------------------------------------------------------------------
 PlayerState* PlayerEntity::getCurrentState() const {
     return m_stateManager ? m_stateManager->getCurrentState() : nullptr;
 }
+//-------------------------------------------------------------------------------------

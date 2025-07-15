@@ -8,10 +8,11 @@
 #include "EntityFactory.h"
 #include "ResourcePaths.h"
 
+//-------------------------------------------------------------------------------------
 GameLevelManager::GameLevelManager() {
     m_levelManager.addLevel(ResourcePaths::LEVEL1);
 }
-
+//-------------------------------------------------------------------------------------
 void GameLevelManager::initialize(EntityManager& entityManager, PhysicsManager& physicsManager, TextureManager& textures) {
     m_entityManager = &entityManager;
     m_physicsManager = &physicsManager;
@@ -19,34 +20,25 @@ void GameLevelManager::initialize(EntityManager& entityManager, PhysicsManager& 
 
     setupEventHandlers();
 }
-
+//-------------------------------------------------------------------------------------
 bool GameLevelManager::loadLevel(const std::string& levelPath) {
     if (!m_entityManager || !m_physicsManager || !m_textures) {
         return false;
     }
 
     try {
-        // إيقاف التحديثات مؤقتاً لضمان عدم الوصول للكائنات أثناء التنظيف
         m_transitionPending = false;
         m_transitionTimer = 0.0f;
         m_needLevelSwitch = false;
 
-        // Invalidate cached player in current session since entities will be cleared
         if (g_currentSession) {
             g_currentSession->invalidateCachedPlayer();
         }
-
-        // إزالة أي مراجع للكائنات الحالية
-        
-        // تنظيف الكائنات الحالية - هذا يتعامل مع الذاكرة بأمان
         m_entityManager->clear();
-
-        // تحميل المستوى الجديد
         TextureManager& textureManager = *m_textures;
         bool success = m_levelLoader.loadFromFile(levelPath, *m_entityManager, m_physicsManager->getWorld(), textureManager);
 
         if (success) {
-            // البحث عن اللاعب في المستوى الجديد
             bool playerFound = false;
             for (auto* entity : m_entityManager->getAllEntities()) {
                 if (auto* player = dynamic_cast<PlayerEntity*>(entity)) {
@@ -54,8 +46,6 @@ bool GameLevelManager::loadLevel(const std::string& levelPath) {
                     break;
                 }
             }
-
-            // إنشاء لاعب افتراضي إذا لم يوجد
             if (!playerFound) {
                 try {
                     auto playerEntity = EntityFactory::instance().create("Player", 200.0f, 400.0f);
@@ -76,7 +66,7 @@ bool GameLevelManager::loadLevel(const std::string& levelPath) {
         return false;
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool GameLevelManager::loadNextLevel() {
     if (m_levelManager.hasNextLevel()) {
         std::string currentLevel = m_levelManager.getCurrentLevelPath();
@@ -84,7 +74,6 @@ bool GameLevelManager::loadNextLevel() {
         if (m_levelManager.loadNextLevel()) {
             std::string nextLevel = m_levelManager.getCurrentLevelPath();
 
-            // Queue the level switch instead of doing it immediately
             m_nextLevelPath = nextLevel;
             m_needLevelSwitch = true;
 
@@ -114,34 +103,31 @@ bool GameLevelManager::loadNextLevel() {
 
     return false;
 }
-
+//-------------------------------------------------------------------------------------
 bool GameLevelManager::reloadCurrentLevel() {
     std::string currentLevel = m_levelManager.getCurrentLevelPath();
     return loadLevel(currentLevel);
 }
-
+//-------------------------------------------------------------------------------------
 const std::string& GameLevelManager::getCurrentLevelPath() const {
     return m_levelManager.getCurrentLevelPath();
 }
-
+//-------------------------------------------------------------------------------------
 std::size_t GameLevelManager::getCurrentLevelIndex() const {
     return m_levelManager.getCurrentIndex();
 }
-
+//-------------------------------------------------------------------------------------
 bool GameLevelManager::hasNextLevel() const {
     return m_levelManager.hasNextLevel();
 }
-
+//-------------------------------------------------------------------------------------
 std::size_t GameLevelManager::getLevelCount() const {
     return m_levelManager.getLevelCount();
 }
-
+//-------------------------------------------------------------------------------------
 void GameLevelManager::update(float deltaTime) {
-    // Handle delayed level switching
     if (m_needLevelSwitch) {
         m_needLevelSwitch = false;
-
-        // تحميل المستوى الجديد بأمان
         try {
             loadLevel(m_nextLevelPath);
         }
@@ -168,7 +154,7 @@ void GameLevelManager::update(float deltaTime) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void GameLevelManager::setupEventHandlers() {
     try {
         EventSystem::getInstance().subscribe<FlagReachedEvent>(
@@ -193,19 +179,19 @@ void GameLevelManager::setupEventHandlers() {
 		std::cerr << "[ERROR] Failed to set up event handlers: " << e.what() << std::endl;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void GameLevelManager::onFlagReached(const FlagReachedEvent&) {
     m_transitionPending = true;
     m_transitionTimer = 0.0f;
 }
-
+//-------------------------------------------------------------------------------------
 void GameLevelManager::onLevelTransition(const LevelTransitionEvent& event) {
     if (event.isGameComplete) {
     }
     else {
     }
 }
-
+//-------------------------------------------------------------------------------------
 void GameLevelManager::onWellEntered(const WellEnteredEvent& event) {
     try {
         std::string targetLevel = event.targetLevel;
@@ -221,3 +207,4 @@ void GameLevelManager::onWellEntered(const WellEnteredEvent& event) {
 		std::cerr << "[ERROR] Failed to handle well entered event: " << e.what() << std::endl;
     }
 }
+//-------------------------------------------------------------------------------------

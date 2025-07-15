@@ -2,8 +2,9 @@
 #include "../Application/AppContext.h"
 #include <iostream>
 
+//-------------------------------------------------------------------------------------
 SettingsCommandExecutor::SettingsCommandExecutor() {}
-
+//-------------------------------------------------------------------------------------
 void SettingsCommandExecutor::executeEscapeCommand() {
     try {
         auto escapeCommand = createEscapeCommand();
@@ -14,11 +15,9 @@ void SettingsCommandExecutor::executeEscapeCommand() {
         handleCommandError("EscapeCommand", e);
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsCommandExecutor::executeUndo() {
     try {
-        std::cout << "SettingsCommandExecutor: Executing Undo command" << std::endl;
-
         bool result = AppContext::instance().commandInvoker().undo();
 
         if (result) {
@@ -36,11 +35,9 @@ bool SettingsCommandExecutor::executeUndo() {
         return false;
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsCommandExecutor::executeRedo() {
     try {
-        std::cout << "SettingsCommandExecutor: Executing Redo command" << std::endl;
-
         bool result = AppContext::instance().commandInvoker().redo();
 
         if (result) {
@@ -58,7 +55,7 @@ bool SettingsCommandExecutor::executeRedo() {
         return false;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsCommandExecutor::executeHistoryCommand() {
     try {
         AppContext::instance().commandInvoker().printHistory();
@@ -67,7 +64,7 @@ void SettingsCommandExecutor::executeHistoryCommand() {
         handleCommandError("HistoryCommand", e);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsCommandExecutor::clearCommandHistory() {
     try {
         AppContext::instance().commandInvoker().clearHistory();
@@ -77,7 +74,7 @@ void SettingsCommandExecutor::clearCommandHistory() {
         handleCommandError("ClearHistoryCommand", e);
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsCommandExecutor::canUndo() const {
     try {
         return AppContext::instance().commandInvoker().canUndo();
@@ -87,7 +84,7 @@ bool SettingsCommandExecutor::canUndo() const {
         return false;
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsCommandExecutor::canRedo() const {
     try {
         return AppContext::instance().commandInvoker().canRedo();
@@ -97,7 +94,7 @@ bool SettingsCommandExecutor::canRedo() const {
         return false;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsCommandExecutor::executeCommandSafely(std::unique_ptr<ICommand> command) {
     if (!command) {
         return;
@@ -111,15 +108,16 @@ void SettingsCommandExecutor::executeCommandSafely(std::unique_ptr<ICommand> com
         std::cout << "SettingsCommandExecutor: Exception during command execution: " << e.what() << std::endl;
     }
 }
-
+//-------------------------------------------------------------------------------------
 std::unique_ptr<EscapeKeyCommand> SettingsCommandExecutor::createEscapeCommand() {
     return std::make_unique<EscapeKeyCommand>(
         ScreenType::SETTINGS,
         ScreenType::MENU
     );
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsCommandExecutor::handleCommandError(const std::string& commandName, const std::exception& e) {
     std::cout << "SettingsCommandExecutor: Error executing " << commandName
         << ": " << e.what() << std::endl;
 }
+//-------------------------------------------------------------------------------------

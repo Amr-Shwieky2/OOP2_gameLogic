@@ -261,6 +261,7 @@ void GameplayScreen::handleKeyboardInput(sf::Keyboard::Key keyCode) {
         break;
     case sf::Keyboard::Escape:
         // Return to the main menu rather than closing the window
+        AudioManager::instance().playMusic("loading_music");
         AppContext::instance().screenManager().requestScreenChange(ScreenType::MENU);
         break;
     default:

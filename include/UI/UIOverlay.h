@@ -9,8 +9,6 @@ public:
     void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
     void update(int score, int lives);
     void draw(sf::RenderWindow& window);
-
-    /// Reset the in-game timer
     void reset();
 
 

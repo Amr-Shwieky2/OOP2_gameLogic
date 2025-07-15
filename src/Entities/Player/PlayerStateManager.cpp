@@ -12,16 +12,17 @@
 #include <iostream>
 #include <AudioManager.h>
 
+//-------------------------------------------------------------------------------------
 PlayerStateManager::PlayerStateManager(PlayerEntity& player)
     : m_player(player), m_currentState(nullptr) {
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerStateManager::update(float dt) {
     if (m_currentState) {
         m_currentState->update(m_player, dt);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerStateManager::changeState(PlayerState* newState) {
     if (m_currentState == newState) return;
 
@@ -46,23 +47,24 @@ void PlayerStateManager::changeState(PlayerState* newState) {
         PlayerStateChangedEvent(oldStateName, newStateName)
     );
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerStateManager::applySpeedBoost(float ) {
     changeState(BoostedState::getInstance());
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerStateManager::applyShield(float ) {
     changeState(ShieldedState::getInstance());
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerStateManager::applyMagneticEffect(float ) {
     changeState(MagneticState::getInstance());
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerStateManager::applyReverseEffect(float ) {
     changeState(ReversedState::getInstance());
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerStateManager::applyHeadwindEffect(float ) {
     changeState(HeadwindState::getInstance());
 }
+//-------------------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 #include "ButtonRenderer.h"
 #include <iostream>
 
+//-------------------------------------------------------------------------------------
 ButtonRenderer::ButtonRenderer(ButtonModel& model, ButtonInteraction& interaction)
     : m_model(model), m_interaction(interaction) {
 
@@ -8,32 +9,22 @@ ButtonRenderer::ButtonRenderer(ButtonModel& model, ButtonInteraction& interactio
     m_background.setOutlineColor(sf::Color::White);
     m_background.setOutlineThickness(2);
     m_background.setSize(sf::Vector2f(100, 50));
-
-    std::cout << "ButtonRenderer: Initialized safely" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void ButtonRenderer::updateTextPosition() {
     if (m_model.texture) {
-        std::cout << "ButtonRenderer: Skipping text positioning for textured button" << std::endl;
         return;
     }
-
-    std::cout << "ButtonRenderer: Starting updateTextPosition for non-textured button..." << std::endl;
-
     if (!m_model.font) {
-        std::cout << "ButtonRenderer: No font set" << std::endl;
         return;
     }
 
     if (m_model.text.empty()) {
-        std::cout << "ButtonRenderer: Empty text" << std::endl;
         return;
     }
-
     // Get background bounds
     sf::FloatRect bounds = m_background.getGlobalBounds();
     if (bounds.width <= 0 || bounds.height <= 0) {
-        std::cout << "ButtonRenderer: Invalid background bounds" << std::endl;
         return;
     }
 
@@ -53,7 +44,6 @@ void ButtonRenderer::updateTextPosition() {
     }
 
     if (textBounds.width <= 0 || textBounds.height <= 0) {
-        std::cout << "ButtonRenderer: Invalid text bounds" << std::endl;
         return;
     }
 
@@ -65,11 +55,9 @@ void ButtonRenderer::updateTextPosition() {
     m_text = safeText;
     m_text.setPosition(centerX, centerY);
 
-    std::cout << "ButtonRenderer: Text positioned successfully" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void ButtonRenderer::updateGraphics() {
-    std::cout << "ButtonRenderer: Starting updateGraphics..." << std::endl;
 
     // 1. Always update background
     m_background.setFillColor(m_model.backgroundColor);
@@ -88,27 +76,19 @@ void ButtonRenderer::updateGraphics() {
                 float scaleY = m_model.size.y / textureSize.y;
                 m_sprite.setScale(scaleX, scaleY);
             }
-            std::cout << "ButtonRenderer: Sprite updated successfully" << std::endl;
         }
         catch (...) {
             std::cout << "ButtonRenderer: Exception updating sprite" << std::endl;
         }
-
-        // For textured buttons, don't process text at all
-        std::cout << "ButtonRenderer: Textured button - skipping text processing" << std::endl;
         return;
     }
 
     // 3. Only update text for NON-textured buttons
     if (m_model.font) {
-        std::cout << "ButtonRenderer: Processing text for non-textured button..." << std::endl;
         updateTextPosition();
     }
-    else {
-        std::cout << "ButtonRenderer: No font available for non-textured button" << std::endl;
-    }
 }
-
+//-------------------------------------------------------------------------------------
 void ButtonRenderer::render(sf::RenderWindow& window) {
     updateGraphics();
 
@@ -145,15 +125,13 @@ void ButtonRenderer::render(sf::RenderWindow& window) {
         m_sprite.setPosition(position);
         window.draw(m_sprite);
 
-        std::cout << "ButtonRenderer: Rendered textured button (no text)" << std::endl;
     }
     else {
         window.draw(m_background);
 
         if (m_model.font) {
             window.draw(m_text);
-            std::cout << "ButtonRenderer: Rendered button with text" << std::endl;
         }
     }
 }
-
+//-------------------------------------------------------------------------------------

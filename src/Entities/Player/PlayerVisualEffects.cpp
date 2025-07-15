@@ -6,16 +6,17 @@
 #include "Constants.h"
 #include <cmath>
 
+//-------------------------------------------------------------------------------------
 PlayerVisualEffects::PlayerVisualEffects(PlayerEntity& player)
     : m_player(player), m_damageTimer(0.0f), m_damageCooldown(1.0f) {
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerVisualEffects::update(float dt) {
     updateDamageEffect(dt);
     updateVisualSync();
     applyRollRotation(dt);
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerVisualEffects::updateDamageEffect(float dt) {
     if (m_damageTimer > 0.0f) {
         m_damageTimer -= dt;
@@ -39,9 +40,8 @@ void PlayerVisualEffects::updateDamageEffect(float dt) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerVisualEffects::updateVisualSync() {
-    // Sync sprite position with physics body
     auto* render = m_player.getComponent<RenderComponent>();
     auto* transform = m_player.getComponent<Transform>();
 
@@ -49,7 +49,7 @@ void PlayerVisualEffects::updateVisualSync() {
         render->getSprite().setPosition(transform->getPosition());
     }
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerVisualEffects::applyRollRotation(float dt) {
     auto* render = m_player.getComponent<RenderComponent>();
     auto* physics = m_player.getComponent<PhysicsComponent>();
@@ -60,7 +60,7 @@ void PlayerVisualEffects::applyRollRotation(float dt) {
         render->getSprite().rotate(deltaAngle);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerVisualEffects::startDamageEffect() {
     m_damageTimer = m_damageCooldown;
 
@@ -69,14 +69,14 @@ void PlayerVisualEffects::startDamageEffect() {
         render->getSprite().setColor(sf::Color(255, 150, 150));
     }
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerVisualEffects::setStateColor(const sf::Color& color) {
     auto* render = m_player.getComponent<RenderComponent>();
     if (render) {
         render->getSprite().setColor(color);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerVisualEffects::resetVisuals() {
     auto* render = m_player.getComponent<RenderComponent>();
     if (render) {
@@ -85,7 +85,8 @@ void PlayerVisualEffects::resetVisuals() {
     }
     m_damageTimer = 0.0f;
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerVisualEffects::startDamageCooldown() {
     m_damageTimer = m_damageCooldown;
 }
+//-------------------------------------------------------------------------------------

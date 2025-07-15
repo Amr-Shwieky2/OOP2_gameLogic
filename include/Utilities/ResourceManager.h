@@ -10,7 +10,6 @@
 #include "Exceptions/GameExceptions.h"
 #include "Exceptions/Logger.h"
 
-// Unified resource manager with logging, exception handling, and preload
 
 template<typename Resource>
 class ResourceManager {

@@ -3,10 +3,10 @@
 #include "Entity.h"
 #include <iostream>
 
+//-------------------------------------------------------------------------------------
 EntityCleanupManager::EntityCleanupManager() {
-    // Removed std::cout
 }
-
+//-------------------------------------------------------------------------------------
 void EntityCleanupManager::update(float deltaTime) {
     m_cleanupTimer += deltaTime;
 
@@ -20,7 +20,7 @@ void EntityCleanupManager::update(float deltaTime) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void EntityCleanupManager::cleanupInactiveEntities(EntityManager& entityManager) {
     m_lastCleanupCount = 0;
 
@@ -43,14 +43,15 @@ void EntityCleanupManager::cleanupInactiveEntities(EntityManager& entityManager)
     // Use EntityManager's built-in cleanup
     entityManager.removeInactiveEntities();
 }
-
+//-------------------------------------------------------------------------------------
 void EntityCleanupManager::scheduleForCleanup(Entity* entity) {
     if (entity) {
         m_scheduledForCleanup.push_back(entity);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void EntityCleanupManager::forceCleanup(EntityManager& entityManager) {
     cleanupInactiveEntities(entityManager);
     m_cleanupTimer = 0.0f; // Reset timer
 }
+//-------------------------------------------------------------------------------------

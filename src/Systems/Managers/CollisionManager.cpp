@@ -10,15 +10,16 @@
 #include <iostream>
 #include <algorithm>
 
+//-------------------------------------------------------------------------------------
 CollisionManager::CollisionManager() {
     std::cout << "[CollisionManager] Created" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void CollisionManager::setupGameCollisionHandlers() {
     ::setupGameCollisionHandlers(m_collisionSystem);
     std::cout << "[CollisionManager] Game collision handlers setup complete" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void CollisionManager::checkCollisions(EntityManager& entityManager) {
     m_collisionChecks = 0;
     m_collisionsProcessed = 0;
@@ -59,41 +60,13 @@ void CollisionManager::checkCollisions(EntityManager& entityManager) {
                 if (well && player) {
                     bool colliding = areColliding(*entities[i], *entities[j]);
 
-                    // Debug well-player collision checks
-                    static int wellCheckCount = 0;
-                    wellCheckCount++;
-                    if (wellCheckCount % 60 == 0) { // Every second
-                        auto* wellTransform = well->getComponent<Transform>();
-                        auto* playerTransform = player->getComponent<Transform>();
-
-                        if (wellTransform && playerTransform) {
-                            sf::Vector2f wellPos = wellTransform->getPosition();
-                            sf::Vector2f playerPos = playerTransform->getPosition();
-                            float distance = std::sqrt((wellPos.x - playerPos.x) * (wellPos.x - playerPos.x) +
-                                (wellPos.y - playerPos.y) * (wellPos.y - playerPos.y));
-
-                            std::cout << "[DEBUG WELL] Check " << wellCheckCount
-                                << " - Well pos: (" << wellPos.x << ", " << wellPos.y
-                                << "), Player pos: (" << playerPos.x << ", " << playerPos.y
-                                << "), Distance: " << distance
-                                << ", Colliding: " << (colliding ? "YES" : "NO")
-                                << ", Well activated: " << well->isActivated() << std::endl;
-                        }
-                    }
-
                     if (colliding) {
-                        std::cout << "[DEBUG WELL] COLLISION DETECTED! Processing..." << std::endl;
                         if (m_collisionSystem.processCollision(*entities[i], *entities[j])) {
                             m_collisionsProcessed++;
-                            std::cout << "[DEBUG WELL] Collision processed successfully!" << std::endl;
-                        }
-                        else {
-                            std::cout << "[DEBUG WELL] WARNING: Collision NOT processed!" << std::endl;
                         }
                     }
                 }
                 else {
-                    // Normal collision check for non-well entities
                     if (areColliding(*entities[i], *entities[j])) {
                         if (m_collisionSystem.processCollision(*entities[i], *entities[j])) {
                             m_collisionsProcessed++;
@@ -104,7 +77,7 @@ void CollisionManager::checkCollisions(EntityManager& entityManager) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool CollisionManager::areColliding(Entity& a, Entity& b) const {
     auto* transA = a.getComponent<Transform>();
     auto* transB = b.getComponent<Transform>();
@@ -136,12 +109,13 @@ bool CollisionManager::areColliding(Entity& a, Entity& b) const {
 
     return distSq < (collisionDistance * collisionDistance);
 }
-
+//-------------------------------------------------------------------------------------
 void CollisionManager::clearHandlers() {
     m_collisionSystem.clear();
 }
-
+//-------------------------------------------------------------------------------------
 void CollisionManager::resetStats() {
     m_collisionChecks = 0;
     m_collisionsProcessed = 0;
 }
+//-------------------------------------------------------------------------------------

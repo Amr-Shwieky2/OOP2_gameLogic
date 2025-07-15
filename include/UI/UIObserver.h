@@ -1,4 +1,3 @@
-// UIObserver.h
 #pragma once
 #include "EventSystem.h"
 #include "GameEvents.h"

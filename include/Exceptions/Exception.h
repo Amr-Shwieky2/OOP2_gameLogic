@@ -1,4 +1,3 @@
-// Exception.h - Base exception classes for the game
 #pragma once
 
 #include <string>

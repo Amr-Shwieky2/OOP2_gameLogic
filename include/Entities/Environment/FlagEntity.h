@@ -1,5 +1,4 @@
-﻿// FlagEntity.h
-#pragma once
+﻿#pragma once
 #include "Entity.h"
 #include <Box2D/Box2D.h>
 #include "ResourceManager.h"

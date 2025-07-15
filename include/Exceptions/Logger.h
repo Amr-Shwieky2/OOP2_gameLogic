@@ -1,4 +1,3 @@
-// Logger.h - Logging system for errors and diagnostics
 #pragma once
 
 #include <string>

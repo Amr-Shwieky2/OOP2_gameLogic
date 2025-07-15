@@ -4,12 +4,13 @@
 #include "CollisionComponent.h"
 #include "ResourceManager.h"
 
+//-------------------------------------------------------------------------------------
 GiftEntity::GiftEntity(IdType id, GiftType type, float x, float y, TextureManager& textures)
     : Entity(id)
     , m_giftType(type) {
     setupComponents(x, y, textures);
 }
-
+//-------------------------------------------------------------------------------------
 void GiftEntity::setupComponents(float x, float y, TextureManager& textures) {
     // Add transform
     addComponent<Transform>(sf::Vector2f(x, y));
@@ -26,7 +27,7 @@ void GiftEntity::setupComponents(float x, float y, TextureManager& textures) {
     // Add collision
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Collectible);
 }
-
+//-------------------------------------------------------------------------------------
 std::string GiftEntity::getTextureNameForType(GiftType type) const {
     switch (type) {
     case GiftType::LifeHeart: return "LifeHeartGift.png";
@@ -39,8 +40,9 @@ std::string GiftEntity::getTextureNameForType(GiftType type) const {
     default: return "Coin.png";
     }
 }
-
+//-------------------------------------------------------------------------------------
 void GiftEntity::collect() {
     m_collected = true;
     setActive(false);
 }
+//-------------------------------------------------------------------------------------

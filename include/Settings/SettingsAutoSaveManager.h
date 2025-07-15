@@ -2,7 +2,6 @@
 #include <memory>
 #include <string>
 
-// Forward declarations
 class VolumeControlPanel;
 
 /**

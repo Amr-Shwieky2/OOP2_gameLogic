@@ -4,7 +4,7 @@
 class PlayerEntity;
 
 /**
- * PlayerVisualEffects - Single Responsibility: Handle player visual effects
+ * PlayerVisualEffects -Single Responsibility: Handle player visual effects
  */
 class PlayerVisualEffects {
 public:

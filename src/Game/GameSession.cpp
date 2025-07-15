@@ -8,13 +8,13 @@
 #include <memory>
 #include <iostream>
 
-// Global pointer for backwards compatibility
 GameSession* g_currentSession = nullptr;
 
+//-------------------------------------------------------------------------------------
 GameSession::GameSession() {
     g_currentSession = this;
 }
-
+//-------------------------------------------------------------------------------------
 GameSession::~GameSession() {
     // FIRST: Clear global pointer to prevent any access
     if (g_currentSession == this) {
@@ -51,54 +51,49 @@ GameSession::~GameSession() {
 		
     }
 }
-
+//-------------------------------------------------------------------------------------
 void GameSession::initialize(TextureManager& textures, sf::RenderWindow& window) {
     m_textures = &textures;
     m_window = &window;
 
-    // Initialize all managers in proper order
-    // 1. Physics first (others depend on it)
-    // Physics manager initializes itself in constructor
-
-    // 2. Level manager (needs physics and entity manager)
+    // 1. Level manager (needs physics and entity manager)
     m_levelManager.initialize(m_entityManager, m_physicsManager, textures);
 
-    // 3. Collision system
+    // 2. Collision system
     m_collisionManager.setupGameCollisionHandlers();
 
-    // 4. Event system
+    // 3. Event system
     m_eventCoordinator.initialize();
 
-    // 5. Register entities for factory (needed for level loading)
+    // 4. Register entities for factory (needed for level loading)
     registerGameEntities(m_physicsManager.getWorld(), textures, m_entityManager);
 
-    // 6. Setup surprise box manager
+    // 5. Setup surprise box manager
     m_surpriseBoxManager = std::make_unique<SurpriseBoxManager>(textures, window);
     m_surpriseBoxManager->setEntityManager(&m_entityManager);
     m_surpriseBoxManager->setPhysicsWorld(&m_physicsManager.getWorld());
 }
-
+//-------------------------------------------------------------------------------------
 void GameSession::update(float deltaTime) {
     // Simply coordinate all subsystems - no business logic here!
     updateAllSubsystems(deltaTime);
 }
-
+//-------------------------------------------------------------------------------------
 void GameSession::render(sf::RenderWindow& window) {
-    // Delegate to render system
     m_renderSystem.render(m_entityManager, window);
 }
-
+//-------------------------------------------------------------------------------------
 PlayerEntity* GameSession::getPlayer() {
     if (!m_player) {
         findAndCachePlayer();
     }
     return m_player;
 }
-
+//-------------------------------------------------------------------------------------
 void GameSession::invalidateCachedPlayer() {
     m_player = nullptr;
 }
-
+//-------------------------------------------------------------------------------------
 void GameSession::spawnEntity(std::unique_ptr<Entity> entity) {
     if (entity) {
         // Check if it's a player for caching
@@ -115,36 +110,33 @@ void GameSession::spawnEntity(std::unique_ptr<Entity> entity) {
         m_entityManager.addEntity(std::move(entity));
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool GameSession::loadLevel(const std::string& levelPath) {
     m_player = nullptr; // Reset player cache
     m_falconSpawnTimer = 0.f;
     m_falconSpawned = false;
-    // Delegate to level manager
     return m_levelManager.loadLevel(levelPath);
 }
-
+//-------------------------------------------------------------------------------------
 bool GameSession::loadNextLevel() {
     m_player = nullptr; // Reset player cache
     m_falconSpawnTimer = 0.f;
     m_falconSpawned = false;
-    // Delegate to level manager
     return m_levelManager.loadNextLevel();
 }
-
+//-------------------------------------------------------------------------------------
 void GameSession::reloadCurrentLevel() {
     m_player = nullptr; // Reset player cache
     m_falconSpawnTimer = 0.f;
     m_falconSpawned = false;
-    // Delegate to level manager
     m_levelManager.reloadCurrentLevel();
 }
-
+//-------------------------------------------------------------------------------------
 const std::string& GameSession::getCurrentLevelName() const {
     // Delegate to level manager
     return m_levelManager.getCurrentLevelPath();
 }
-
+//-------------------------------------------------------------------------------------
 void GameSession::findAndCachePlayer() {
     // Simple player finding - no complex logic
     for (auto* entity : m_entityManager.getAllEntities()) {
@@ -159,7 +151,7 @@ void GameSession::findAndCachePlayer() {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void GameSession::updateAllSubsystems(float deltaTime) {
     // Coordinate all managers in proper order - no business logic!
 
@@ -182,7 +174,7 @@ void GameSession::updateAllSubsystems(float deltaTime) {
     m_cleanupManager.update(deltaTime);
     m_cleanupManager.cleanupInactiveEntities(m_entityManager);
 }
-
+//-------------------------------------------------------------------------------------
 void GameSession::updateFalconSpawner(float deltaTime) {
     if (m_falconSpawned)
         return;
@@ -193,7 +185,7 @@ void GameSession::updateFalconSpawner(float deltaTime) {
         m_falconSpawned = true;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void GameSession::spawnFalconEnemy() {
     if (!m_textures)
         return;
@@ -217,7 +209,8 @@ void GameSession::spawnFalconEnemy() {
 
     spawnEntity(std::move(enemy));
 }
-
+//-------------------------------------------------------------------------------------
 sf::RenderWindow& GameSession::getWindow() {
     return *m_window;
 }
+//-------------------------------------------------------------------------------------

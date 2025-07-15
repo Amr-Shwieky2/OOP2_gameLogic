@@ -17,10 +17,9 @@
 #include <algorithm>
 
 extern GameSession* g_currentSession;
-
+//-------------------------------------------------------------------------------------
 SmartEnemyEntity::SmartEnemyEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : EnemyEntity(id, EnemyType::Smart, world, x, y, textures) {
-    std::cout << "[SMART ENEMY] Creating intelligent enemy with advanced AI" << std::endl;
     setupComponents(world, x, y, textures);
 
     // Initialize strategy performance tracking
@@ -28,7 +27,7 @@ SmartEnemyEntity::SmartEnemyEntity(IdType id, b2World& world, float x, float y, 
         m_strategyHistory[static_cast<SmartStrategy>(i)] = StrategyPerformance();
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SmartEnemyEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
     EnemyEntity::setupComponents(world, x, y, textures);
 
@@ -83,10 +82,8 @@ void SmartEnemyEntity::setupComponents(b2World& world, float x, float y, Texture
         ai->setTarget(g_currentSession->getPlayer());
     }
     setupEyes();
-
-    std::cout << "[SMART ENEMY] Enhanced smart enemy setup complete" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void SmartEnemyEntity::setupEyes() {
     m_leftEye.setRadius(4.f);
     m_leftEye.setFillColor(sf::Color::Red);
@@ -98,7 +95,7 @@ void SmartEnemyEntity::setupEyes() {
     m_rightEye.setOutlineThickness(1.5f);
     m_rightEye.setOrigin(4.f, 4.f); 
 }
-
+//-------------------------------------------------------------------------------------
 void SmartEnemyEntity::updateEyePositions() {
     auto* transform = getComponent<Transform>();
     if (!transform) {
@@ -115,8 +112,7 @@ void SmartEnemyEntity::updateEyePositions() {
     m_leftEye.setPosition(pos.x - 38.f, pos.y - 50.f);
     m_rightEye.setPosition(pos.x - 10.f , pos.y - 45.f);
 }
-
-
+//-------------------------------------------------------------------------------------
 void SmartEnemyEntity::update(float dt) {
     EnemyEntity::update(dt);
 
@@ -140,29 +136,12 @@ void SmartEnemyEntity::update(float dt) {
     auto* ai = getComponent<AIComponent>();
     auto* physics = getComponent<PhysicsComponent>();
     if (ai && !ai->getStrategy()) {
-        std::cout << "[SMART ENEMY " << getId() << "] WARNING: No AI strategy!" << std::endl;
-        // Force a default strategy
         ai->setStrategy(std::make_unique<PatrolStrategy>(200.0f, 100.0f));
         if (g_currentSession && g_currentSession->getPlayer()) {
             ai->setTarget(g_currentSession->getPlayer());
         }
     }
 
-    // Debug movement every 2 seconds
-    static float debugTimer = 0.0f;
-    debugTimer += dt;
-    if (debugTimer >= 2.0f) {
-        debugTimer = 0.0f;
-        if (physics) {
-            sf::Vector2f vel = physics->getVelocity();
-            sf::Vector2f pos = physics->getPosition();
-            std::cout << "[SMART ENEMY " << getId() << "] Pos: (" << pos.x << "," << pos.y
-                << ") Vel: (" << vel.x << "," << vel.y << ") Strategy: "
-                << (int)m_currentSmartStrategy << " Eyes: " << (m_eyesVisible ? "Visible" : "Hidden") << std::endl;
-        }
-    }
-
-    // Update visual feedback based on current strategy
     auto* render = getComponent<RenderComponent>();
     if (render) {
         sf::Color baseColor(255, 150, 150);
@@ -198,7 +177,7 @@ void SmartEnemyEntity::update(float dt) {
     }
     updateEyeColors();
 }
-
+//-------------------------------------------------------------------------------------
 void SmartEnemyEntity::updateEyeColors() {
     if (!g_currentSession) return;
 
@@ -215,7 +194,7 @@ void SmartEnemyEntity::updateEyeColors() {
     m_leftEye.setOutlineColor(outlineColor);
     m_rightEye.setOutlineColor(outlineColor);
 }
-
+//-------------------------------------------------------------------------------------
 void SmartEnemyEntity::analyzeAndDecide() {
     if (!g_currentSession || !g_currentSession->getPlayer()) {
         return;
@@ -273,11 +252,10 @@ void SmartEnemyEntity::analyzeAndDecide() {
             }
         }
     }
-
     // Make intelligent decision
     switchToOptimalStrategy();
 }
-
+//-------------------------------------------------------------------------------------
 void SmartEnemyEntity::switchToOptimalStrategy() {
     SmartStrategy newStrategy = m_currentSmartStrategy;
 
@@ -309,7 +287,6 @@ void SmartEnemyEntity::switchToOptimalStrategy() {
         std::cout << "[SMART ENEMY " << getId() << "] FLANKING - Getting better position" << std::endl;
     }
     else {
-        // Default patrol with enhanced parameters
         newStrategy = SmartStrategy::Patrolling;
     }
 
@@ -347,7 +324,6 @@ void SmartEnemyEntity::switchToOptimalStrategy() {
                 break;
             }
 
-            // IMPORTANT: Make sure AI has player target!
             if (g_currentSession && g_currentSession->getPlayer()) {
                 ai->setTarget(g_currentSession->getPlayer());
                 std::cout << "[SMART ENEMY " << getId() << "] Strategy set with player target" << std::endl;
@@ -355,21 +331,18 @@ void SmartEnemyEntity::switchToOptimalStrategy() {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool SmartEnemyEntity::canSeePlayer() const {
-    // Simple line-of-sight check
     return m_gameState.playerDistance < 400.0f;
 }
-
+//-------------------------------------------------------------------------------------
 bool SmartEnemyEntity::isPlayerApproaching() const {
-    // Check if player is moving toward us
     sf::Vector2f toEnemy = m_gameState.enemyPosition - m_gameState.playerPosition;
     float dot = toEnemy.x * m_gameState.playerVelocity.x + toEnemy.y * m_gameState.playerVelocity.y;
     return dot > 0 && std::abs(m_gameState.playerVelocity.x) > 1.0f;
 }
-
+//-------------------------------------------------------------------------------------
 bool SmartEnemyEntity::shouldRetreat() const {
-    // Retreat if player has shield and is close, or if we're low on health
     auto* health = getComponent<HealthComponent>();
     bool lowHealth = health && health->getHealth() <= 2;
     bool playerDangerous = m_gameState.playerHasShield || m_gameState.playerIsBoosted;
@@ -377,9 +350,8 @@ bool SmartEnemyEntity::shouldRetreat() const {
 
     return (lowHealth && tooClose) || (playerDangerous && tooClose);
 }
-
+//-------------------------------------------------------------------------------------
 bool SmartEnemyEntity::shouldAmbush() const {
-    // Ambush if player is moving but not directly toward us
     bool playerMoving = std::abs(m_gameState.playerVelocity.x) > 0.5f;
     bool notApproaching = !isPlayerApproaching();
     bool goodDistance = m_gameState.playerDistance > m_retreatDistance &&
@@ -387,29 +359,27 @@ bool SmartEnemyEntity::shouldAmbush() const {
 
     return playerMoving && notApproaching && goodDistance;
 }
-
+//-------------------------------------------------------------------------------------
 bool SmartEnemyEntity::shouldHunt() const {
-    // Hunt if player is vulnerable and in range
     bool playerVulnerable = !m_gameState.playerHasShield && !m_gameState.playerIsBoosted;
     bool inRange = m_gameState.playerDistance < m_huntDistance && m_gameState.playerDistance > m_retreatDistance;
-    bool canWin = m_gameState.playerHealth <= 3; // We can potentially win
+    bool canWin = m_gameState.playerHealth <= 3; 
 
     return playerVulnerable && inRange && canWin;
 }
-
+//-------------------------------------------------------------------------------------
 bool SmartEnemyEntity::shouldCoordinate() const {
-    // Coordinate when there are nearby enemies and player is strong
     bool playerStrong = m_gameState.playerHealth > 2 || m_gameState.playerHasShield;
     bool hasAllies = m_gameState.nearbyEnemies > 0;
     bool playerInRange = m_gameState.playerDistance < 300.0f;
 
     return playerStrong && hasAllies && playerInRange;
 }
-
+//-------------------------------------------------------------------------------------
 sf::Vector2f SmartEnemyEntity::predictPlayerPosition(float timeAhead) const {
     return m_gameState.playerPosition + m_gameState.playerVelocity * timeAhead;
 }
-
+//-------------------------------------------------------------------------------------
 sf::Vector2f SmartEnemyEntity::findBestAmbushPosition() const {
     // Find a position where we can intercept the player
     sf::Vector2f predictedPos = predictPlayerPosition(2.0f);
@@ -424,7 +394,7 @@ sf::Vector2f SmartEnemyEntity::findBestAmbushPosition() const {
 
     return currentPos + interceptDir * 150.0f;
 }
-
+//-------------------------------------------------------------------------------------
 sf::Vector2f SmartEnemyEntity::findBestFlankingPosition() const {
     // Try to get behind or to the side of the player
     sf::Vector2f toPlayer = m_gameState.playerPosition - m_gameState.enemyPosition;
@@ -438,7 +408,7 @@ sf::Vector2f SmartEnemyEntity::findBestFlankingPosition() const {
 
     return m_gameState.playerPosition + flankDir * 100.0f;
 }
-
+//-------------------------------------------------------------------------------------
 void SmartEnemyEntity::recordStrategyOutcome(SmartStrategy strategy, bool success) {
     if (success) {
         m_strategyHistory[strategy].successCount++;
@@ -447,12 +417,8 @@ void SmartEnemyEntity::recordStrategyOutcome(SmartStrategy strategy, bool succes
     else {
         m_strategyHistory[strategy].failureCount++;
     }
-
-    std::cout << "[SMART ENEMY] Strategy " << (int)strategy
-        << (success ? " succeeded" : " failed")
-        << " (Success rate: " << m_strategyHistory[strategy].getSuccessRate() * 100 << "%)" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 SmartEnemyEntity::SmartStrategy SmartEnemyEntity::getBestPerformingStrategy() {
     SmartStrategy best = SmartStrategy::Patrolling;
     float bestRate = 0.0f;
@@ -466,7 +432,7 @@ SmartEnemyEntity::SmartStrategy SmartEnemyEntity::getBestPerformingStrategy() {
 
     return best;
 }
-
+//-------------------------------------------------------------------------------------
 float SmartEnemyEntity::evaluatePlayerThreat() {
     float threat = 0.0f;
 
@@ -483,10 +449,8 @@ float SmartEnemyEntity::evaluatePlayerThreat() {
 
     return threat;
 }
-
+//-------------------------------------------------------------------------------------
 float SmartEnemyEntity::evaluateTerrainAdvantage() {
-    // Simple terrain evaluation - could be expanded
-    // For now, just consider if we're at a good height relative to player
     float heightDiff = m_gameState.enemyPosition.y - m_gameState.playerPosition.y;
 
     // Higher ground is advantageous
@@ -495,7 +459,7 @@ float SmartEnemyEntity::evaluateTerrainAdvantage() {
 
     return 0.0f;
 }
-
+//-------------------------------------------------------------------------------------
 void SmartEnemyEntity::executeEmergencyBehavior() {
     // Quick escape behavior when in immediate danger
     auto* physics = getComponent<PhysicsComponent>();
@@ -509,13 +473,10 @@ void SmartEnemyEntity::executeEmergencyBehavior() {
         physics->setVelocity(escapeDir.x * 200.0f, physics->getVelocity().y);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SmartEnemyEntity::communicateWithNearbyEnemies() {
-    // Could implement enemy-to-enemy communication here
-    // For example, alerting nearby enemies about player position
-    // This would require a messaging system between entities
 }
-
+//-------------------------------------------------------------------------------------
 void SmartEnemyEntity::drawEyes(sf::RenderWindow& window) {
     if (!g_currentSession) {
         return;
@@ -545,3 +506,4 @@ void SmartEnemyEntity::drawEyes(sf::RenderWindow& window) {
     window.draw(m_rightEye);
 
 }
+//-------------------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 #include "GameExceptions.h"
 #include <Services/GameExceptions.h>
 
+//-------------------------------------------------------------------------------------
 SettingsInitializer::InitResult SettingsInitializer::initialize() {
     InitResult result;
 
@@ -42,3 +43,4 @@ SettingsInitializer::InitResult SettingsInitializer::initialize() {
 
     return result;
 }
+//-------------------------------------------------------------------------------------

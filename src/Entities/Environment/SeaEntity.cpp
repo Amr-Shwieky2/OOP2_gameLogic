@@ -1,4 +1,3 @@
-// SeaEntity.cpp
 #include "SeaEntity.h"
 #include "Transform.h"
 #include "PhysicsComponent.h"
@@ -6,13 +5,13 @@
 #include "CollisionComponent.h"
 #include "Constants.h"
 
+//-------------------------------------------------------------------------------------
 SeaEntity::SeaEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : Entity(id) {
     setupComponents(world, x, y, textures);
 }
-
+//-------------------------------------------------------------------------------------
 void SeaEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
-    // Position is stored at the centre so physics and rendering stay aligned
     float centerX = x + TILE_SIZE / 2.f;
     float centerY = y + TILE_SIZE / 2.f;
 
@@ -31,7 +30,7 @@ void SeaEntity::setupComponents(b2World& world, float x, float y, TextureManager
 
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Hazard);
 }
-
+//-------------------------------------------------------------------------------------
 void SeaEntity::onPlayerContact() {
-    // Player dies instantly - handled in collision system
 }
+//-------------------------------------------------------------------------------------

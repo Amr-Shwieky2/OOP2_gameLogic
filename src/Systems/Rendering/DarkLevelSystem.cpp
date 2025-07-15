@@ -10,20 +10,19 @@
 #include <numeric>
 #include <SmartEnemyEntity.h>
 
-// Define M_PI if not already defined
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
-
+//-------------------------------------------------------------------------------------
 DarkLevelSystem::DarkLevelSystem() {
     m_lightCircle.setRadius(m_playerLightRadius);
     m_lightCircle.setOrigin(m_playerLightRadius, m_playerLightRadius);
     m_lightCircle.setFillColor(sf::Color::Transparent);
     m_lightCircle.setOutlineThickness(0);
 }
-
+//-------------------------------------------------------------------------------------
 DarkLevelSystem::~DarkLevelSystem() = default;
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::initialize(sf::RenderWindow& window) {
     sf::Vector2u windowSize = window.getSize();
 
@@ -61,21 +60,15 @@ void DarkLevelSystem::initialize(sf::RenderWindow& window) {
         if (sf::Shader::isAvailable()) {
             m_useShaders = m_shadowShader.loadFromFile("resources/shaders/shadow.frag", sf::Shader::Fragment);
             if (m_useShaders) {
-                std::cout << "[DarkLevelSystem] Successfully loaded shadow shader" << std::endl;
                 m_shadowShader.setUniform("u_resolution", sf::Glsl::Vec2(static_cast<float>(windowSize.x), static_cast<float>(windowSize.y)));
-            } else {
-                std::cout << "[DarkLevelSystem] Failed to load shadow shader, using fallback" << std::endl;
             }
         }
     } catch (const std::exception& e) {
         std::cout << "[DarkLevelSystem] Shader error: " << e.what() << std::endl;
         m_useShaders = false;
     }
-
-    std::cout << "[DarkLevelSystem] Advanced shadow casting system initialized with improved settings" << std::endl;
-    std::cout << "[DarkLevelSystem] Flashlight range: " << m_flashlightRange << ", angle: " << m_flashlightAngle << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::update(float dt, PlayerEntity* player) {
     if (!m_enabled) return;
 
@@ -99,20 +92,18 @@ void DarkLevelSystem::update(float dt, PlayerEntity* player) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::updatePlayerLight(PlayerEntity* player) {
     if (!player) {
-        std::cout << "[DEBUG DarkLevelSystem] No player provided for light update" << std::endl;
         return;
     }
-    
     auto* transform = player->getComponent<Transform>();
     if (transform) {
         m_playerLightPos = transform->getPosition();
        
     }
 }
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::render(sf::RenderWindow& window) {
     if (!m_enabled) {
         return;
@@ -122,34 +113,29 @@ void DarkLevelSystem::render(sf::RenderWindow& window) {
     sf::Vector2f viewCenter = currentView.getCenter();
     sf::Vector2f viewSize = currentView.getSize();
 
-    // 🔲 1. رسم العتمة الشفافة على كامل الشاشة (تغطي كل شيء)
     sf::RectangleShape darknessOverlay;
     darknessOverlay.setSize(viewSize);
     darknessOverlay.setPosition(viewCenter - viewSize / 2.0f);
     darknessOverlay.setFillColor(sf::Color(0, 0, 0, static_cast<sf::Uint8>(255 * m_darknessLevel)));
 
-    window.draw(darknessOverlay);  // تغطي كل الخلفية
+    window.draw(darknessOverlay); 
 
-    // 💡 2. تجهيز Texture للضوء (الكشاف والضوء المحيط)
     m_flashlightTexture->setView(currentView);
     m_flashlightTexture->clear(sf::Color::Transparent);
 
-    // ✨ 3. رسم الضوء حول اللاعب (هالة ثابتة)
     sf::CircleShape playerLight;
     float lightRadius = 50.0f;
     playerLight.setRadius(lightRadius);
     playerLight.setOrigin(lightRadius, lightRadius);
     playerLight.setPosition(m_playerLightPos);
-    playerLight.setFillColor(sf::Color(255, 255, 220, 200));  // ضوء دافئ واضح
+    playerLight.setFillColor(sf::Color(255, 255, 220, 200));  
 
     m_flashlightTexture->draw(playerLight, sf::BlendAdd);
 
-    // 🔦 4. إذا الكشاف شغال، ارسمه داخل نفس Texture
     if (m_flashlightOn && m_playerLightPos.x != 0 && m_playerLightPos.y != 0) {
         drawFlashlightCone(m_flashlightIntensity);
     }
 
-    // 🖼️ 5. عرض محتوى الضوء على الشاشة بعد رسم الكائنات
     m_flashlightTexture->display();
 
     sf::Sprite flashlightSprite(m_flashlightTexture->getTexture());
@@ -157,9 +143,7 @@ void DarkLevelSystem::render(sf::RenderWindow& window) {
     flashlightSprite.setOrigin(0, 0);
     window.draw(flashlightSprite, sf::RenderStates(sf::BlendAdd));
 }
-
-
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::renderShadowMap(const sf::Vector2f& lightPos, float radius, sf::RenderTexture& target) {
     // Cast rays in all directions from the light source
     std::vector<Ray> rays;
@@ -202,7 +186,7 @@ void DarkLevelSystem::renderShadowMap(const sf::Vector2f& lightPos, float radius
     lightGlow.setFillColor(sf::Color(255, 255, 240, 60)); // Subtle glow
     target.draw(lightGlow, sf::BlendAdd);
 }
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::castRays(const sf::Vector2f& origin, std::vector<Ray>& rays, float maxDistance) {
     // Generate rays in all directions
     rays.clear();
@@ -242,7 +226,7 @@ void DarkLevelSystem::castRays(const sf::Vector2f& origin, std::vector<Ray>& ray
         rays.push_back(ray);
     }
 }
-
+//-------------------------------------------------------------------------------------
 DarkLevelSystem::Intersection DarkLevelSystem::rayObstacleIntersection(const Ray& ray, const Obstacle& obstacle) {
     Intersection result = { {0, 0}, 0.0f, false };
     
@@ -298,7 +282,7 @@ DarkLevelSystem::Intersection DarkLevelSystem::rayObstacleIntersection(const Ray
     
     return result;
 }
-
+//-------------------------------------------------------------------------------------
 sf::Vector2f DarkLevelSystem::calculateIntersection(
     const sf::Vector2f& rayStart, const sf::Vector2f& rayEnd, 
     const sf::Vector2f& segStart, const sf::Vector2f& segEnd) {
@@ -329,7 +313,7 @@ sf::Vector2f DarkLevelSystem::calculateIntersection(
     return sf::Vector2f(std::numeric_limits<float>::quiet_NaN(), 
                       std::numeric_limits<float>::quiet_NaN());
 }
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::renderFlashlight(sf::RenderWindow& window) {
     float currentIntensity = m_flashlightIntensity ;
     float flicker = 1.0f;
@@ -355,7 +339,7 @@ void DarkLevelSystem::renderFlashlight(sf::RenderWindow& window) {
 
     m_flashlightTexture->draw(cone);  
 }
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::drawFlashlightCone(float intensity) {
     if (m_playerLightPos.x == 0 && m_playerLightPos.y == 0) return;
 
@@ -431,9 +415,7 @@ void DarkLevelSystem::drawFlashlightCone(float intensity) {
     m_flashlightTexture->draw(flashlightCone);
     
 }
-
-
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::updateFlashlightDirection(const sf::Vector2f& playerPos, const sf::Vector2f& targetPos) {
     sf::Vector2f direction = targetPos - playerPos;
     float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
@@ -441,7 +423,7 @@ void DarkLevelSystem::updateFlashlightDirection(const sf::Vector2f& playerPos, c
         m_flashlightDirection = direction / length;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::renderLightSources(sf::RenderTexture& target) {
     // Use additive blending for light sources
     sf::BlendMode additiveBlend(sf::BlendMode::One, sf::BlendMode::One);
@@ -486,14 +468,13 @@ void DarkLevelSystem::renderLightSources(sf::RenderTexture& target) {
         target.draw(halo, additiveBlend);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::setDarknessLevel(float level) {
     m_darknessLevel = std::clamp(level, 0.0f, 1.0f);
     sf::Uint8 alpha = static_cast<sf::Uint8>(255 * m_darknessLevel);
     m_darknessOverlay.setFillColor(sf::Color(0, 0, 0, alpha));
-    std::cout << "[DarkLevelSystem] Darkness level set to: " << m_darknessLevel << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::addLightSource(const sf::Vector2f& position, float radius, sf::Color color) {
     LightSource light;
     light.position = position;
@@ -501,37 +482,34 @@ void DarkLevelSystem::addLightSource(const sf::Vector2f& position, float radius,
     light.color = color;
     light.intensity = 1.0f;
     m_lightSources.push_back(light);
-
-    std::cout << "[DarkLevelSystem] Added light source at (" << position.x << ", " << position.y
-        << ") with radius " << radius << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::clearLightSources() {
     m_lightSources.clear();
-    std::cout << "[DarkLevelSystem] Cleared all light sources" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::registerObstacle(const sf::FloatRect& bounds) {
     Obstacle obstacle;
     obstacle.bounds = bounds;
     m_obstacles.push_back(obstacle);
 }
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::clearObstacles() {
     m_obstacles.clear();
 }
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::setObstacles(const std::vector<sf::FloatRect>& obstacles) {
     m_obstacles.clear();
     for (const auto& rect : obstacles) {
         registerObstacle(rect);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void DarkLevelSystem::drawRedEyes(sf::RenderWindow& window, EntityManager& entityManager) {
     for (Entity* entity : entityManager.getAllEntities()) {
         if (auto* smart = dynamic_cast<SmartEnemyEntity*>(entity)) {
-            smart->drawEyes(window); // ترسم فوق الظلام
+            smart->drawEyes(window); 
         }
     }
 }
+//-------------------------------------------------------------------------------------

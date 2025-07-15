@@ -2,9 +2,10 @@
 #include "../Core/AudioManager.h"
 #include <iostream>
 
+//-------------------------------------------------------------------------------------
 GameOverScreen::GameOverScreen(const std::string& textureFile)
     : m_textureFile(textureFile) {}
-
+//-------------------------------------------------------------------------------------
 void GameOverScreen::show(sf::RenderWindow& window) {
     AudioManager::instance().pauseMusic();
     AudioManager::instance().playSound("gameover");
@@ -28,9 +29,9 @@ void GameOverScreen::show(sf::RenderWindow& window) {
                 AudioManager::instance().playMusic("loading_music", true);
             }
         }
-
         window.clear();
         window.draw(sprite);
         window.display();
     }
 }
+//-------------------------------------------------------------------------------------

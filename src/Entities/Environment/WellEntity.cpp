@@ -8,11 +8,12 @@
 #include <iostream>
 #include <cmath>
 
+//-------------------------------------------------------------------------------------
 WellEntity::WellEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : Entity(id) {
     setupComponents(world, x, y, textures);
 }
-
+//-------------------------------------------------------------------------------------
 void WellEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
     float centerX = x + TILE_SIZE / 2.f;
     float centerY = y + TILE_SIZE / 2.f;
@@ -43,15 +44,10 @@ void WellEntity::setupComponents(b2World& world, float x, float y, TextureManage
     auto bounds = sprite.getLocalBounds();
     sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
     sprite.setPosition(centerX, centerY);
-
-    std::cout << "[DEBUG] WellEntity fixture created: " << (physics->getBody()->GetFixtureList() != nullptr) << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void WellEntity::onPlayerEnter() {
     if (m_activated) return;
-
-    std::cout << "[Well] Player entered the well! Requesting level change..." << std::endl;
-
     m_activated = true;
 
     std::string targetLevel = getTargetLevel();
@@ -66,7 +62,7 @@ void WellEntity::onPlayerEnter() {
         render->getSprite().setColor(sf::Color(120, 120, 200));
     }
 }
-
+//-------------------------------------------------------------------------------------
 void WellEntity::updateAnimation(float dt) {
     m_animationTimer += dt;
 
@@ -80,16 +76,19 @@ void WellEntity::updateAnimation(float dt) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool WellEntity::s_levelChangeRequested = false;
+//-------------------------------------------------------------------------------------
 std::string WellEntity::s_targetLevelName = "";
+//-------------------------------------------------------------------------------------
 
 void WellEntity::requestLevelChange(const std::string& levelName) {
     s_levelChangeRequested = true;
     s_targetLevelName = levelName;
 }
-
+//-------------------------------------------------------------------------------------
 void WellEntity::clearLevelChangeRequest() {
     s_levelChangeRequested = false;
     s_targetLevelName.clear();
 }
+//-------------------------------------------------------------------------------------

@@ -5,10 +5,9 @@
 #include <fstream>
 #include <iostream>
 #include "WellEntity.h"
-
-// For ground tiles that aren't entities yet, we'll need a temporary solution
 #include "GameCollisionSetup.h"
 
+//-------------------------------------------------------------------------------------
 bool LevelLoader::loadFromFile(const std::string& path,
     EntityManager& entityManager,
     b2World& world,
@@ -18,10 +17,6 @@ bool LevelLoader::loadFromFile(const std::string& path,
     if (lines.empty()) {
         return false;
     }
-
-    // Make sure entities are registered
-    //registerGameEntities(world, textures);
-
     entityManager.clear();
 
     int mapHeight = static_cast<int>(lines.size());
@@ -41,7 +36,7 @@ bool LevelLoader::loadFromFile(const std::string& path,
 
     return true;
 }
-
+//-------------------------------------------------------------------------------------
 std::unique_ptr<Entity> LevelLoader::createEntityForChar(char tileChar, float x, float y,
     b2World& , TextureManager& ) {
 
@@ -84,9 +79,6 @@ std::unique_ptr<Entity> LevelLoader::createEntityForChar(char tileChar, float x,
 
     case 'm': // Magnetic Gift
         return factory.create("m", x, y);
-
-        // TODO: Handle ground tiles, obstacles, etc.
-        // For now, return nullptr for non-entity tiles
     case 'G': // Ground
         return factory.create("G", x, y);
     case 'L': // Left ground
@@ -115,6 +107,7 @@ std::unique_ptr<Entity> LevelLoader::createEntityForChar(char tileChar, float x,
         return nullptr;
     }
 }
+//-------------------------------------------------------------------------------------
 std::vector<std::string> LevelLoader::readLevelFile(const std::string& path) const {
     std::vector<std::string> lines;
     std::ifstream file(path);
@@ -130,18 +123,18 @@ std::vector<std::string> LevelLoader::readLevelFile(const std::string& path) con
 
     return lines;
 }
-
+//-------------------------------------------------------------------------------------
 sf::Vector2f LevelLoader::calculatePosition(int x, int y) const {
     float posX = static_cast<float>(x * TILE_SIZE);
     float posY = WINDOW_HEIGHT - TILE_SIZE - static_cast<float>(y * TILE_SIZE);
     return sf::Vector2f(posX, posY);
 }
-
+//-------------------------------------------------------------------------------------
 bool LevelLoader::isValidTileChar(char c) const {
     const std::string validChars = "GLERMSBXc Cshprw*mzZ-";
     return validChars.find(c) != std::string::npos;
 }
-
+//-------------------------------------------------------------------------------------
 LevelLoader::LevelInfo LevelLoader::getLevelInfo(const std::string& path) const {
     LevelInfo info;
     info.name = path;
@@ -150,3 +143,4 @@ LevelLoader::LevelInfo LevelLoader::getLevelInfo(const std::string& path) const 
     info.size = sf::Vector2i(0, 0);
     return info;
 }
+//-------------------------------------------------------------------------------------

@@ -1,4 +1,3 @@
-// NormalState.h
 #pragma once
 #include "PlayerState.h"
 

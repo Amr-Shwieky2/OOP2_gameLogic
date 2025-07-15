@@ -2,7 +2,6 @@
 #include <SFML/Graphics.hpp>
 #include <memory>
 
-// Forward declarations
 class VolumeControlPanel;
 
 

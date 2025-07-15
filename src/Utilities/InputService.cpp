@@ -1,5 +1,6 @@
 #include "InputService.h"
 
+//-------------------------------------------------------------------------------------
 void InputService::update() {
     m_previousState = m_currentState;
 
@@ -8,12 +9,12 @@ void InputService::update() {
         m_currentState[key] = sf::Keyboard::isKeyPressed(key);
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool InputService::isKeyDown(sf::Keyboard::Key key) const {
     auto it = m_currentState.find(key);
     return (it != m_currentState.end()) && it->second;
 }
-
+//-------------------------------------------------------------------------------------
 bool InputService::isKeyPressed(sf::Keyboard::Key key) const {
     auto curr = m_currentState.find(key);
     auto prev = m_previousState.find(key);
@@ -23,3 +24,4 @@ bool InputService::isKeyPressed(sf::Keyboard::Key key) const {
 
     return isDownNow && !wasDownBefore;
 }
+//-------------------------------------------------------------------------------------

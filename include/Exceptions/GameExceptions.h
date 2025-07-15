@@ -1,4 +1,3 @@
-// GameExceptions.h - Specialized exception classes for game subsystems
 #pragma once
 
 #include "Exception.h"

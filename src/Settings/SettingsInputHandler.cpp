@@ -1,10 +1,10 @@
 #include "../Settings/SettingsInputHandler.h"
 #include <iostream>
 
+//-------------------------------------------------------------------------------------
 SettingsInputHandler::SettingsInputHandler() {
-    std::cout << "SettingsInputHandler: Initialized for input processing only" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsInputHandler::handleKeyboardInput(const sf::Event& event) {
     // Early return if input handling is disabled
     if (!m_enabled) {
@@ -51,7 +51,7 @@ bool SettingsInputHandler::handleKeyboardInput(const sf::Event& event) {
 
     return false;
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsInputHandler::handleEscapeKey() {
     if (m_escapeCallback) {
         std::cout << "SettingsInputHandler: Processing Escape key" << std::endl;
@@ -60,7 +60,7 @@ bool SettingsInputHandler::handleEscapeKey() {
     }
     return false;
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsInputHandler::handleUndoKey() {
     if (m_undoCallback) {
         std::cout << "SettingsInputHandler: Processing Undo key (Ctrl+U)" << std::endl;
@@ -69,7 +69,7 @@ bool SettingsInputHandler::handleUndoKey() {
     }
     return false;
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsInputHandler::handleRedoKey() {
     if (m_redoCallback) {
         std::cout << "SettingsInputHandler: Processing Redo key (Ctrl+R)" << std::endl;
@@ -78,7 +78,7 @@ bool SettingsInputHandler::handleRedoKey() {
     }
     return false;
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsInputHandler::handleHistoryKey() {
     if (m_historyCallback) {
         std::cout << "SettingsInputHandler: Processing History key (Ctrl+H)" << std::endl;
@@ -87,15 +87,16 @@ bool SettingsInputHandler::handleHistoryKey() {
     }
     return false;
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsInputHandler::isValidKeyboardEvent(const sf::Event& event) const {
     return event.type == sf::Event::KeyPressed;
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsInputHandler::isModifierKeyPressed(const sf::Event& event) const {
     return event.key.control || event.key.alt || event.key.shift;
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsInputHandler::isKeyPressed(const sf::Event& event, sf::Keyboard::Key key) const {
     return isValidKeyboardEvent(event) && event.key.code == key;
 }
+//-------------------------------------------------------------------------------------

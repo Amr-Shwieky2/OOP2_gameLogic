@@ -1,4 +1,3 @@
-// EventSystem.h
 #pragma once
 #include <typeindex>
 #include <unordered_map>
