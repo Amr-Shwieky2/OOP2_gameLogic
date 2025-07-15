@@ -8,7 +8,7 @@ EscapeKeyCommand::EscapeKeyCommand(ScreenType currentScreen, ScreenType targetSc
 void EscapeKeyCommand::execute() {
     try {
         // Get screen manager
-        AppContext::instance().screenManager().changeScreen(m_targetScreen);
+        AppContext::instance().screenManager().requestScreenChange(m_targetScreen);
 
         // Mark as executed
         m_hasExecuted = true;
@@ -26,7 +26,7 @@ void EscapeKeyCommand::undo() {
     }
 
     try {
-        AppContext::instance().screenManager().changeScreen(m_currentScreen);
+        AppContext::instance().screenManager().requestScreenChange(m_currentScreen);
     }
     catch (const std::exception& e) {
         std::cout << "EscapeKeyCommand: Failed to undo - " << e.what() << std::endl;

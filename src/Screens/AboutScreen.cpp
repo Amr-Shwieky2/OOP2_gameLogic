@@ -33,7 +33,7 @@ void AboutScreen::handleEvents(sf::RenderWindow& window) {
 
         if (event.type == sf::Event::KeyPressed) {
             if (event.key.code == sf::Keyboard::Escape) {
-                AppContext::instance().screenManager().changeScreen(ScreenType::MENU);
+                AppContext::instance().screenManager().requestScreenChange(ScreenType::MENU);
             }
         }
     }

@@ -17,7 +17,7 @@ ChangeScreenCommand::ChangeScreenCommand(ScreenType targetScreen, ScreenType pre
 void ChangeScreenCommand::execute() {
     try {
         // Use AppContext singleton to access screen manager and change screen
-        AppContext::instance().screenManager().changeScreen(m_targetScreen);
+        AppContext::instance().screenManager().requestScreenChange(m_targetScreen);
     }
     catch (const std::exception& e) {
         // Handle any errors that occur during screen change
@@ -32,7 +32,7 @@ void ChangeScreenCommand::execute() {
 void ChangeScreenCommand::undo() {
     try {
         // Navigate back to the previous screen
-        AppContext::instance().screenManager().changeScreen(m_previousScreen);
+        AppContext::instance().screenManager().requestScreenChange(m_previousScreen);
     }
     catch (const std::exception& e) {
         // Handle any errors that occur during undo operation

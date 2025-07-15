@@ -43,7 +43,7 @@ void SettingsScreen::handleEvents(sf::RenderWindow& window) {
         if (event.type == sf::Event::KeyPressed && m_commandHandler) {
             bool shouldExit = m_commandHandler->handleKeyboardInput(event);
             if (shouldExit) {
-                AppContext::instance().screenManager().changeScreen(ScreenType::MENU);
+                AppContext::instance().screenManager().requestScreenChange(ScreenType::MENU);
                 return;
             }
         }

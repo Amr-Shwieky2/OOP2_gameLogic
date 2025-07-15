@@ -102,7 +102,7 @@ void GameInitializer::registerAllScreens() {
     try {
         Logger::log("Registering all screens...");
         registerScreenFactories();
-        AppContext::instance().screenManager().changeScreen(ScreenType::LOADING);
+        AppContext::instance().screenManager().requestScreenChange(ScreenType::LOADING);
         Logger::log("All screens registered successfully");
     }
     catch (const std::exception& e) {
