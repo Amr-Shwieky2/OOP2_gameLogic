@@ -62,6 +62,16 @@ private:
     void loadDefaultAudioFiles();
 
     /**
+     * @brief Preloads all textures used throughout the game.
+     */
+    void loadDefaultTextures();
+
+    /**
+     * @brief Preloads fonts required by the UI system.
+     */
+    void loadDefaultFonts();
+
+    /**
      * @brief Saves current audio volume levels as defaults.
      */
     void setDefaultAudioVolumes();

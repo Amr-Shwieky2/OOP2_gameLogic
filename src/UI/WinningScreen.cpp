@@ -1,6 +1,7 @@
 #include "WinningScreen.h"
 #include <iostream>
 #include "../Core/AudioManager.h"
+#include <Application/AppContext.h>
 
 WinningScreen::WinningScreen(const std::string& textureFile)
     : m_textureFile(textureFile) {
@@ -10,12 +11,7 @@ void WinningScreen::show(sf::RenderWindow& window) {
     AudioManager::instance().stopAllSounds();
     AudioManager::instance().playSound("win");
 
-    sf::Texture texture;
-    if (!texture.loadFromFile(m_textureFile)) {
-        std::cerr << "[ERROR] Could not load " << m_textureFile << std::endl;
-        return;
-    }
-
+    sf::Texture& texture = AppContext::instance().getTexture(m_textureFile);
     sf::Sprite sprite(texture);
 
     bool running = true;

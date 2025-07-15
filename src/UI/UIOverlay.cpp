@@ -1,10 +1,9 @@
 ﻿#include "UIOverlay.h"
+#include <Application/AppContext.h>
 #include <sstream>
 
 UIOverlay::UIOverlay(float windowWidth) {
-    if (!m_font.loadFromFile("arial.ttf")) {
-        throw std::runtime_error("Failed to load font");
-    }
+    m_font = AppContext::instance().getFont("arial.ttf");
 
     m_scoreText.setFont(m_font);
     m_livesText.setFont(m_font);

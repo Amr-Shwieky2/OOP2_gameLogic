@@ -2,6 +2,7 @@
 #include "ResourceManager.h"
 #include "Exceptions/GameExceptions.h"
 #include "Exceptions/Logger.h"
+#include <Application/AppContext.h>
 #include <iostream>
 #include <cmath>
 #include <sstream>
@@ -82,11 +83,9 @@ SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerTyp
     m_fallbackBox.setOutlineThickness(3.0f);
     m_fallbackBox.setOutlineColor(sf::Color(101, 67, 33)); // Darker brown
 
-    // Load font
+    // Load font from centralized resource manager
     try {
-        if (!m_font.loadFromFile("arial.ttf")) {
-            throw GameExceptions::ResourceLoadException("arial.ttf", "loadFromFile returned false");
-        }
+        m_font = AppContext::instance().getFont("arial.ttf");
     }
     catch (const std::exception& ex) {
         GameExceptions::getLogger().logException(ex);
