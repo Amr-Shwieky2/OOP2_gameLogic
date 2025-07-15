@@ -28,6 +28,8 @@
 #include <WellEntity.h>
 #include <GameSession.h>
 #include <WinningScreen.h>
+#include <Application/AppContext.h>
+#include <Config/ScreenTypes.h>
 #include "../Core/AudioManager.h"
 
 void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
@@ -180,10 +182,11 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
             flag.setCompleted(true);
 
-            // Display winning screen using dedicated class
+            // Display winning screen then return to main menu
             if (g_currentSession) {
                 WinningScreen screen;
                 screen.show(g_currentSession->getWindow());
+                AppContext::instance().screenManager().changeScreen(ScreenType::MENU);
             }
 
             if (auto* scoreManager = player.getScoreManager()) {
