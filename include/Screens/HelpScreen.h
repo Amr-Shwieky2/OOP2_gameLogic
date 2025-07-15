@@ -14,4 +14,9 @@ public:
 private:
     sf::Texture m_backgroundTexture;
     sf::Sprite m_backgroundSprite;
+
+    // Timer to control how long the help screen is displayed
+    float m_elapsedTime = 0.0f;
+    const float m_displayDuration = 3.0f; // seconds
+    bool m_startRequested = false;
 };
