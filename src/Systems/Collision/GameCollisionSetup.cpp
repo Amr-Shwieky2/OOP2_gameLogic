@@ -28,6 +28,7 @@
 #include <WellEntity.h>
 #include <GameSession.h>
 #include <WinningScreen.h>
+#include "../Core/AudioManager.h"
 
 void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
 
@@ -42,6 +43,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             }
 
             coin.onCollect(&player);
+            AudioManager::instance().playSound("coin");
 
             EventSystem::getInstance().publish(
                 CoinCollectedEvent(player.getId(), 1)
@@ -60,6 +62,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             if (!stateManager || !scoreManager) {
                 return;
             }
+            AudioManager::instance().playSound("gifts");
 
             switch (gift.getGiftType()) {
             case GiftEntity::GiftType::LifeHeart: {
@@ -103,7 +106,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
     );
 
     // ===== Player vs Sea =====
-    // ===== Player vs Sea =====
     collisionSystem.registerHandler<PlayerEntity, SeaEntity>(
         [](PlayerEntity& player, SeaEntity&) {
             auto* health = player.getComponent<HealthComponent>();
@@ -111,11 +113,11 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             auto* visualEffects = player.getVisualEffects();
 
             if (health && !health->isInvulnerable()) {
-                // تغيير: خسارة كل الأرواح بدلاً من تحديد الصحة إلى 0
                 int currentHealth = health->getHealth();
-                health->takeDamage(currentHealth); // خسارة كل الأرواح
+                health->takeDamage(currentHealth);
+                AudioManager::instance().stopAllSounds();
+                AudioManager::instance().playSound("gameover");
 
-                // تأثيرات بصرية للموت
                 if (visualEffects) {
                     auto* render = player.getComponent<RenderComponent>();
                     if (render) {
@@ -148,6 +150,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                 visualEffects && visualEffects->canTakeDamage()) {
 
                 health->takeDamage(1);
+                AudioManager::instance().playSound("lostlife");
                 visualEffects->startDamageCooldown();
 
                 auto* playerPhysics = player.getComponent<PhysicsComponent>();
@@ -183,7 +186,6 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                 screen.show(g_currentSession->getWindow());
             }
 
-            // إضافة نقاط المكافأة
             if (auto* scoreManager = player.getScoreManager()) {
                 scoreManager->addScore(500);
             }
@@ -223,7 +225,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                 if (scoreManager) {
                     scoreManager->addScore(scoreBonus);
                 }
-
+                AudioManager::instance().playSound("kill");
                 EventSystem::getInstance().publish(
                     EnemyKilledEvent(enemy.getId(), player.getId())
                 );
@@ -234,6 +236,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                     visualEffects && visualEffects->canTakeDamage()) {
 
                     playerHealth->takeDamage(1);
+                    AudioManager::instance().playSound("lostlife");
                     visualEffects->startDamageCooldown();
 
                     float knockbackDir = (playerPos.x > enemyPos.x) ? 1.0f : -1.0f;
@@ -268,8 +271,11 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             // Check if this is a jump attack (player is WELL ABOVE enemy)
             if (yDifference < -50.0f && xDifference < 40.0f) {
                 enemyHealth->takeDamage(1);
+                AudioManager::instance().playSound("lostlife");
+
 
                 if (!enemyHealth->isAlive()) {
+                    AudioManager::instance().playSound("kill");
                     smartEnemy.setActive(false);
                     if (scoreManager) {
                         scoreManager->addScore(250);
@@ -302,6 +308,8 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                     visualEffects->startDamageEffect();
 
                     if (!playerHealth->isAlive()) {
+                        AudioManager::instance().stopAllSounds();
+                        AudioManager::instance().playSound("gameover");
                         EventSystem::getInstance().publish(
                             PlayerDiedEvent(player.getId())
                         );
@@ -334,10 +342,13 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
             sf::Vector2f falconPos = falconPhysics->getPosition();
 
             if (playerPos.y < falconPos.y - 30.0f) {
+                AudioManager::instance().playSound("falcon");
+
                 // Player jumped on falcon
                 auto* falconHealth = falcon.getComponent<HealthComponent>();
                 if (falconHealth) {
                     falconHealth->takeDamage(999);
+                    AudioManager::instance().playSound("kill");
                     falcon.setActive(false);
 
                     playerPhysics->applyImpulse(0, -4.0f);
@@ -356,6 +367,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                     visualEffects && visualEffects->canTakeDamage()) {
 
                     playerHealth->takeDamage(1);
+                    AudioManager::instance().playSound("lostlife");
                     visualEffects->startDamageCooldown();
 
                     float knockbackDir = (playerPos.x > falconPos.x) ? 1.0f : -1.0f;
@@ -448,7 +460,7 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                 render->getSprite().setColor(sf::Color(200, 200, 200, 150)); // Fade out
                 render->getSprite().setScale(0.05f, 0.05f); // Smaller
             }
-            
+
             // Deactivate the projectile
             proj.setActive(false);
         }
@@ -492,14 +504,14 @@ void setupGameCollisionHandlers(MultiMethodCollisionSystem& collisionSystem) {
                 if (!player.isActive() || !well.isActive() || well.isActivated()) {
                     return;
                 }
-
                 well.onPlayerEnter();
+                AudioManager::instance().playSound("well");
                 if (auto* scoreManager = player.getScoreManager()) {
                     scoreManager->addScore(100);
                 }
             }
             catch (const std::exception& e) {
-				std::cerr << "[ERROR] Exception in Player vs Well collision: " << e.what() << std::endl;
+                std::cerr << "[ERROR] Exception in Player vs Well collision: " << e.what() << std::endl;
             }
         }
     );
@@ -588,6 +600,7 @@ void registerGameEntities(b2World& world, TextureManager& textures, EntityManage
 
     factory.registerCreator("B", [&](float x, float y) -> std::unique_ptr<Entity> {
         return std::make_unique<BoxEntity>(entityManager.generateId(), world, x, y, textures);
+
         });
 
     // Register Square Enemy
@@ -614,7 +627,7 @@ void registerGameEntities(b2World& world, TextureManager& textures, EntityManage
         auto enemy = std::make_unique<FalconEnemyEntity>(entityManager.generateId(), world, x, y, textures);
         return enemy;
         });
-    
+
     // Register Well
     factory.registerCreator("W", [&](float x, float y) -> std::unique_ptr<Entity> {
         return std::make_unique<WellEntity>(entityManager.generateId(), world, x, y, textures);

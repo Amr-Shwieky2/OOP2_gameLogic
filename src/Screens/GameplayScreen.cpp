@@ -12,6 +12,7 @@
 #include <format>
 #include <WellEntity.h>
 #include <typeinfo>
+#include "../Core/AudioManager.h"
 
 // Define PIXEL_PER_METER if not already defined in Constants.h
 #ifndef PIXEL_PER_METER
@@ -41,6 +42,8 @@ GameplayScreen::GameplayScreen() :
     m_levelTransitionInProgress(false),
     m_playerValid(false) {
     initializeComponents();
+    AudioManager::instance().stopAllSounds();
+    AudioManager::instance().playMusic("gameplay", true);
 }
 
 /**

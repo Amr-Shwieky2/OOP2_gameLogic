@@ -41,6 +41,8 @@ private:
 
     float getEffectiveVolume(float baseVolume) const;
 
+    void stopAllSoundsExcept(const std::string& soundName);
+
 private:
     float m_masterVolume;
     float m_musicVolume;

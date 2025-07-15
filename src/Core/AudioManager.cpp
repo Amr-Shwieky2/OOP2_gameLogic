@@ -107,13 +107,6 @@ void AudioManager::updateSFXVolume() {
     }
 }
 
-void AudioManager::stopAllSounds() {
-    for (auto& [name, sound] : m_sounds) {
-        sound.stop();
-    }
-    stopMusic();
-}
-
 void AudioManager::resetAudioSystem() {
     setMasterVolume(100.0f);
     setMusicVolume(100.0f);
@@ -122,4 +115,39 @@ void AudioManager::resetAudioSystem() {
 
 float AudioManager::getEffectiveVolume(float baseVolume) const {
     return (baseVolume / 100.0f) * (m_masterVolume / 100.0f) * 100.0f;
+}
+
+void AudioManager::stopAllSounds() {
+    for (auto& [key, sound] : m_sounds) {
+        sound.stop();
+    }
+
+    for (auto& [key, music] : m_music) {
+        if (music) {
+            music->stop();
+        }
+    }
+
+    m_currentMusic = nullptr;
+}
+
+void AudioManager::stopAllSoundsExcept(const std::string& soundName) {
+    for (auto& [key, sound] : m_sounds) {
+        if (key != soundName) {
+            sound.stop();
+        }
+    }
+
+    for (auto& [key, music] : m_music) {
+        if (music && key != soundName) {
+            music->stop();
+        }
+    }
+
+    if (m_currentMusic && m_music.find(soundName) != m_music.end()) {
+        m_currentMusic = m_music[soundName].get();
+    }
+    else {
+        m_currentMusic = nullptr;
+    }
 }

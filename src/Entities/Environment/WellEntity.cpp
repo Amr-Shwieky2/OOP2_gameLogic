@@ -1,5 +1,4 @@
-﻿// WellEntity.cpp - نسخة معدلة لحل مشكلة الاصطدام مع اللاعب
-#include "WellEntity.h"
+﻿#include "WellEntity.h"
 #include "Transform.h"
 #include "PhysicsComponent.h"
 #include "RenderComponent.h"
@@ -20,11 +19,10 @@ void WellEntity::setupComponents(b2World& world, float x, float y, TextureManage
 
     addComponent<Transform>(sf::Vector2f(centerX, centerY));
 
-    // أضف مكون التصادم أولاً
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Hazard);
 
     auto* physics = addComponent<PhysicsComponent>(world, b2_staticBody);
-    physics->createBoxShape(TILE_SIZE, TILE_SIZE); // يتم تطبيق filter الآن تلقائياً
+    physics->createBoxShape(TILE_SIZE, TILE_SIZE);
     physics->setPosition(centerX, centerY);
 
     if (auto* body = physics->getBody()) {
@@ -41,7 +39,6 @@ void WellEntity::setupComponents(b2World& world, float x, float y, TextureManage
 
     auto& sprite = render->getSprite();
     sprite.setScale(1.0f, 1.0f);
-    sprite.setColor(sf::Color(80, 80, 120));
 
     auto bounds = sprite.getLocalBounds();
     sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
@@ -57,7 +54,6 @@ void WellEntity::onPlayerEnter() {
 
     m_activated = true;
 
-    // طلب تغيير المستوى بدلاً من التحميل المباشر
     std::string targetLevel = getTargetLevel();
     if (targetLevel.empty()) {
         targetLevel = ResourcePaths::DARK_LEVEL;
@@ -65,7 +61,6 @@ void WellEntity::onPlayerEnter() {
 
     requestLevelChange(targetLevel);
 
-    // تغيير المظهر
     auto* render = getComponent<RenderComponent>();
     if (render) {
         render->getSprite().setColor(sf::Color(120, 120, 200));
