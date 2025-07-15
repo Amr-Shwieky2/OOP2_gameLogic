@@ -1,4 +1,4 @@
-﻿#include "../../include/Commands/SettingsCommandHandler.h"
+#include "../../include/Commands/SettingsCommandHandler.h"
 
 //-------------------------------------------------------------------------------------
 SettingsCommandHandler::SettingsCommandHandler() : m_isDestroying(false) {
@@ -8,7 +8,7 @@ SettingsCommandHandler::SettingsCommandHandler() : m_isDestroying(false) {
         m_autoSaveManager = std::make_unique<SettingsAutoSaveManager>();
         m_eventLogger = std::make_unique<SettingsEventLogger>();
     }
-    catch (const std::exception& e) {
+    catch (const std::exception&) {
     }
 }
 //-------------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ bool SettingsCommandHandler::handleKeyboardInput(const sf::Event& event) {
         }
         return false;
     }
-    catch (const std::exception& e) {
+    catch (const std::exception&) {
         return false;
     }
 }
@@ -62,7 +62,7 @@ void SettingsCommandHandler::setVolumePanel(std::shared_ptr<VolumeControlPanel> 
     try {
         m_autoSaveManager->setVolumePanel(panel);
     }
-    catch (const std::exception& e) {}
+    catch (const std::exception&) {}
 }
 //-------------------------------------------------------------------------------------
 void SettingsCommandHandler::enableAutoSave(bool enable) {
@@ -71,7 +71,7 @@ void SettingsCommandHandler::enableAutoSave(bool enable) {
     try {
         m_autoSaveManager->enableAutoSave(enable);
     }
-    catch (const std::exception& e) {}
+    catch (const std::exception&) {}
 }
 //-------------------------------------------------------------------------------------
 void SettingsCommandHandler::setAutoSaveDelay(float seconds) {
@@ -80,7 +80,7 @@ void SettingsCommandHandler::setAutoSaveDelay(float seconds) {
     try {
         m_autoSaveManager->setAutoSaveDelay(seconds);
     }
-    catch (const std::exception& e) {}
+    catch (const std::exception&) {}
 }
 //-------------------------------------------------------------------------------------
 void SettingsCommandHandler::enableLogging(bool enable) {
@@ -90,7 +90,7 @@ void SettingsCommandHandler::enableLogging(bool enable) {
         m_eventLogger->enableFileLogging(enable);
         m_eventLogger->enableConsoleLogging(enable);
     }
-    catch (const std::exception& e) {}
+    catch (const std::exception&) {}
 }
 //-------------------------------------------------------------------------------------
 bool SettingsCommandHandler::isAutoSaveEnabled() const {
@@ -99,7 +99,7 @@ bool SettingsCommandHandler::isAutoSaveEnabled() const {
     try {
         return m_autoSaveManager->isAutoSaveEnabled();
     }
-    catch (const std::exception& e) {
+    catch (const std::exception&) {
         return false;
     }
 }
@@ -110,7 +110,7 @@ bool SettingsCommandHandler::hasUnsavedChanges() const {
     try {
         return m_autoSaveManager->hasUnsavedChanges();
     }
-    catch (const std::exception& e) {
+    catch (const std::exception&) {
         return false;
     }
 }
@@ -137,7 +137,7 @@ bool SettingsCommandHandler::handleEscapeInput() {
 
         return true;
     }
-    catch (const std::exception& e) {
+    catch (const std::exception&) {
         return false;
     }
 }
@@ -148,7 +148,7 @@ bool SettingsCommandHandler::handleUndoInput() {
     try {
         return m_commandExecutor->executeUndo();
     }
-    catch (const std::exception& e) {
+    catch (const std::exception&) {
         return false;
     }
 }
@@ -159,7 +159,7 @@ bool SettingsCommandHandler::handleRedoInput() {
     try {
         return m_commandExecutor->executeRedo();
     }
-    catch (const std::exception& e) {
+    catch (const std::exception&) {
         return false;
     }
 }
@@ -171,7 +171,7 @@ bool SettingsCommandHandler::handleHistoryInput() {
         m_commandExecutor->executeHistoryCommand();
         return true;
     }
-    catch (const std::exception& e) {
+    catch (const std::exception&) {
         return false;
     }
 }

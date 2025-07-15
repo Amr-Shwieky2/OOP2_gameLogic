@@ -1,4 +1,4 @@
-﻿
+
 /**
  * @brief Central application context using Singleton pattern for service management
  *
