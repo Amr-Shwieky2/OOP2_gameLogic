@@ -188,7 +188,7 @@ void GameSession::updateFalconSpawner(float deltaTime) {
         return;
 
     m_falconSpawnTimer += deltaTime;
-    if (m_falconSpawnTimer >= 30.0f) {
+    if (m_falconSpawnTimer >= 15.0f) {
         spawnFalconEnemy();
         m_falconSpawned = true;
     }
