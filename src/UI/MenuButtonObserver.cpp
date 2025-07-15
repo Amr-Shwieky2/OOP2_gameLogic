@@ -34,8 +34,7 @@ void MenuButtonObserver::handleStartButton() {
     std::cout << "MenuButtonObserver: Handling Start Game..." << std::endl;
 
     ScreenType currentScreen = getCurrentScreen();
-    // Show the help screen before starting the actual gameplay
-    auto command = std::make_unique<ChangeScreenCommand>(ScreenType::HELP, currentScreen);
+    auto command = std::make_unique<ChangeScreenCommand>(ScreenType::PLAY, currentScreen);
     m_commandInvoker.execute(std::move(command));
 }
 //-------------------------------------------------------------------------------------

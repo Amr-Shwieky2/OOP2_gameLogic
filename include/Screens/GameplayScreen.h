@@ -74,6 +74,12 @@ private:
     float m_messageDuration = 3.0f;
     bool m_levelTransitionInProgress = false;  // Added for safe level transitions
     bool m_playerValid = false;                // Added for player validation
+
+    // Help overlay
+    bool m_showHelpImage = true;
+    float m_helpTimer = 0.0f;
+    const float m_helpDuration = 3.0f;
+    sf::Sprite m_helpSprite;
     
     // Initialization methods
     void initializeComponents();
