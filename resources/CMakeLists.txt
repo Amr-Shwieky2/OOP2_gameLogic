@@ -1,5 +1,3 @@
-# Copy all resource files required at runtime to the binary directory
-
 configure_file("./images/ExitButtonEnglish.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file("./images/GameOver.png" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file("./images/HelpButtonEnglish.png" ${CMAKE_BINARY_DIR} COPYONLY)
@@ -55,7 +53,6 @@ configure_file("./levels/level1.txt" ${CMAKE_BINARY_DIR} COPYONLY)
 
 configure_file ("./Audio/intro.wav" ${CMAKE_BINARY_DIR} COPYONLY)  
 configure_file ("./Audio/coin-received.wav" ${CMAKE_BINARY_DIR} COPYONLY)  
-configure_file ("./Audio/desert-wind.wav" ${CMAKE_BINARY_DIR} COPYONLY)  
 configure_file ("./Audio/falcon.wav" ${CMAKE_BINARY_DIR} COPYONLY)  
 configure_file ("./Audio/GameOver.wav" ${CMAKE_BINARY_DIR} COPYONLY)  
 configure_file ("./Audio/jump.wav" ${CMAKE_BINARY_DIR} COPYONLY)  
@@ -65,3 +62,9 @@ configure_file ("./Audio/open-box.wav" ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file ("./Audio/play_music.wav" ${CMAKE_BINARY_DIR} COPYONLY)  
 configure_file ("./Audio/win.wav" ${CMAKE_BINARY_DIR} COPYONLY)  
 configure_file ("./Audio/level-complete.wav" ${CMAKE_BINARY_DIR} COPYONLY)  
+configure_file ("./Audio/well.wav" ${CMAKE_BINARY_DIR} COPYONLY)  
+configure_file ("./Audio/gifts.wav" ${CMAKE_BINARY_DIR} COPYONLY)  
+configure_file ("./Audio/shoot.wav" ${CMAKE_BINARY_DIR} COPYONLY)  
+configure_file ("./Audio/push_box.wav" ${CMAKE_BINARY_DIR} COPYONLY)  
+
+

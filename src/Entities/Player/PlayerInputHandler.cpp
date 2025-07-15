@@ -4,6 +4,7 @@
 #include "PlayerWeaponSystem.h"
 #include "PhysicsComponent.h"
 #include "Constants.h"
+#include <AudioManager.h>
 
 PlayerInputHandler::PlayerInputHandler(PlayerEntity& player)
     : m_player(player), m_enabled(true) {
@@ -26,6 +27,7 @@ void PlayerInputHandler::handleInput(const InputService& input) {
 void PlayerInputHandler::processActionInput(const InputService& input) {
     // Shooting
     if (input.isKeyPressed(sf::Keyboard::C)) {
+        AudioManager::instance().playSound("shoot");
         if (auto* weaponSystem = m_player.getWeaponSystem()) {
             weaponSystem->shoot();
         }
@@ -33,6 +35,7 @@ void PlayerInputHandler::processActionInput(const InputService& input) {
 
     // Backward shooting with B
     if (input.isKeyPressed(sf::Keyboard::B)) {
+        AudioManager::instance().playSound("shoot");
         if (auto* weaponSystem = m_player.getWeaponSystem()) {
             weaponSystem->shootBackward();
         }
@@ -40,6 +43,7 @@ void PlayerInputHandler::processActionInput(const InputService& input) {
 
     // Special gravity shot with F (left-upward)
     if (input.isKeyPressed(sf::Keyboard::F)) {
+        AudioManager::instance().playSound("shoot");
         if (auto* weaponSystem = m_player.getWeaponSystem()) {
             weaponSystem->shootSpecialGravity();
         }
@@ -47,6 +51,7 @@ void PlayerInputHandler::processActionInput(const InputService& input) {
     
     // Forward gravity shot with V
     if (input.isKeyPressed(sf::Keyboard::V)) {
+        AudioManager::instance().playSound("shoot");
         if (auto* weaponSystem = m_player.getWeaponSystem()) {
             weaponSystem->shootForwardGravity();
         }

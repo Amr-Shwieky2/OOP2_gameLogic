@@ -58,7 +58,7 @@ void ProjectileEntity::setupComponents(b2World& world, float x, float y,
             fixture->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
             
             // Make projectiles bounce less off surfaces
-            fixture->SetRestitution(0.2f);
+            fixture->SetRestitution(0);
             fixture->SetFriction(0.1f);
             
             // Lower density for better physics

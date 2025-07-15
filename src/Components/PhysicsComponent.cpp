@@ -3,6 +3,7 @@
 #include "Transform.h"
 #include "Constants.h"
 #include <CollisionComponent.h>
+#include <AudioManager.h>
 
 PhysicsComponent::PhysicsComponent(b2World& world, b2BodyType type)
     : m_world(world) {
@@ -80,6 +81,7 @@ void PhysicsComponent::applyForce(float x, float y) {
 
 void PhysicsComponent::applyImpulse(float x, float y) {
     if (m_body) {
+        AudioManager::instance().playSound("jump");
         m_body->ApplyLinearImpulseToCenter(b2Vec2(x, y), true);
     }
 }

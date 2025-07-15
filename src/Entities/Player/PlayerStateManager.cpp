@@ -10,6 +10,7 @@
 #include "EventSystem.h"
 #include "GameEvents.h"
 #include <iostream>
+#include <AudioManager.h>
 
 PlayerStateManager::PlayerStateManager(PlayerEntity& player)
     : m_player(player), m_currentState(nullptr) {

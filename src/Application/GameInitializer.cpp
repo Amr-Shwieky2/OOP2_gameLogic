@@ -46,15 +46,31 @@ void GameInitializer::initializeAudioSystem() {
 }
 
 void GameInitializer::loadDefaultAudioFiles() {
-    auto& audioManager = AudioManager::instance();
+    auto& audio = AudioManager::instance();
 
-    if (audioManager.loadMusic("loading_music", "intro.wav")) {
-        Logger::log("Loading music loaded successfully");
-    }
-    else {
-        Logger::log("Warning: Could not load  music", LogLevel::Warning);
-    }
+    // Music
+    audio.loadMusic("loading_music", "intro.wav");
+    audio.loadMusic("gameplay", "play_music.wav");
+
+    // Sound Effects
+    audio.loadSound("coin", "coin-received.wav");
+    audio.loadSound("jump", "jump.wav");
+    audio.loadSound("falcon", "falcon.wav");
+    audio.loadSound("gameover", "GameOver.wav");
+    audio.loadSound("kill", "kill-enemy.wav");
+    audio.loadSound("lostlife", "lost-life.wav");
+    audio.loadSound("openbox", "open-box.wav");
+    audio.loadSound("win", "win.wav");
+    audio.loadSound("well", "well.wav");
+    audio.loadSound("gifts", "gifts.wav");
+    audio.loadSound("shoot", "shoot.wav");
+    audio.loadSound("pushbox", "push_box.wav");
+
+
+    Logger::log("All default audio files loaded");
 }
+
+
 
 void GameInitializer::setDefaultAudioVolumes() {
     AudioSettings settings;
