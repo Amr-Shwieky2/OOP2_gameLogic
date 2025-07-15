@@ -9,13 +9,14 @@
 
 std::unique_ptr<ShieldedState> ShieldedState::s_instance = nullptr;
 
+//-------------------------------------------------------------------------------------
 PlayerState* ShieldedState::getInstance() {
     if (!s_instance) {
         s_instance = std::unique_ptr<ShieldedState>(new ShieldedState());
     }
     return s_instance.get();
 }
-
+//-------------------------------------------------------------------------------------
 void ShieldedState::enter(PlayerEntity& player) {
     std::cout << "[State] Entering Shielded state" << std::endl;
     m_duration = 7.0f;
@@ -31,7 +32,7 @@ void ShieldedState::enter(PlayerEntity& player) {
         health->setInvulnerable(true);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void ShieldedState::exit(PlayerEntity& player) {
     std::cout << "[State] Exiting Shielded state" << std::endl;
 
@@ -45,18 +46,18 @@ void ShieldedState::exit(PlayerEntity& player) {
         render->getSprite().setColor(sf::Color::White);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void ShieldedState::update(PlayerEntity& player, float dt) {
     m_duration -= dt;
 
     if (m_duration <= 0) {
-        // FIXED:
         if (auto* stateManager = player.getStateManager()) {
             stateManager->changeState(NormalState::getInstance());
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void ShieldedState::handleInput(PlayerEntity& player, const InputService& input) {
     NormalState::getInstance()->handleInput(player, input);
 }
+//-------------------------------------------------------------------------------------

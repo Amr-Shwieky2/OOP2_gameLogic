@@ -8,14 +8,14 @@
 #include <iostream>
 
 std::unique_ptr<NormalState> NormalState::s_instance = nullptr;
-
+//-------------------------------------------------------------------------------------
 PlayerState* NormalState::getInstance() {
     if (!s_instance) {
         s_instance = std::unique_ptr<NormalState>(new NormalState());
     }
     return s_instance.get();
 }
-
+//-------------------------------------------------------------------------------------
 void NormalState::enter(PlayerEntity& player) {
     std::cout << "[State] Entering Normal state" << std::endl;
 
@@ -34,15 +34,13 @@ void NormalState::enter(PlayerEntity& player) {
         health->setInvulnerable(false);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void NormalState::exit(PlayerEntity&) {
-    // Nothing special to do when leaving normal state
 }
-
+//-------------------------------------------------------------------------------------
 void NormalState::update(PlayerEntity& , float ) {
-    // Normal state has no special update logic
 }
-
+//-------------------------------------------------------------------------------------
 void NormalState::handleInput(PlayerEntity& player, const InputService& input) {
     auto* physics = player.getComponent<PhysicsComponent>();
     if (!physics) return;
@@ -65,6 +63,5 @@ void NormalState::handleInput(PlayerEntity& player, const InputService& input) {
     if (input.isKeyPressed(sf::Keyboard::Up) && player.isOnGround()) {
         physics->applyImpulse(0, -PLAYER_JUMP_IMPULSE);
     }
-
-    // Note: Shooting is now handled by PlayerInputHandler, not states
 }
+//-------------------------------------------------------------------------------------

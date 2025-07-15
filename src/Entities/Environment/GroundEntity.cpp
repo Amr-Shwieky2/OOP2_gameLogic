@@ -3,15 +3,15 @@
 #include "PhysicsComponent.h"
 #include "RenderComponent.h"
 #include "CollisionComponent.h"
-#include "Constants.h"
+#include "Constants.h"\
 
-
+//-------------------------------------------------------------------------------------
 GroundEntity::GroundEntity(IdType id, TileType type, b2World& world, float x, float y, TextureManager& textures)
     : Entity(id)
     , m_tileType(type) {
     setupComponents(type, world, x, y, textures);
 }
-
+//-------------------------------------------------------------------------------------
 void GroundEntity::setupComponents(TileType type, b2World& world, float x, float y, TextureManager& textures) {
     std::string textureName = getTextureNameForType(type);
     sf::Texture& texture = textures.getResource(textureName);
@@ -47,7 +47,7 @@ void GroundEntity::setupComponents(TileType type, b2World& world, float x, float
 
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Ground);
 }
-
+//-------------------------------------------------------------------------------------
 std::string GroundEntity::getTextureNameForType(TileType type) const {
     switch (type) {
     case TileType::Ground:  return "ground.png";
@@ -58,3 +58,4 @@ std::string GroundEntity::getTextureNameForType(TileType type) const {
     default:                return "ground.png";
     }
 }
+//-------------------------------------------------------------------------------------

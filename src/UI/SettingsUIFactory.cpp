@@ -1,6 +1,7 @@
 ﻿#include "SettingsUIFactory.h"
 #include "Slider.h"
 
+//-------------------------------------------------------------------------------------
 sf::Text SettingsUIFactory::createTitle(const sf::String& text, sf::Vector2f position,
     const sf::Font& font, const UITheme::Colors& colors) {
 
@@ -14,7 +15,7 @@ sf::Text SettingsUIFactory::createTitle(const sf::String& text, sf::Vector2f pos
 
     return title;
 }
-
+//-------------------------------------------------------------------------------------
 sf::Text SettingsUIFactory::createLabel(const sf::String& text, sf::Vector2f position,
     const sf::Font& font, const UITheme::Colors& colors, int characterSize) {
 
@@ -27,7 +28,7 @@ sf::Text SettingsUIFactory::createLabel(const sf::String& text, sf::Vector2f pos
 
     return label;
 }
-
+//-------------------------------------------------------------------------------------
 SettingsUIFactory::VolumeControls SettingsUIFactory::createVolumeControl(
     const sf::String& labelText,
     sf::Vector2f position,
@@ -56,3 +57,4 @@ SettingsUIFactory::VolumeControls SettingsUIFactory::createVolumeControl(
 
     return control;
 }
+//-------------------------------------------------------------------------------------

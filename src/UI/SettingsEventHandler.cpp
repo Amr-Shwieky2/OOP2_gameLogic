@@ -4,12 +4,13 @@
 #include <Application/AppContext.h>
 #include <iostream>
 
+//-------------------------------------------------------------------------------------
 SettingsEventHandler::SettingsEventHandler() {}
-
+//-------------------------------------------------------------------------------------
 SettingsEventHandler::~SettingsEventHandler() {
     cleanup();
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventHandler::cleanup() {
     try {
         if (m_volumePanel) {
@@ -20,13 +21,13 @@ void SettingsEventHandler::cleanup() {
         std::cout << "Error during cleanup: " << e.what() << std::endl;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventHandler::setVolumePanel(std::shared_ptr<VolumeControlPanel> panel) {
     if (panel) {
         m_volumePanel = panel;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventHandler::handleEvents(sf::RenderWindow& window) {
     sf::Event event;
     while (window.pollEvent(event)) {
@@ -39,10 +40,6 @@ void SettingsEventHandler::handleEvents(sf::RenderWindow& window) {
             std::cout << "Error handling event: " << e.what() << std::endl;
             window.close();
         }
-        catch (...) {
-            std::cout << "Unknown error handling event" << std::endl;
-            window.close();
-        }
     }
 
     // Detect Escape polling (just in case)
@@ -51,14 +48,14 @@ void SettingsEventHandler::handleEvents(sf::RenderWindow& window) {
         processEscapeKey();
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventHandler::handleWindowEvents(sf::RenderWindow& window, const sf::Event& event) {
     if (event.type == sf::Event::Closed) {
         std::cout << "Window close event received" << std::endl;
         window.close();
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventHandler::handleKeyboardEvents(const sf::Event& event) {
     if (!isValidKeyboardEvent(event)) return;
 
@@ -67,7 +64,7 @@ void SettingsEventHandler::handleKeyboardEvents(const sf::Event& event) {
         handleKeyPressEvents(event);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventHandler::handleKeyPressEvents(const sf::Event& event) {
     std::cout << "Processing key code: " << event.key.code << std::endl;
 
@@ -81,7 +78,7 @@ void SettingsEventHandler::handleKeyPressEvents(const sf::Event& event) {
         break;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventHandler::handleMouseEvents(const sf::Event& event) {
     if (!isValidMouseEvent(event)) return;
 
@@ -102,7 +99,7 @@ void SettingsEventHandler::handleMouseEvents(const sf::Event& event) {
         break;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventHandler::handleMouseMoveEvents(const sf::Event& event) {
     delegateMouseEventToComponents(event);
 }
@@ -114,13 +111,13 @@ void SettingsEventHandler::handleMousePressEvents(const sf::Event& event) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventHandler::handleMouseReleaseEvents(const sf::Event& event) {
     if (event.mouseButton.button == sf::Mouse::Left) {
         delegateMouseEventToComponents(event);
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsEventHandler::delegateMouseEventToComponents(const sf::Event& event) {
     try {
         if (m_volumePanel) {
@@ -134,13 +131,13 @@ bool SettingsEventHandler::delegateMouseEventToComponents(const sf::Event& event
 
     return false;
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventHandler::processEscapeKey() {
     std::cout << "Escape key pressed - issuing ChangeScreenCommand to MENU" << std::endl;
     auto command = std::make_unique<ChangeScreenCommand>(ScreenType::MENU, ScreenType::SETTINGS);
     AppContext::instance().commandInvoker().execute(std::move(command));
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsEventHandler::isValidMouseEvent(const sf::Event& event) const {
     switch (event.type) {
     case sf::Event::MouseMoved:
@@ -151,7 +148,7 @@ bool SettingsEventHandler::isValidMouseEvent(const sf::Event& event) const {
         return false;
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsEventHandler::isValidKeyboardEvent(const sf::Event& event) const {
     switch (event.type) {
     case sf::Event::KeyPressed:
@@ -161,3 +158,4 @@ bool SettingsEventHandler::isValidKeyboardEvent(const sf::Event& event) const {
         return false;
     }
 }
+//-------------------------------------------------------------------------------------

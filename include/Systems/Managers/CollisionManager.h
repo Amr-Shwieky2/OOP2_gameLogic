@@ -13,7 +13,6 @@ public:
     CollisionManager();
 
     void setupGameCollisionHandlers();
-    void setupCollisionHandlers(); // For GameCollisionSetup compatibility
     void checkCollisions(EntityManager& entityManager);
     void clearHandlers();
 

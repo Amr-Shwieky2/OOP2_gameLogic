@@ -1,5 +1,4 @@
-﻿// MagneticState.cpp - Complete fix for refactored PlayerEntity
-#include "MagneticState.h"
+﻿#include "MagneticState.h"
 #include "NormalState.h"
 #include "PlayerEntity.h"
 #include "PlayerStateManager.h"
@@ -19,13 +18,14 @@ extern GameSession* g_currentSession;
 
 std::unique_ptr<MagneticState> MagneticState::s_instance = nullptr;
 
+//-------------------------------------------------------------------------------------
 PlayerState* MagneticState::getInstance() {
     if (!s_instance) {
         s_instance = std::unique_ptr<MagneticState>(new MagneticState());
     }
     return s_instance.get();
 }
-
+//-------------------------------------------------------------------------------------
 void MagneticState::enter(PlayerEntity& player) {
     std::cout << "[State] Entering Magnetic state" << std::endl;
     m_duration = 6.0f;
@@ -43,7 +43,7 @@ void MagneticState::enter(PlayerEntity& player) {
         visualEffects->setStateColor(sf::Color(255, 200, 150));
     }
 }
-
+//-------------------------------------------------------------------------------------
 void MagneticState::exit(PlayerEntity& player) {
     std::cout << "[State] Exiting Magnetic state" << std::endl;
 
@@ -73,7 +73,7 @@ void MagneticState::exit(PlayerEntity& player) {
     }
     m_attractedCoins.clear();
 }
-
+//-------------------------------------------------------------------------------------
 void MagneticState::update(PlayerEntity& player, float dt) {
     m_duration -= dt;
     m_attractTimer += dt;
@@ -175,8 +175,8 @@ void MagneticState::update(PlayerEntity& player, float dt) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void MagneticState::handleInput(PlayerEntity& player, const InputService& input) {
-    // Delegate movement to normal state behavior
     NormalState::getInstance()->handleInput(player, input);
 }
+//-------------------------------------------------------------------------------------

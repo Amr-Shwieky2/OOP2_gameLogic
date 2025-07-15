@@ -12,7 +12,7 @@ enum class WeaponType {
 };
 
 /**
- * PlayerWeaponSystem - Single Responsibility: Handle player weapons and shooting
+ * PlayerWeaponSystem -Single Responsibility: Handle player weapons and shooting
  */
 class PlayerWeaponSystem {
 public:
@@ -20,9 +20,9 @@ public:
 
     void update(float dt);
     void shoot();
-    void shootBackward(); // New method for shooting backward
-    void shootSpecialGravity(); // Method for shooting with gravity
-    void shootForwardGravity(); // Method for shooting with gravity forward
+    void shootBackward(); 
+    void shootSpecialGravity(); 
+    void shootForwardGravity(); 
     void setWeaponType(WeaponType type);
     bool canShoot() const;
 
@@ -38,6 +38,6 @@ private:
     WeaponType m_weaponType = WeaponType::Basic;
 
     void createProjectile(const sf::Vector2f& position, const sf::Vector2f& direction);
-    void createGravityProjectile(const sf::Vector2f& position, const sf::Vector2f& direction); // Method for gravity projectiles
+    void createGravityProjectile(const sf::Vector2f& position, const sf::Vector2f& direction); 
     float getCooldownForWeapon(WeaponType type) const;
 };

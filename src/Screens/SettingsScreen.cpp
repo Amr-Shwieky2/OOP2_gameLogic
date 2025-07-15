@@ -6,6 +6,7 @@
 #include "GameExceptions.h"
 #include <Services/GameExceptions.h>
 
+//-------------------------------------------------------------------------------------
 SettingsScreen::SettingsScreen() {
     try {
         SettingsInitializer::InitResult init = SettingsInitializer::initialize();
@@ -27,7 +28,7 @@ SettingsScreen::SettingsScreen() {
         m_isInitialized = false;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsScreen::handleEvents(sf::RenderWindow& window) {
     if (!m_isInitialized) return;
 
@@ -50,8 +51,7 @@ void SettingsScreen::handleEvents(sf::RenderWindow& window) {
         }
     }
 }
-
-
+//-------------------------------------------------------------------------------------
 void SettingsScreen::update(float deltaTime) {
     if (!m_isInitialized) return;
 
@@ -63,7 +63,7 @@ void SettingsScreen::update(float deltaTime) {
         std::cout << "Runtime error in Update: " << e.what() << std::endl;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsScreen::render(sf::RenderWindow& window) {
     if (!m_isInitialized) return;
 
@@ -81,7 +81,7 @@ void SettingsScreen::render(sf::RenderWindow& window) {
         std::cout << "Runtime error in Render: " << e.what() << std::endl;
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsScreen::delegateMouseEvents(const sf::Event& event) {
     if (m_volumePanel) {
         try {
@@ -93,29 +93,29 @@ bool SettingsScreen::delegateMouseEvents(const sf::Event& event) {
     }
     return false;
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsScreen::onEnter() {
     if (m_uiRenderer) {
         m_uiRenderer->setAnimationSpeed(1.0f);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsScreen::onExit() {
-    // Nothing here – autosave handled elsewhere
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsScreen::hasUnsavedChanges() const {
     return m_volumePanel && m_volumePanel->hasChanged();
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsScreen::enableAutoSave(bool enable) {
     if (m_commandHandler) {
         m_commandHandler->enableAutoSave(enable);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsScreen::setAnimationSpeed(float speed) {
     if (m_uiRenderer) {
         m_uiRenderer->setAnimationSpeed(speed);
     }
 }
+//-------------------------------------------------------------------------------------

@@ -1,16 +1,15 @@
-﻿// BoxEntity.cpp
-#include "BoxEntity.h"
+﻿#include "BoxEntity.h"
 #include "Transform.h"
 #include "PhysicsComponent.h"
 #include "RenderComponent.h"
 #include "CollisionComponent.h"
 #include "Constants.h"
-
+//-------------------------------------------------------------------------------------
 BoxEntity::BoxEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : Entity(id) {
     setupComponents(world, x, y, textures);
 }
-
+//-------------------------------------------------------------------------------------
 void BoxEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
     // Position centered in tile
     float centerX = x + TILE_SIZE / 2.f;
@@ -46,8 +45,7 @@ void BoxEntity::setupComponents(b2World& world, float x, float y, TextureManager
 
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Obstacle);
 }
-
-// Override update to ensure visual sync
+//-------------------------------------------------------------------------------------
 void BoxEntity::update(float dt) {
     Entity::update(dt);
 
@@ -62,3 +60,4 @@ void BoxEntity::update(float dt) {
         render->getSprite().setPosition(pos);
     }
 }
+//-------------------------------------------------------------------------------------

@@ -8,7 +8,7 @@
 #include"PlayerWeaponSystem.h"
 
 /**
- * PlayerEntity - Now only responsible for:
+ * PlayerEntity -  only responsible for:
  * - Being a player entity
  * - Coordinating its subsystems
  * - Basic entity lifecycle

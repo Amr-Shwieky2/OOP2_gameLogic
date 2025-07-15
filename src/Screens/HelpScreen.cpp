@@ -3,6 +3,7 @@
 #include "AudioManager.h"
 #include <Application/AppContext.h>
 
+//-------------------------------------------------------------------------------------
 HelpScreen::HelpScreen() {
     try {
         m_backgroundTexture = AppContext::instance().getTexture("HelpScreen.png");
@@ -16,11 +17,11 @@ HelpScreen::HelpScreen() {
             m_backgroundSprite.setScale(scaleX, scaleY);
         }
     }
-    catch (...) {
+    catch (const std::exception& e) {
         std::cout << "Error: Could not load HelpScreen.png!" << std::endl;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void HelpScreen::handleEvents(sf::RenderWindow& window) {
     sf::Event event;
     while (window.pollEvent(event)) {
@@ -35,10 +36,11 @@ void HelpScreen::handleEvents(sf::RenderWindow& window) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void HelpScreen::update(float deltaTime) {
 }
-
+//-------------------------------------------------------------------------------------
 void HelpScreen::render(sf::RenderWindow& window) {
     window.draw(m_backgroundSprite);
 }
+//-------------------------------------------------------------------------------------

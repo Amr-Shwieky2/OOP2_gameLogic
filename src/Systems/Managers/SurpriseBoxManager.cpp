@@ -1,5 +1,4 @@
-﻿// SurpriseBoxManager.cpp
-#include "SurpriseBoxManager.h"
+﻿#include "SurpriseBoxManager.h"
 #include "EntityManager.h"
 #include "EntityFactory.h"
 #include "PlayerEntity.h"
@@ -13,7 +12,7 @@
 #include "GameEvents.h"
 #include <iostream>
 
-
+//-------------------------------------------------------------------------------------
 SurpriseBoxManager::SurpriseBoxManager(TextureManager& textures, sf::RenderWindow& window)
     : m_textures(textures)
     , m_window(&window)
@@ -29,27 +28,22 @@ SurpriseBoxManager::SurpriseBoxManager(TextureManager& textures, sf::RenderWindo
         }
     );
 }
-
+//-------------------------------------------------------------------------------------
 SurpriseBoxManager::~SurpriseBoxManager() {
     reset();
 }
-
+//-------------------------------------------------------------------------------------
 bool SurpriseBoxManager::shouldTriggerSurprise() const {
-    // Trigger every 5 coins
-    return (m_coinsCollected > 0) && (m_coinsCollected % 5 == 0) && (m_coinsCollected != m_lastTriggerCoin);
+    return (m_coinsCollected > 0) && (m_coinsCollected % 7 == 0) && (m_coinsCollected != m_lastTriggerCoin);
 }
-
+//-------------------------------------------------------------------------------------
 void SurpriseBoxManager::onCoinCollected() {
     m_coinsCollected++;
-
-    std::cout << "[SurpriseBox] Coins collected: " << m_coinsCollected
-        << " (Need " << (5 - (m_coinsCollected % 5)) << " more for surprise)" << std::endl;
-
     if (shouldTriggerSurprise()) {
         triggerSurprise();
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SurpriseBoxManager::triggerSurprise() {
     if (!m_player || !m_entityManager || !m_world || !m_window) {
         std::cerr << "[SurpriseBox] Cannot trigger - missing dependencies" << std::endl;
@@ -59,8 +53,6 @@ void SurpriseBoxManager::triggerSurprise() {
         std::cerr << "  Window: " << (m_window ? "OK" : "NULL") << std::endl;
         return;
     }
-
-    std::cout << "[SurpriseBox] Triggering surprise box after " << m_coinsCollected << " coins!" << std::endl;
 
     // Mark this trigger point
     m_lastTriggerCoin = m_coinsCollected;
@@ -82,10 +74,8 @@ void SurpriseBoxManager::triggerSurprise() {
 
     // Spawn the selected gift
     spawnGiftEntity(selectedGift, spawnPos);
-
-    std::cout << "[SurpriseBox] Next surprise at " << (m_coinsCollected + 5) << " coins" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void SurpriseBoxManager::spawnGiftEntity(SurpriseGiftType giftType, const sf::Vector2f& position) {
     if (!m_entityManager || !m_world) {
         std::cerr << "[SurpriseBox] Cannot spawn gift - missing entity manager or world" << std::endl;
@@ -153,27 +143,21 @@ void SurpriseBoxManager::spawnGiftEntity(SurpriseGiftType giftType, const sf::Ve
             // Store entity pointer for collision detection
             body->GetUserData().pointer = reinterpret_cast<uintptr_t>(giftEntity.get());
         }
-
-        std::cout << "[SurpriseBox] Spawning " << giftName << " at position ("
-            << position.x << ", " << position.y << ")" << std::endl;
-
         // Add to entity manager
         m_entityManager->addEntity(std::move(giftEntity));
 
-        std::cout << "[SurpriseBox] Gift spawned successfully!" << std::endl;
 
     }
     catch (const std::exception& e) {
         std::cerr << "[SurpriseBox] Error spawning gift: " << e.what() << std::endl;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SurpriseBoxManager::reset() {
     m_player = nullptr;
     m_entityManager = nullptr;
     m_world = nullptr;
     m_lastTriggerCoin = -1;
     m_coinsCollected = 0;
-
-    std::cout << "[SurpriseBox] Reset completed." << std::endl;
 }
+//-------------------------------------------------------------------------------------

@@ -6,7 +6,6 @@
 #include <random>
 #include "ResourceManager.h"
 
-// Forward declarations
 using TextureManagerType = ResourceManager<sf::Texture>;
 
 // Gift types that can be obtained from surprise box

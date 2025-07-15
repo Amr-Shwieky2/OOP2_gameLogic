@@ -1,5 +1,4 @@
-﻿// SurpriseBoxManager.h
-#pragma once  
+﻿#pragma once  
 #include <SFML/Graphics.hpp>  
 #include <functional>  
 #include <memory>  
@@ -9,7 +8,6 @@
 #include "Entity.h"
 #include <box2d/b2_body.h>
  
-// Forward declarations  
 class EntityManager;
 class PlayerEntity;
 

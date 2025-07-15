@@ -4,12 +4,12 @@
 #include "RenderComponent.h"
 #include "CollisionComponent.h"
 #include "Constants.h"
-
+//-------------------------------------------------------------------------------------
 CactusEntity::CactusEntity(IdType id, b2World& world, float x, float y, TextureManager& textures)
     : Entity(id) {
     setupComponents(world, x, y, textures);
 }
-
+//-------------------------------------------------------------------------------------
 void CactusEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
     constexpr float bodyWidth = TILE_SIZE * 0.4f;  
     constexpr float bodyHeight = TILE_SIZE * 0.6f;  
@@ -43,3 +43,4 @@ void CactusEntity::setupComponents(b2World& world, float x, float y, TextureMana
 
     addComponent<CollisionComponent>(CollisionComponent::CollisionType::Hazard);
 }
+//-------------------------------------------------------------------------------------

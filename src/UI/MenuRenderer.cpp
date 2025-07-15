@@ -4,10 +4,11 @@
 #include "../../include/Application/AppContext.h"
 #include <iostream>
 
+//-------------------------------------------------------------------------------------
 MenuRenderer::MenuRenderer() {
     std::cout << "MenuRenderer: Initialized for rendering only" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 bool MenuRenderer::initializeResources() {
     std::cout << "MenuRenderer: Loading visual resources..." << std::endl;
 
@@ -26,10 +27,9 @@ bool MenuRenderer::initializeResources() {
     }
     m_resourcesLoaded = true;
 
-    std::cout << "MenuRenderer: Resources loaded successfully" << std::endl;
     return success;
 }
-
+//-------------------------------------------------------------------------------------
 bool MenuRenderer::loadFont() {
     try {
         m_font = AppContext::instance().getFont("arial.ttf");
@@ -39,7 +39,7 @@ bool MenuRenderer::loadFont() {
         return false; 
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool MenuRenderer::loadBackgroundTexture() {
     try {
         m_backgroundTexture = AppContext::instance().getTexture("MenuScreen.png");
@@ -50,7 +50,7 @@ bool MenuRenderer::loadBackgroundTexture() {
         return false;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void MenuRenderer::createFallbackBackground() {
     // Create gradient background if image fails to load
     const int width = 1400, height = 800;
@@ -72,7 +72,7 @@ void MenuRenderer::createFallbackBackground() {
     m_backgroundSprite.setTexture(m_backgroundTexture);
     delete[] pixels;
 }
-
+//-------------------------------------------------------------------------------------
 void MenuRenderer::scaleBackgroundToWindow() {
     sf::Vector2u textureSize = m_backgroundTexture.getSize();
     if (textureSize.x > 0 && textureSize.y > 0) {
@@ -82,13 +82,14 @@ void MenuRenderer::scaleBackgroundToWindow() {
         m_backgroundSprite.setScale(scaleX, scaleY);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void MenuRenderer::renderBackground(sf::RenderWindow& window) {
     if (hasValidResources()) {
         window.draw(m_backgroundSprite);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void MenuRenderer::renderButtons(sf::RenderWindow& window, MenuButtonManager& buttonManager) {
     buttonManager.renderButtons(window);
 }
+//-------------------------------------------------------------------------------------

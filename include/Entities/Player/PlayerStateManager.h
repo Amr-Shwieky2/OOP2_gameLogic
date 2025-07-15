@@ -5,7 +5,7 @@
 class PlayerEntity;
 
 /**
- * PlayerStateManager - Single Responsibility: Manage player state transitions
+ * PlayerStateManager -Single Responsibility: Manage player state transitions
  */
 class PlayerStateManager {
 public:

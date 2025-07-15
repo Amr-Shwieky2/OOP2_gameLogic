@@ -1,7 +1,7 @@
-﻿// UIObserver.cpp
-#include "UIObserver.h"
+﻿#include "UIObserver.h"
 #include <sstream>
 
+//-------------------------------------------------------------------------------------
 UIObserver::UIObserver(sf::Font& font)
     : m_font(font) {
     m_notificationText.setFont(m_font);
@@ -9,12 +9,10 @@ UIObserver::UIObserver(sf::Font& font)
     m_notificationText.setOutlineThickness(2.0f);
     m_notificationText.setOutlineColor(sf::Color::Black);
 }
-
+//-------------------------------------------------------------------------------------
 UIObserver::~UIObserver() {
-    // Unsubscribe from all events
-    // (EventSystem will handle cleanup)
 }
-
+//-------------------------------------------------------------------------------------
 void UIObserver::initialize() {
     auto& eventSystem = EventSystem::getInstance();
 
@@ -40,7 +38,7 @@ void UIObserver::initialize() {
         }
     );
 }
-
+//-------------------------------------------------------------------------------------
 void UIObserver::update(float dt) {
     m_animationTimer += dt;
 
@@ -54,7 +52,7 @@ void UIObserver::update(float dt) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void UIObserver::render(sf::RenderWindow& window) {
     if (!m_notifications.empty()) {
         const auto& notification = m_notifications.front();
@@ -82,7 +80,7 @@ void UIObserver::render(sf::RenderWindow& window) {
         window.draw(m_notificationText);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void UIObserver::onScoreChanged(const ScoreChangedEvent& event) {
     std::stringstream ss;
     ss << "+" << event.delta << " points!";
@@ -102,7 +100,7 @@ void UIObserver::onItemCollected(const ItemCollectedEvent& event) {
         break;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void UIObserver::onPlayerStateChanged(const PlayerStateChangedEvent& event) {
     if (event.newStateName == "Shielded") {
         addNotification("Shield activated!", sf::Color::Cyan);
@@ -111,11 +109,11 @@ void UIObserver::onPlayerStateChanged(const PlayerStateChangedEvent& event) {
         addNotification("Speed boost!", sf::Color(255, 165, 0)); // Orange
     }
 }
-
+//-------------------------------------------------------------------------------------
 void UIObserver::onEnemyKilled(const EnemyKilledEvent& ) {
     addNotification("Enemy defeated!", sf::Color::Red);
 }
-
+//-------------------------------------------------------------------------------------
 void UIObserver::addNotification(const std::string& text, sf::Color color) {
     // Only keep one notification at a time for simplicity
     while (!m_notifications.empty()) {
@@ -130,3 +128,4 @@ void UIObserver::addNotification(const std::string& text, sf::Color color) {
     m_notifications.push(notif);
     m_animationTimer = 0.0f; // Reset animation
 }
+//-------------------------------------------------------------------------------------

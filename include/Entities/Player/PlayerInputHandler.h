@@ -4,7 +4,7 @@
 class PlayerEntity;
 
 /**
- * PlayerInputHandler - Single Responsibility: Process player input
+ * PlayerInputHandler -Single Responsibility: Process player input
  */
 class PlayerInputHandler {
 public:

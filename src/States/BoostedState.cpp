@@ -10,13 +10,14 @@
 
 std::unique_ptr<BoostedState> BoostedState::s_instance = nullptr;
 
+//-------------------------------------------------------------------------------------
 PlayerState* BoostedState::getInstance() {
     if (!s_instance) {
         s_instance = std::unique_ptr<BoostedState>(new BoostedState());
     }
     return s_instance.get();
 }
-
+//-------------------------------------------------------------------------------------
 void BoostedState::enter(PlayerEntity& player) {
     std::cout << "[State] Entering Boosted state" << std::endl;
     m_duration = 8.0f;
@@ -26,7 +27,7 @@ void BoostedState::enter(PlayerEntity& player) {
         visualEffects->setStateColor(sf::Color(255, 255, 200));
     }
 }
-
+//-------------------------------------------------------------------------------------
 void BoostedState::exit(PlayerEntity& player) {
     std::cout << "[State] Exiting Boosted state" << std::endl;
 
@@ -35,7 +36,7 @@ void BoostedState::exit(PlayerEntity& player) {
         visualEffects->setStateColor(sf::Color::White);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void BoostedState::update(PlayerEntity& player, float dt) {
     m_duration -= dt;
 
@@ -51,7 +52,7 @@ void BoostedState::update(PlayerEntity& player, float dt) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void BoostedState::handleInput(PlayerEntity& player, const InputService& input) {
     auto* physics = player.getComponent<PhysicsComponent>();
     if (!physics) return;
@@ -75,3 +76,4 @@ void BoostedState::handleInput(PlayerEntity& player, const InputService& input) 
         physics->applyImpulse(0, -PLAYER_JUMP_IMPULSE * 1.2f);
     }
 }
+//-------------------------------------------------------------------------------------

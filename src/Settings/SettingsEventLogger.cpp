@@ -3,23 +3,17 @@
 #include <iomanip>
 #include <sstream>
 #include <chrono>
-#include <ctime>  // for localtime_s and localtime_r
+#include <ctime>  
 
+//-------------------------------------------------------------------------------------
 SettingsEventLogger::SettingsEventLogger() {
-    std::cout << "SettingsEventLogger: Initialized for event logging only" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 SettingsEventLogger::~SettingsEventLogger() {
-    try {
-        std::cout << "SettingsEventLogger: Starting safe destruction..." << std::endl;
-        closeLogFile();
-        std::cout << "SettingsEventLogger: Destroyed and log file closed safely" << std::endl;
-    }
-    catch (...) {
-        // Silent cleanup - don't throw in destructor
-    }
-}
+    closeLogFile();
 
+}
+//-------------------------------------------------------------------------------------
 void SettingsEventLogger::logCommandExecution(const std::string& commandName, bool success) {
     std::string status = success ? "SUCCESS" : "FAILED";
     writeLog(LogLevel::INFO, "COMMAND", commandName + " - " + status);
@@ -27,7 +21,7 @@ void SettingsEventLogger::logCommandExecution(const std::string& commandName, bo
 
 void SettingsEventLogger::logInputEvent(const sf::Event& event) {
     if (m_currentLogLevel > LogLevel::DEBUG) {
-        return; // Skip if debug logging is disabled
+        return; 
     }
 
     std::string eventInfo = "Type: " + eventTypeToString(event.type);
@@ -41,15 +35,15 @@ void SettingsEventLogger::logInputEvent(const sf::Event& event) {
 
     writeLog(LogLevel::DEBUG, "INPUT", eventInfo);
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventLogger::logAutoSaveAction(const std::string& action) {
     writeLog(LogLevel::INFO, "AUTO-SAVE", action);
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventLogger::logError(const std::string& operation, const std::string& error) {
     writeLog(LogLevel::ERROR, operation, error);
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventLogger::enableFileLogging(bool enable) {
     m_fileLoggingEnabled = enable;
 
@@ -62,13 +56,13 @@ void SettingsEventLogger::enableFileLogging(bool enable) {
         closeLogFile();
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventLogger::enableConsoleLogging(bool enable) {
     m_consoleLoggingEnabled = enable;
     std::cout << "SettingsEventLogger: Console logging "
         << (enable ? "enabled" : "disabled") << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventLogger::setLogLevel(LogLevel level) {
     m_currentLogLevel = level;
     writeLog(LogLevel::INFO, "LOGGER", "Log level set to " + logLevelToString(level));
@@ -85,11 +79,11 @@ void SettingsEventLogger::printSettingsState() {
 
     std::cout << std::string(40, '=') << "\n" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventLogger::printCommandHistory() {
     writeLog(LogLevel::INFO, "LOGGER", "Command history requested - delegating to CommandInvoker");
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventLogger::writeLog(LogLevel level, const std::string& category, const std::string& message) {
     // Check if we should log this level
     if (level < m_currentLogLevel) {
@@ -106,7 +100,7 @@ void SettingsEventLogger::writeLog(LogLevel level, const std::string& category, 
         printToFile(level, category, message);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventLogger::openLogFile() {
     try {
         m_logFile = std::make_unique<std::ofstream>("settings_log.txt", std::ios::app);
@@ -123,7 +117,7 @@ void SettingsEventLogger::openLogFile() {
         std::cout << "SettingsEventLogger: Error opening log file: " << e.what() << std::endl;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventLogger::closeLogFile() {
     if (m_logFile && m_logFile->is_open()) {
         *m_logFile << "Settings Event Logger Session Ended: " << getCurrentTimestamp() << std::endl;
@@ -131,7 +125,7 @@ void SettingsEventLogger::closeLogFile() {
         m_logFile->close();
     }
 }
-
+//-------------------------------------------------------------------------------------
 std::string SettingsEventLogger::getCurrentTimestamp() const {
     auto now = std::chrono::system_clock::now();
     auto time_t = std::chrono::system_clock::to_time_t(now);
@@ -152,7 +146,7 @@ std::string SettingsEventLogger::getCurrentTimestamp() const {
 
     return ss.str();
 }
-
+//-------------------------------------------------------------------------------------
 std::string SettingsEventLogger::logLevelToString(LogLevel level) const {
     switch (level) {
     case LogLevel::INFO: return "INFO";
@@ -162,7 +156,7 @@ std::string SettingsEventLogger::logLevelToString(LogLevel level) const {
     default: return "UNKNOWN";
     }
 }
-
+//-------------------------------------------------------------------------------------
 std::string SettingsEventLogger::eventTypeToString(sf::Event::EventType type) const {
     switch (type) {
     case sf::Event::KeyPressed: return "KeyPressed";
@@ -174,7 +168,7 @@ std::string SettingsEventLogger::eventTypeToString(sf::Event::EventType type) co
     default: return "Other";
     }
 }
-
+//-------------------------------------------------------------------------------------
 std::string SettingsEventLogger::keyCodeToString(sf::Keyboard::Key key) const {
     switch (key) {
     case sf::Keyboard::Escape: return "Escape";
@@ -187,11 +181,11 @@ std::string SettingsEventLogger::keyCodeToString(sf::Keyboard::Key key) const {
     default: return "Key" + std::to_string(static_cast<int>(key));
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventLogger::printToConsole(LogLevel level, const std::string& category, const std::string& message) {
     std::cout << "[" << logLevelToString(level) << "][" << category << "] " << message << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsEventLogger::printToFile(LogLevel level, const std::string& category, const std::string& message) {
     if (m_logFile && m_logFile->is_open()) {
         *m_logFile << getCurrentTimestamp() << " [" << logLevelToString(level)
@@ -199,3 +193,4 @@ void SettingsEventLogger::printToFile(LogLevel level, const std::string& categor
         m_logFile->flush(); // Ensure immediate write
     }
 }
+//-------------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 #include "EventSystem.h"
 
 /**
- * PlayerScoreManager - Single Responsibility: Manage player score
+ * PlayerScoreManager -Single Responsibility: Manage player score
  */
 class PlayerScoreManager {
 public:

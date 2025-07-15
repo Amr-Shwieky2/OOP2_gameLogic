@@ -1,7 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 
-// Forward declarations
 class MenuButtonManager;
 
 /**

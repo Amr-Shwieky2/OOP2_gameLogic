@@ -7,6 +7,7 @@
 #include <sstream>
 #include "../Core/AudioManager.h"
 
+//-------------------------------------------------------------------------------------
 SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerType& textures)
     : m_window(window)
     , m_textures(textures)
@@ -112,7 +113,7 @@ SurpriseBoxScreen::SurpriseBoxScreen(sf::RenderWindow& window, TextureManagerTyp
     m_giftDescriptionText.setOutlineThickness(1.0f);
     m_giftDescriptionText.setOutlineColor(sf::Color::Black);
 }
-
+//-------------------------------------------------------------------------------------
 SurpriseGiftType SurpriseBoxScreen::showSurpriseBox() {
     m_isRunning = true;
     m_boxOpened = false;
@@ -146,7 +147,7 @@ SurpriseGiftType SurpriseBoxScreen::showSurpriseBox() {
     GameExceptions::getLogger().info(std::format("Returning gift: {}", getGiftName(m_selectedGift)));
     return m_selectedGift;
 }
-
+//-------------------------------------------------------------------------------------
 void SurpriseBoxScreen::handleEvents() {
     sf::Event event;
     while (m_window.pollEvent(event)) {
@@ -186,7 +187,7 @@ void SurpriseBoxScreen::handleEvents() {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SurpriseBoxScreen::update(float deltaTime) {
     m_animationTimer += deltaTime;
 
@@ -269,7 +270,7 @@ void SurpriseBoxScreen::update(float deltaTime) {
         m_overlay.setFillColor(sf::Color(0, 0, 0, static_cast<sf::Uint8>(alpha)));
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SurpriseBoxScreen::updateBoxAnimation(float) {
     switch (m_phase) {
     case AnimationPhase::WaitingToOpen:
@@ -315,7 +316,7 @@ void SurpriseBoxScreen::updateBoxAnimation(float) {
         }
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SurpriseBoxScreen::updateParticles(float deltaTime) {
     for (auto& particle : m_particles) {
         particle.position += particle.velocity * deltaTime;
@@ -339,7 +340,7 @@ void SurpriseBoxScreen::updateParticles(float deltaTime) {
         m_particles.end()
     );
 }
-
+//-------------------------------------------------------------------------------------
 void SurpriseBoxScreen::createParticles() {
     std::uniform_real_distribution<float> angleDist(0.0f, 2.0f * 3.14159f);
     std::uniform_real_distribution<float> speedDist(200.0f, 500.0f);
@@ -369,7 +370,7 @@ void SurpriseBoxScreen::createParticles() {
         m_particles.push_back(particle);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SurpriseBoxScreen::render() {
     m_window.clear();
 
@@ -422,7 +423,7 @@ void SurpriseBoxScreen::render() {
 
     m_window.display();
 }
-
+//-------------------------------------------------------------------------------------
 void SurpriseBoxScreen::drawInstructions() {
     std::string instruction;
 
@@ -446,7 +447,7 @@ void SurpriseBoxScreen::drawInstructions() {
 
     m_window.draw(m_instructionText);
 }
-
+//-------------------------------------------------------------------------------------
 void SurpriseBoxScreen::drawGiftInfo() {
     // Draw gift name
     m_giftNameText.setString(getGiftName(m_selectedGift));
@@ -498,12 +499,12 @@ void SurpriseBoxScreen::drawGiftInfo() {
     m_window.draw(m_giftNameText);
     m_window.draw(m_giftDescriptionText);
 }
-
+//-------------------------------------------------------------------------------------
 SurpriseGiftType SurpriseBoxScreen::getRandomGiftType() {
     std::uniform_int_distribution<int> dist(0, 6);
     return static_cast<SurpriseGiftType>(dist(m_gen));
 }
-
+//-------------------------------------------------------------------------------------
 std::string SurpriseBoxScreen::getGiftName(SurpriseGiftType type) const {
     switch (type) {
     case SurpriseGiftType::LifeHeart:      return "Life Heart";
@@ -516,7 +517,7 @@ std::string SurpriseBoxScreen::getGiftName(SurpriseGiftType type) const {
     default:                               return "Unknown Gift";
     }
 }
-
+//-------------------------------------------------------------------------------------
 sf::Color SurpriseBoxScreen::getGiftColor(SurpriseGiftType type) const {
     switch (type) {
     case SurpriseGiftType::LifeHeart:      return sf::Color(255, 100, 100); // Red
@@ -529,3 +530,4 @@ sf::Color SurpriseBoxScreen::getGiftColor(SurpriseGiftType type) const {
     default:                               return sf::Color::White;
     }
 }
+//-------------------------------------------------------------------------------------

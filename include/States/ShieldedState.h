@@ -1,4 +1,3 @@
-// ShieldedState.h
 #pragma once
 #include "PlayerState.h"
 

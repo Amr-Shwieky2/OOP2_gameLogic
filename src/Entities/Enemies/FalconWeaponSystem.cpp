@@ -9,17 +9,17 @@
 #include "AudioManager.h"
 
 extern GameSession* g_currentSession;
-
+//-------------------------------------------------------------------------------------
 FalconWeaponSystem::FalconWeaponSystem(FalconEnemyEntity& falcon)
     : m_falcon(falcon) {
 }
-
+//-------------------------------------------------------------------------------------
 void FalconWeaponSystem::reset() {
     m_shootTimer = 0.0f;
     m_readyToShoot = false;
     m_hasEnteredScreen = false;
 }
-
+//-------------------------------------------------------------------------------------
 void FalconWeaponSystem::setReadyToShoot(bool ready) {
     if (ready && !m_hasEnteredScreen) {
         m_hasEnteredScreen = true;
@@ -33,8 +33,7 @@ void FalconWeaponSystem::setReadyToShoot(bool ready) {
 
     m_readyToShoot = ready;
 }
-
-
+//-------------------------------------------------------------------------------------
 void FalconWeaponSystem::update(float dt) {
     if (!m_readyToShoot)
         return;
@@ -45,7 +44,7 @@ void FalconWeaponSystem::update(float dt) {
         m_shootTimer = 0.0f;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void FalconWeaponSystem::shootProjectile() {
     if (!g_currentSession)
         return;
@@ -75,3 +74,4 @@ void FalconWeaponSystem::shootProjectile() {
         std::cerr << "[FALCON] Error shooting: " << e.what() << std::endl;
     }
 }
+//-------------------------------------------------------------------------------------

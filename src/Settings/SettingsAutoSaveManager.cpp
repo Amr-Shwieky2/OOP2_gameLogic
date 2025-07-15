@@ -2,17 +2,15 @@
 #include <iostream>
 #include "../Settings/SettingsAutoSaveManager.h"
 
+//-------------------------------------------------------------------------------------
 SettingsAutoSaveManager::SettingsAutoSaveManager() {}
-
+//-------------------------------------------------------------------------------------
 void SettingsAutoSaveManager::setVolumePanel(std::shared_ptr<VolumeControlPanel> panel) {
     if (panel) {
         m_volumePanel = panel;
     }
-    else {
-        std::cout << "SettingsAutoSaveManager: Warning - Null volume panel provided" << std::endl;
-    }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsAutoSaveManager::saveSettingsBeforeExit() {
     if (!m_autoSaveEnabled) {
         return;
@@ -27,16 +25,13 @@ void SettingsAutoSaveManager::saveSettingsBeforeExit() {
         if (volumeSaved) {
             logSaveOperation("Volume settings", true);
         }
-        else {
-            std::cout << "SettingsAutoSaveManager: No volume changes to save" << std::endl;
-        }
 
     }
     catch (const std::exception& e) {
         handleSaveError("Settings", e);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsAutoSaveManager::performAutoSave() {
     if (!m_autoSaveEnabled) {
         return;
@@ -52,7 +47,7 @@ void SettingsAutoSaveManager::performAutoSave() {
         logSaveOperation("Auto-save", false);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsAutoSaveManager::forceSaveAllSettings() {
     try {
         // Force save regardless of auto-save setting
@@ -67,7 +62,7 @@ void SettingsAutoSaveManager::forceSaveAllSettings() {
         handleSaveError("Force save", e);
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsAutoSaveManager::hasUnsavedChanges() const {
     try {
         return shouldSaveVolumeSettings();
@@ -78,7 +73,7 @@ bool SettingsAutoSaveManager::hasUnsavedChanges() const {
         return false;
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsAutoSaveManager::shouldSaveVolumeSettings() const {
     if (auto panel = m_volumePanel.lock()) {
         try {
@@ -91,7 +86,7 @@ bool SettingsAutoSaveManager::shouldSaveVolumeSettings() const {
     }
     return false;
 }
-
+//-------------------------------------------------------------------------------------
 bool SettingsAutoSaveManager::saveVolumeSettings() {
     if (auto panel = m_volumePanel.lock()) {
         try {
@@ -113,13 +108,14 @@ bool SettingsAutoSaveManager::saveVolumeSettings() {
         return false;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsAutoSaveManager::handleSaveError(const std::string& settingType, const std::exception& e) {
     std::cout << "SettingsAutoSaveManager: Error saving " << settingType
         << ": " << e.what() << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void SettingsAutoSaveManager::logSaveOperation(const std::string& operation, bool success) {
     std::string status = success ? "SUCCESS" : "FAILED";
     std::cout << "SettingsAutoSaveManager: " << operation << " - " << status << std::endl;
 }
+//-------------------------------------------------------------------------------------

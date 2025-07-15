@@ -2,20 +2,20 @@
 #include "Constants.h"
 #include <stdexcept>
 
+//-------------------------------------------------------------------------------------
 BackgroundRenderer::BackgroundRenderer(TextureManager&) {
     if (!m_backgroundTexture.loadFromFile("backGroundGame.jpeg")) {
         throw std::runtime_error("Failed to load background image.");
     }
-
     setupBackground();
 }
-
+//-------------------------------------------------------------------------------------
 void BackgroundRenderer::setupBackground() {
     m_backgroundSprite.setTexture(m_backgroundTexture);
     float scaleY = WINDOW_HEIGHT / m_backgroundTexture.getSize().y;
     m_backgroundSprite.setScale(scaleY, scaleY);
 }
-
+//-------------------------------------------------------------------------------------
 void BackgroundRenderer::render(sf::RenderWindow& window, const sf::View& camera) const {
     float bgWidth = m_backgroundTexture.getSize().x * m_backgroundSprite.getScale().x;
     float camLeft = camera.getCenter().x - camera.getSize().x / 2.f;
@@ -30,3 +30,4 @@ void BackgroundRenderer::render(sf::RenderWindow& window, const sf::View& camera
         window.draw(repeatedBg);
     }
 }
+//-------------------------------------------------------------------------------------

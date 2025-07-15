@@ -1,6 +1,7 @@
 #include "Slider.h"
 #include <algorithm>
 
+//-------------------------------------------------------------------------------------
 Slider::Slider(sf::Vector2f position, sf::Vector2f size, float minValue, float maxValue)
     : m_position(position), m_size(size), m_minValue(minValue), m_maxValue(maxValue), m_value(minValue) {
 
@@ -19,7 +20,7 @@ Slider::Slider(sf::Vector2f position, sf::Vector2f size, float minValue, float m
 
     updateVisuals();
 }
-
+//-------------------------------------------------------------------------------------
 void Slider::setValue(float value) {
     m_value = std::clamp(value, m_minValue, m_maxValue);
     updateVisuals();
@@ -27,8 +28,7 @@ void Slider::setValue(float value) {
         m_onValueChanged(m_value);
     }
 }
-
-
+//-------------------------------------------------------------------------------------
 bool Slider::handleMouseMove(sf::Vector2f mousePos) {
     sf::FloatRect bounds(m_position.x, m_position.y - 10, m_size.x, m_size.y + 20);
     m_isHovered = bounds.contains(mousePos);
@@ -43,10 +43,9 @@ bool Slider::handleMouseMove(sf::Vector2f mousePos) {
         }
         return true;
     }
-
     return m_isHovered;
 }
-
+//-------------------------------------------------------------------------------------
 bool Slider::handleMousePressed(sf::Vector2f mousePos) {
     sf::FloatRect bounds(m_position.x, m_position.y - 10, m_size.x, m_size.y + 20);
     if (bounds.contains(mousePos)) {
@@ -60,7 +59,7 @@ bool Slider::handleMousePressed(sf::Vector2f mousePos) {
     }
     return false;
 }
-
+//-------------------------------------------------------------------------------------
 bool Slider::handleMouseReleased() {
     if (m_isDragging) {
         m_isDragging = false;
@@ -68,7 +67,7 @@ bool Slider::handleMouseReleased() {
     }
     return false;
 }
-
+//-------------------------------------------------------------------------------------
 void Slider::update(float deltaTime) {
     // Handle hover effect
     sf::Color handleColor = m_handleColor;
@@ -79,13 +78,13 @@ void Slider::update(float deltaTime) {
     }
     m_handle.setFillColor(handleColor);
 }
-
+//-------------------------------------------------------------------------------------
 void Slider::render(sf::RenderWindow& window) {
     window.draw(m_background);
     window.draw(m_fill);
     window.draw(m_handle);
 }
-
+//-------------------------------------------------------------------------------------
 void Slider::setColors(sf::Color background, sf::Color fill, sf::Color handle) {
     m_backgroundColor = background;
     m_fillColor = fill;
@@ -95,7 +94,7 @@ void Slider::setColors(sf::Color background, sf::Color fill, sf::Color handle) {
     m_fill.setFillColor(m_fillColor);
     m_handle.setFillColor(m_handleColor);
 }
-
+//-------------------------------------------------------------------------------------
 void Slider::updateVisuals() {
     float progress = (m_value - m_minValue) / (m_maxValue - m_minValue);
 
@@ -105,14 +104,15 @@ void Slider::updateVisuals() {
     float handleY = m_position.y + (m_size.y * 0.5f);
     m_handle.setPosition(handleX, handleY);
 }
-
+//-------------------------------------------------------------------------------------
 float Slider::getValueFromPosition(float x) const {
     float relativeX = x - m_position.x;
     float progress = std::max(0.0f, std::min(1.0f, relativeX / m_size.x));
     return m_minValue + (progress * (m_maxValue - m_minValue));
 }
-
+//-------------------------------------------------------------------------------------
 float Slider::getPositionFromValue() const {
     float progress = (m_value - m_minValue) / (m_maxValue - m_minValue);
     return m_position.x + (m_size.x * progress);
 }
+//-------------------------------------------------------------------------------------

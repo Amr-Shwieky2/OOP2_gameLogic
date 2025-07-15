@@ -1,6 +1,7 @@
 ﻿#include "VolumeControlPanel.h"
 #include <iostream>
 
+//-------------------------------------------------------------------------------------
 VolumeControlPanel::VolumeSlider::VolumeSlider(const std::string& labelText,
     const std::string& sliderType,
     const sf::Font& font,
@@ -22,24 +23,24 @@ VolumeControlPanel::VolumeSlider::VolumeSlider(const std::string& labelText,
 
     updateValueText();
 }
-
+//-------------------------------------------------------------------------------------
 void VolumeControlPanel::VolumeSlider::updateValueText() {
     if (slider) {
         value.setString(std::to_string(static_cast<int>(slider->getValue())) + "%");
     }
 }
-
+//-------------------------------------------------------------------------------------
 void VolumeControlPanel::VolumeSlider::setVolume(float volume) {
     if (slider) {
         slider->setValue(volume);
         updateValueText();
     }
 }
-
+//-------------------------------------------------------------------------------------
 float VolumeControlPanel::VolumeSlider::getVolume() const {
     return slider ? slider->getValue() : 0.0f;
 }
-
+//-------------------------------------------------------------------------------------
 VolumeControlPanel::VolumeControlPanel(const sf::Font& font, AudioManager& audio, AudioSettings& settings)
     : m_position(350, 250), m_audioManager(audio), m_audioSettings(settings) {
 
@@ -49,7 +50,7 @@ VolumeControlPanel::VolumeControlPanel(const sf::Font& font, AudioManager& audio
 
     refreshFromAudioManager();
 }
-
+//-------------------------------------------------------------------------------------
 VolumeControlPanel::~VolumeControlPanel() {}
 
 void VolumeControlPanel::setupMasterVolumeSlider(const sf::Font& font) {
@@ -62,7 +63,7 @@ void VolumeControlPanel::setupMasterVolumeSlider(const sf::Font& font) {
             });
     }
 }
-
+//-------------------------------------------------------------------------------------
 void VolumeControlPanel::setupMusicVolumeSlider(const sf::Font& font) {
     sf::Vector2f position = calculateSliderPosition(1);
     m_musicVolume = std::make_unique<VolumeSlider>("Volume (Music):", "music", font, position);
@@ -73,7 +74,7 @@ void VolumeControlPanel::setupMusicVolumeSlider(const sf::Font& font) {
             });
     }
 }
-
+//-------------------------------------------------------------------------------------
 void VolumeControlPanel::setupSFXVolumeSlider(const sf::Font& font) {
     sf::Vector2f position = calculateSliderPosition(2);
     m_sfxVolume = std::make_unique<VolumeSlider>("Volume (SFX):", "sfx", font, position);
@@ -84,13 +85,13 @@ void VolumeControlPanel::setupSFXVolumeSlider(const sf::Font& font) {
             });
     }
 }
-
+//-------------------------------------------------------------------------------------
 void VolumeControlPanel::update(float deltaTime) {
     if (m_masterVolume && m_masterVolume->slider) m_masterVolume->slider->update(deltaTime);
     if (m_musicVolume && m_musicVolume->slider) m_musicVolume->slider->update(deltaTime);
     if (m_sfxVolume && m_sfxVolume->slider) m_sfxVolume->slider->update(deltaTime);
 }
-
+//-------------------------------------------------------------------------------------
 void VolumeControlPanel::render(sf::RenderWindow& window) {
     if (m_masterVolume) {
         window.draw(m_masterVolume->label);
@@ -108,7 +109,7 @@ void VolumeControlPanel::render(sf::RenderWindow& window) {
         window.draw(m_sfxVolume->value);
     }
 }
-
+//-------------------------------------------------------------------------------------
 bool VolumeControlPanel::handleMouseEvent(const sf::Event& event) {
     bool handled = false;
 
@@ -132,35 +133,35 @@ bool VolumeControlPanel::handleMouseEvent(const sf::Event& event) {
 
     return handled;
 }
-
+//-------------------------------------------------------------------------------------
 void VolumeControlPanel::refreshFromAudioManager() {
     m_masterVolume->setVolume(m_audioSettings.masterVolume);
     m_musicVolume->setVolume(m_audioSettings.musicVolume);
     m_sfxVolume->setVolume(m_audioSettings.sfxVolume);
     m_hasChanged = false;
 }
-
+//-------------------------------------------------------------------------------------
 void VolumeControlPanel::saveSettings() {
     AudioSettingsManager::save(m_audioSettings);
     m_hasChanged = false;
 }
-
+//-------------------------------------------------------------------------------------
 void VolumeControlPanel::onVolumeChanged(const std::string& type, float value) {
     applyVolumeToAudioManager(type, value);
     updateAllValueTexts();
     m_hasChanged = true;
 }
-
+//-------------------------------------------------------------------------------------
 sf::Vector2f VolumeControlPanel::calculateSliderPosition(int index) const {
     return sf::Vector2f(m_position.x, m_position.y + (index * m_spacing));
 }
-
+//-------------------------------------------------------------------------------------
 void VolumeControlPanel::updateAllValueTexts() {
     if (m_masterVolume) m_masterVolume->updateValueText();
     if (m_musicVolume) m_musicVolume->updateValueText();
     if (m_sfxVolume) m_sfxVolume->updateValueText();
 }
-
+//-------------------------------------------------------------------------------------
 void VolumeControlPanel::applyVolumeToAudioManager(const std::string& type, float value) {
     if (type == "master") {
         m_audioSettings.masterVolume = value;
@@ -175,3 +176,4 @@ void VolumeControlPanel::applyVolumeToAudioManager(const std::string& type, floa
         m_audioManager.setSFXVolume(value);
     }
 }
+//-------------------------------------------------------------------------------------

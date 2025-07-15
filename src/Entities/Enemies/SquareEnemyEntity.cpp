@@ -14,14 +14,14 @@
 #include <SmartEnemyEntity.h>
 
 extern GameSession* g_currentSession;
-
+//-------------------------------------------------------------------------------------
 SquareEnemyEntity::SquareEnemyEntity(IdType id, b2World& world, float x, float y,
     TextureManager& textures, SizeType size)
     : EnemyEntity(id, EnemyType::Square, world, x, y, textures)
     , m_sizeType(size) {
     setupComponents(world, x, y, textures);
 }
-
+//-------------------------------------------------------------------------------------
 void SquareEnemyEntity::setupComponents(b2World& world, float x, float y, TextureManager& textures) {
     float centerX = x + TILE_SIZE / 2.f;
     float centerY = y + TILE_SIZE / 2.f;
@@ -68,7 +68,7 @@ void SquareEnemyEntity::setupComponents(b2World& world, float x, float y, Textur
     float speed = getSpeedForSize();
     addComponent<AIComponent>(std::make_unique<PatrolStrategy>(patrolDistance, speed));
 }
-
+//-------------------------------------------------------------------------------------
 void SquareEnemyEntity::onDeath(Entity* killer) {
     if (killer && canSplit()) {
         if (auto* transform = getComponent<Transform>()) {
@@ -77,7 +77,7 @@ void SquareEnemyEntity::onDeath(Entity* killer) {
     }
     EnemyEntity::onDeath(killer);
 }
-
+//-------------------------------------------------------------------------------------
 void SquareEnemyEntity::spawnSplitEnemies(const sf::Vector2f& deathPosition) {
     if (!g_currentSession) return;
 
@@ -86,13 +86,13 @@ void SquareEnemyEntity::spawnSplitEnemies(const sf::Vector2f& deathPosition) {
 
     b2World& world = *physics->getBody()->GetWorld();
 
-    float baseDistance = 150.0f;  // المسافة الأفقية بين الأعداء
+    float baseDistance = 150.0f;  
 
     for (int i = 0; i < 2; ++i) {
-        float direction = (i == 0) ? -1.0f : 1.0f;  // يسار ثم يمين
-        sf::Vector2f spawnOffset(direction * baseDistance, 0.0f);  // فقط X
+        float direction = (i == 0) ? -1.0f : 1.0f;  
+        sf::Vector2f spawnOffset(direction * baseDistance, 0.0f);  
         sf::Vector2f spawnPos = deathPosition + spawnOffset;
-        spawnPos.y = std::max(spawnPos.y, 100.0f);  // نحافظ على نفس الـ Y
+        spawnPos.y = std::max(spawnPos.y, 100.0f);  
 
         try {
             auto smallEnemy = std::make_unique<SmartEnemyEntity>(
@@ -104,7 +104,7 @@ void SquareEnemyEntity::spawnSplitEnemies(const sf::Vector2f& deathPosition) {
             );
 
             if (auto* smallPhysics = smallEnemy->getComponent<PhysicsComponent>()) {
-                sf::Vector2f velocity(direction * 2.0f, 0.0f);  // حركة بسيطة جانبية
+                sf::Vector2f velocity(direction * 2.0f, 0.0f);  
                 smallPhysics->setVelocity(velocity.x, velocity.y);
             }
 
@@ -115,16 +115,16 @@ void SquareEnemyEntity::spawnSplitEnemies(const sf::Vector2f& deathPosition) {
         }
     }
 }
-
-
+//-------------------------------------------------------------------------------------
 float SquareEnemyEntity::getSizeMultiplier() const {
     return (m_sizeType == SizeType::Large) ? LARGE_SIZE : SMALL_SIZE;
 }
-
+//-------------------------------------------------------------------------------------
 float SquareEnemyEntity::getHealthForSize() const {
     return (m_sizeType == SizeType::Large) ? 2.0f : 1.0f;
 }
-
+//-------------------------------------------------------------------------------------
 float SquareEnemyEntity::getSpeedForSize() const {
     return (m_sizeType == SizeType::Large) ? 60.0f : 120.0f;
 }
+//-------------------------------------------------------------------------------------

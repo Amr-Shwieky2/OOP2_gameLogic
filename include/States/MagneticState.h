@@ -2,7 +2,6 @@
 #include "PlayerState.h"
 #include <set>
 
-// Forward declaration
 class CoinEntity;
 
 class MagneticState : public PlayerState {

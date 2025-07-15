@@ -1,4 +1,3 @@
-// GameEvents.h
 #pragma once
 #include "EventSystem.h"
 #include "Entity.h"

@@ -4,18 +4,18 @@
 #include "GameSession.h"
 #include <iostream>
 
-// External reference to current session for spawning projectiles
 extern GameSession* g_currentSession;
 
+//-------------------------------------------------------------------------------------
 PlayerWeaponSystem::PlayerWeaponSystem(PlayerEntity& player, b2World& world, TextureManager& textures)
     : m_player(player), m_world(world), m_textures(textures),
     m_lastShotTime(0.0f), m_shotCooldown(0.3f), m_weaponType(WeaponType::Basic) {
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerWeaponSystem::update(float dt) {
     m_lastShotTime += dt;
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerWeaponSystem::shoot() {
     if (!canShoot()) {
         return;
@@ -57,11 +57,8 @@ void PlayerWeaponSystem::shoot() {
 
     // Reset shot timer
     m_lastShotTime = 0.0f;
-
-    std::cout << "[WeaponSystem] Shot fired! Type: " << static_cast<int>(m_weaponType) 
-              << " Direction: (" << direction.x << "," << direction.y << ")" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerWeaponSystem::shootBackward() {
     if (!canShoot()) {
         return;
@@ -103,11 +100,8 @@ void PlayerWeaponSystem::shootBackward() {
 
     // Reset shot timer
     m_lastShotTime = 0.0f;
-
-    std::cout << "[WeaponSystem] Backward shot fired! Type: " << static_cast<int>(m_weaponType) 
-              << " Direction: (" << direction.x << "," << direction.y << ")" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerWeaponSystem::shootSpecialGravity() {
     if (!canShoot()) {
         return;
@@ -136,11 +130,8 @@ void PlayerWeaponSystem::shootSpecialGravity() {
 
     // Reset shot timer
     m_lastShotTime = 0.0f;
-
-    std::cout << "[WeaponSystem] Special gravity shot fired! Direction: (" 
-              << direction.x << "," << direction.y << ")" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerWeaponSystem::shootForwardGravity() {
     if (!canShoot()) {
         return;
@@ -188,23 +179,19 @@ void PlayerWeaponSystem::shootForwardGravity() {
 
     // Reset shot timer
     m_lastShotTime = 0.0f;
-
-    std::cout << "[WeaponSystem] Forward gravity shot fired! Direction: (" 
-              << direction.x << "," << direction.y << ")" << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 bool PlayerWeaponSystem::canShoot() const {
     return m_lastShotTime >= getCooldownForWeapon(m_weaponType);
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerWeaponSystem::setWeaponType(WeaponType type) {
     if (m_weaponType != type) {
         m_weaponType = type;
         m_shotCooldown = getCooldownForWeapon(type);
-        std::cout << "[WeaponSystem] Weapon changed to type: " << static_cast<int>(type) << std::endl;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerWeaponSystem::createProjectile(const sf::Vector2f& position, const sf::Vector2f& direction) {
     try {
         auto projectile = std::make_unique<ProjectileEntity>(
@@ -223,7 +210,7 @@ void PlayerWeaponSystem::createProjectile(const sf::Vector2f& position, const sf
         std::cerr << "[WeaponSystem] Error creating projectile: " << e.what() << std::endl;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void PlayerWeaponSystem::createGravityProjectile(const sf::Vector2f& position, const sf::Vector2f& direction) {
     try {
         // Create a projectile with the special parameter to enable gravity
@@ -244,7 +231,7 @@ void PlayerWeaponSystem::createGravityProjectile(const sf::Vector2f& position, c
         std::cerr << "[WeaponSystem] Error creating gravity projectile: " << e.what() << std::endl;
     }
 }
-
+//-------------------------------------------------------------------------------------
 float PlayerWeaponSystem::getCooldownForWeapon(WeaponType type) const {
     switch (type) {
     case WeaponType::Basic:  return 0.3f;
@@ -254,3 +241,4 @@ float PlayerWeaponSystem::getCooldownForWeapon(WeaponType type) const {
     default:                 return 0.3f;
     }
 }
+//-------------------------------------------------------------------------------------

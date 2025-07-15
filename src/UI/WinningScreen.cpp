@@ -2,12 +2,13 @@
 #include <iostream>
 #include "../Core/AudioManager.h"
 
+//-------------------------------------------------------------------------------------
 WinningScreen::WinningScreen(const std::string& textureFile)
     : m_textureFile(textureFile) {
 }
-
+//-------------------------------------------------------------------------------------
 void WinningScreen::show(sf::RenderWindow& window) {
-    AudioManager::instance().stopAllSounds();
+    AudioManager::instance().pauseMusic();
     AudioManager::instance().playSound("win");
 
     sf::Texture texture;
@@ -26,6 +27,7 @@ void WinningScreen::show(sf::RenderWindow& window) {
                 (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape)) {
                 running = false;
                 AudioManager::instance().stopSound("win");
+                AudioManager::instance().playMusic("loading_music", true);
             }
         }
 
@@ -34,3 +36,4 @@ void WinningScreen::show(sf::RenderWindow& window) {
         window.display();
     }
 }
+//-------------------------------------------------------------------------------------

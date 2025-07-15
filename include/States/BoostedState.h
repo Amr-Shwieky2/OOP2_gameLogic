@@ -1,4 +1,3 @@
-// BoostedState.h
 #pragma once
 #include "PlayerState.h"
 
