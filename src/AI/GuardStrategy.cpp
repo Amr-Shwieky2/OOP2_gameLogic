@@ -1,4 +1,3 @@
-// GuardStrategy.cpp
 #include "GuardStrategy.h"
 #include "Entity.h"
 #include "PlayerEntity.h"
@@ -9,11 +8,12 @@
 #include "Constants.h"
 #include <iostream>
 
+//-------------------------------------------------------------------------------------
 GuardStrategy::GuardStrategy(float guardRadius, float attackRange)
     : m_guardRadius(guardRadius)
     , m_attackRange(attackRange) {
 }
-
+//-------------------------------------------------------------------------------------
 void GuardStrategy::update(Entity& entity, float dt, PlayerEntity* player) {
     if (!player) return;
 
@@ -47,7 +47,6 @@ void GuardStrategy::update(Entity& entity, float dt, PlayerEntity* player) {
         // Attack logic (could shoot projectiles here)
         if (m_attackCooldown <= 0) {
             std::cout << "[Guard] Attacking player!" << std::endl;
-            // TODO: Implement attack (shoot projectile, etc.)
             m_attackCooldown = 1.0f; // 1 second between attacks
         }
     }
@@ -67,3 +66,4 @@ void GuardStrategy::update(Entity& entity, float dt, PlayerEntity* player) {
         physics->setVelocity(0, physics->getVelocity().y);
     }
 }
+//-------------------------------------------------------------------------------------

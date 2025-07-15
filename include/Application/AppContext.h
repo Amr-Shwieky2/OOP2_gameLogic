@@ -20,16 +20,16 @@
 #include "ScreenManager.h"
 #include <CommandInvoker.h>
 #include <AudioSettingsManager.h>
-#include <Services/ResourceLoader.h>
+#include <ResourceManager.h>
 
 class AppContext {
 public:
     static AppContext& instance();
 
     // Template-based resource loaders
-    TextureLoader& textures();
-    FontLoader& fonts();
-    SoundLoader& sounds();
+    TextureManager& textures();
+    FontManager& fonts();
+    SoundManager& sounds();
 
     // Other services
     ScreenManager& screenManager();
@@ -57,9 +57,9 @@ private:
     AudioSettings m_audioSettings;
 
     // Template-based resource loaders
-    std::unique_ptr<TextureLoader> m_textureLoader;
-    std::unique_ptr<FontLoader> m_fontLoader;
-    std::unique_ptr<SoundLoader> m_soundLoader;
+    std::unique_ptr<TextureManager> m_textureManager;
+    std::unique_ptr<FontManager> m_fontManager;
+    std::unique_ptr<SoundManager> m_soundManager;
 
     // Other services
     std::unique_ptr<ScreenManager> m_screenManager;

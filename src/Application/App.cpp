@@ -1,18 +1,14 @@
 ﻿#include <Logger.h>
 #include <Application/App.h>
 #include <Services/Logger.h>
-
+//-------------------------------------------------------------------------------------
 App::App()
     : m_windowManager(std::make_unique<WindowManager>())
     , m_initializer(std::make_unique<GameInitializer>())
     , m_cleanupManager(std::make_unique<AppCleanupManager>()) {
-
-    // GameLoop needs WindowManager, so create it after WindowManager
-    // This will be done in initialize() after window is created
-
     Logger::log("App created with SRP components");
 }
-
+//-------------------------------------------------------------------------------------
 void App::run() {
     Logger::log("Starting Desert Ball game...");
 
@@ -30,10 +26,9 @@ void App::run() {
     catch (const std::exception& e) {
         handleApplicationError(e);
     }
-
     Logger::log("Game ended.");
 }
-
+//-------------------------------------------------------------------------------------
 void App::initialize() {
     Logger::log("Initializing application...");
 
@@ -47,7 +42,7 @@ void App::initialize() {
 
     Logger::log("Application initialization completed");
 }
-
+//-------------------------------------------------------------------------------------
 void App::cleanup() {
     Logger::log("Cleaning up application...");
 
@@ -68,10 +63,9 @@ void App::cleanup() {
     }
     catch (const std::exception& e) {
         Logger::log("Error during cleanup: " + std::string(e.what()), LogLevel::Warning);
-        // Continue with cleanup - don't let cleanup errors crash the app
     }
 }
-
+//-------------------------------------------------------------------------------------
 void App::handleApplicationError(const std::exception& e) {
     Logger::log("Critical application error: " + std::string(e.what()), LogLevel::Error);
 
@@ -81,9 +75,9 @@ void App::handleApplicationError(const std::exception& e) {
             m_cleanupManager->performCleanup();
         }
     }
-    catch (...) {
+    catch (const std::exception& e) {
         Logger::log("Emergency cleanup failed", LogLevel::Error);
     }
-
     Logger::log("Application terminated due to error");
 }
+//-------------------------------------------------------------------------------------

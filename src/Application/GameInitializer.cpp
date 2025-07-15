@@ -2,6 +2,7 @@
 #include <Services/Logger.h>
 #include <Screens/GameplayScreen.h>
 
+//-------------------------------------------------------------------------------------
 void GameInitializer::initializeAllSystems() {
     Logger::log("Starting game systems initialization...");
 
@@ -17,7 +18,7 @@ void GameInitializer::initializeAllSystems() {
         throw;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void GameInitializer::initializeAudioSystem() {
     try {
         Logger::log("Initializing audio system...");
@@ -33,7 +34,6 @@ void GameInitializer::initializeAudioSystem() {
         else {
             Logger::log("Using default audio settings", LogLevel::Warning);
         }
-
         loadDefaultAudioFiles();
         setDefaultAudioVolumes();
 
@@ -44,15 +44,12 @@ void GameInitializer::initializeAudioSystem() {
         Logger::log("Game will continue without audio", LogLevel::Warning);
     }
 }
-
+//-------------------------------------------------------------------------------------
 void GameInitializer::loadDefaultAudioFiles() {
     auto& audio = AudioManager::instance();
 
-    // Music
     audio.loadMusic("loading_music", "intro.wav");
     audio.loadMusic("gameplay", "play_music.wav");
-
-    // Sound Effects
     audio.loadSound("coin", "coin-received.wav");
     audio.loadSound("jump", "jump.wav");
     audio.loadSound("falcon", "falcon.wav");
@@ -65,13 +62,9 @@ void GameInitializer::loadDefaultAudioFiles() {
     audio.loadSound("gifts", "gifts.wav");
     audio.loadSound("shoot", "shoot.wav");
     audio.loadSound("pushbox", "push_box.wav");
-
-
     Logger::log("All default audio files loaded");
 }
-
-
-
+//-------------------------------------------------------------------------------------
 void GameInitializer::setDefaultAudioVolumes() {
     AudioSettings settings;
     settings.masterVolume = AudioManager::instance().getMasterVolume();
@@ -81,7 +74,7 @@ void GameInitializer::setDefaultAudioVolumes() {
     AudioSettingsManager::save(settings);
     Logger::log("Set default audio volumes");
 }
-
+//-------------------------------------------------------------------------------------
 void GameInitializer::initializeResourceSystem() {
     try {
         Logger::log("Initializing resource system...");
@@ -97,7 +90,7 @@ void GameInitializer::initializeResourceSystem() {
         throw;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void GameInitializer::registerAllScreens() {
     try {
         Logger::log("Registering all screens...");
@@ -110,7 +103,7 @@ void GameInitializer::registerAllScreens() {
         throw;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void GameInitializer::registerScreenFactories() {
     auto& screenManager = AppContext::instance().screenManager();
 
@@ -139,7 +132,8 @@ void GameInitializer::registerScreenFactories() {
         });
 
 }
-
+//-------------------------------------------------------------------------------------
 void GameInitializer::handleInitializationError(const std::string& system, const std::string& error) {
     Logger::log("Error initializing " + system + ": " + error, LogLevel::Error);
 }
+//-------------------------------------------------------------------------------------

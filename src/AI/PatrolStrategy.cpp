@@ -1,4 +1,3 @@
-// PatrolStrategy.cpp
 #include "PatrolStrategy.h"
 #include "Entity.h"
 #include "Transform.h"
@@ -7,11 +6,12 @@
 #include <iostream>
 #include <cmath>
 
+//-------------------------------------------------------------------------------------
 PatrolStrategy::PatrolStrategy(float patrolDistance, float speed)
     : m_patrolDistance(patrolDistance)
     , m_speed(speed) {
 }
-
+//-------------------------------------------------------------------------------------
 void PatrolStrategy::update(Entity& entity, float, PlayerEntity*) {
     auto* transform = entity.getComponent<Transform>();
     auto* physics = entity.getComponent<PhysicsComponent>();
@@ -41,3 +41,4 @@ void PatrolStrategy::update(Entity& entity, float, PlayerEntity*) {
     // Convert speed from pixels/sec to Box2D meters/sec
     physics->setVelocity(m_direction * (m_speed / PPM), velocity.y);
 }
+//-------------------------------------------------------------------------------------

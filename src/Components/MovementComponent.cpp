@@ -4,10 +4,11 @@
 #include "PhysicsComponent.h"
 #include <cmath>
 
+//-------------------------------------------------------------------------------------
 MovementComponent::MovementComponent(MovementType type)
     : m_type(type) {
 }
-
+//-------------------------------------------------------------------------------------
 void MovementComponent::update(float dt) {
     if (!m_owner) return;
 
@@ -19,11 +20,9 @@ void MovementComponent::update(float dt) {
     switch (m_type) {
     case MovementType::Linear: {
         if (physics) {
-            // Use physics for movement
             physics->setVelocity(m_direction.x * m_speed, m_direction.y * m_speed);
         }
         else {
-            // Direct transform movement
             sf::Vector2f movement = m_direction * m_speed * dt;
             transform->move(movement);
         }
@@ -36,7 +35,7 @@ void MovementComponent::update(float dt) {
         float distance = std::sqrt(toTarget.x * toTarget.x + toTarget.y * toTarget.y);
 
         if (distance > 1.0f) {
-            toTarget /= distance; // Normalize
+            toTarget /= distance; 
 
             if (physics) {
                 physics->setVelocity(toTarget.x * m_speed, toTarget.y * m_speed);
@@ -65,7 +64,6 @@ void MovementComponent::update(float dt) {
     }
 
     case MovementType::Sine: {
-        // Sine wave movement along x-axis
         sf::Vector2f pos = transform->getPosition();
         pos.x += m_speed * dt;
         pos.y = m_circleCenter.y + m_circleRadius * std::sin(pos.x * 0.01f);
@@ -82,11 +80,10 @@ void MovementComponent::update(float dt) {
     case MovementType::Static:
     case MovementType::Custom:
     default:
-        // No automatic movement
         break;
     }
 }
-
+//-------------------------------------------------------------------------------------
 void MovementComponent::setCircularMotion(const sf::Vector2f& center, float radius, float speed) {
     m_type = MovementType::Circular;
     m_circleCenter = center;
@@ -94,3 +91,4 @@ void MovementComponent::setCircularMotion(const sf::Vector2f& center, float radi
     m_speed = speed;
     m_angle = 0.0f;
 }
+//-------------------------------------------------------------------------------------

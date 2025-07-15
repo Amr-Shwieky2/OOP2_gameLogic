@@ -7,12 +7,13 @@
 #include <iostream>
 #include <cmath>
 
+//-------------------------------------------------------------------------------------
 FollowPlayerStrategy::FollowPlayerStrategy(float speed, float detectionRange)
     : m_speed(speed)
     , m_detectionRange(detectionRange) {
     std::cout << "[FOLLOW] Strategy created - Speed: " << speed << " Range: " << detectionRange << std::endl;
 }
-
+//-------------------------------------------------------------------------------------
 void FollowPlayerStrategy::update(Entity& entity, float, PlayerEntity* player) {
     if (!player) {
         std::cout << "[FOLLOW] No player target!" << std::endl;
@@ -32,15 +33,6 @@ void FollowPlayerStrategy::update(Entity& entity, float, PlayerEntity* player) {
 
     float distance = getDistanceToPlayer(entityPos, playerPos);
 
-    // Debug output every 60 frames
-    static int frameCount = 0;
-    frameCount++;
-    if (frameCount % 60 == 0) {
-        std::cout << "[FOLLOW] Enemy " << entity.getId()
-            << " Distance to player: " << distance
-            << " (Range: " << m_detectionRange << ")" << std::endl;
-    }
-
     // Only follow if player is within detection range
     if (distance <= m_detectionRange) {
         sf::Vector2f direction = getDirectionToPlayer(entityPos, playerPos);
@@ -49,19 +41,11 @@ void FollowPlayerStrategy::update(Entity& entity, float, PlayerEntity* player) {
         sf::Vector2f velocity = physics->getVelocity();
         // Convert speed from pixels/sec to Box2D meters/sec
         physics->setVelocity(direction.x * (m_speed / PPM), velocity.y);
-
-        if (frameCount % 60 == 0) {
-            std::cout << "[FOLLOW] Chasing player! Direction: " << direction.x
-                << " Velocity: " << (direction.x * m_speed) << std::endl;
-        }
     }
     else {
         // Stop moving if player is out of range
         sf::Vector2f velocity = physics->getVelocity();
         physics->setVelocity(0, velocity.y);
-
-        if (frameCount % 60 == 0) {
-            std::cout << "[FOLLOW] Player out of range, stopping" << std::endl;
-        }
     }
 }
+//-------------------------------------------------------------------------------------

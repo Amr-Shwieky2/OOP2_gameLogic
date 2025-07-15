@@ -13,16 +13,12 @@ public:
     /// Reset the in-game timer
     void reset();
 
-    bool isPaused() const;
 
 private:
     sf::Font m_font;
     sf::Text m_scoreText;
     sf::Text m_livesText;
     sf::Text m_timerText;
-    sf::Text m_pauseLabel;
 
-    sf::RectangleShape m_pauseButton;
     sf::Clock m_timer;
-    bool m_paused = false;
 };

@@ -2,26 +2,25 @@
 #include <fstream>
 #include <iostream>
 
+//-------------------------------------------------------------------------------------
 bool AudioSettingsManager::save(const AudioSettings& settings, const std::string& filename) {
     std::ofstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Failed to save audio settings\n";
         return false;
     }
-
     file << "master_volume=" << settings.masterVolume << "\n";
     file << "music_volume=" << settings.musicVolume << "\n";
     file << "sfx_volume=" << settings.sfxVolume << "\n";
     file << "menu_sounds_enabled=" << (settings.menuSoundsEnabled ? 1 : 0) << "\n";
     file << "menu_sound_volume=" << settings.menuSoundVolume << "\n";
-
     return true;
 }
-
+//-------------------------------------------------------------------------------------
 bool AudioSettingsManager::load(AudioSettings& settings, const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        return false; // fallback to defaults
+        return false; 
     }
 
     std::string line;
@@ -44,10 +43,10 @@ bool AudioSettingsManager::load(AudioSettings& settings, const std::string& file
             else if (key == "menu_sound_volume")
                 settings.menuSoundVolume = std::stof(valueStr);
         }
-        catch (...) {
+        catch (const std::exception& e){
             std::cerr << "Error parsing line: " << line << std::endl;
         }
     }
-
     return true;
 }
+//-------------------------------------------------------------------------------------

@@ -49,6 +49,7 @@ GameplayScreen::GameplayScreen() :
     AudioManager::instance().playMusic("gameplay", true);
 }
 
+
 /**
  * Default destructor - smart pointers handle cleanup automatically
  * following RAII principle
@@ -273,8 +274,6 @@ void GameplayScreen::handleKeyboardInput(sf::Keyboard::Key keyCode) {
  * @param deltaTime Time elapsed since last frame
  */
 void GameplayScreen::update(float deltaTime) {
-    // Don't update if the game is paused
-    if (m_ui->isPaused()) return;
 
     // Check for level change requests from well
     if (handleWellLevelChangeRequests()) {
@@ -435,7 +434,7 @@ void GameplayScreen::activateDarkLevelIfNeeded(const std::string& levelName) {
 
         if (m_darkLevelSystem) {
             m_darkLevelSystem->setEnabled(true);
-            m_darkLevelSystem->setDarknessLevel(0.92f);
+            m_darkLevelSystem->setDarknessLevel(0.90f);
             m_isUnderground = true;
 
             std::cout << "[DEBUG] Dark level system enabled: " << m_darkLevelSystem->isEnabled() << std::endl;

@@ -1,4 +1,3 @@
-// include/ResourceManager.h
 #pragma once
 
 #include <unordered_map>
@@ -11,8 +10,7 @@
 #include "Exceptions/GameExceptions.h"
 #include "Exceptions/Logger.h"
 
-// Generic resource manager template
-// All definitions are in this header for templates
+// Unified resource manager with logging, exception handling, and preload
 
 template<typename Resource>
 class ResourceManager {
@@ -20,7 +18,6 @@ public:
     ResourceManager() = default;
     ~ResourceManager() = default;
 
-    // Get resource by filename, loading on demand
     Resource& getResource(const std::string& filename) {
         auto it = m_resources.find(filename);
         if (it != m_resources.end()) {
@@ -29,11 +26,11 @@ public:
 
         auto resPtr = std::make_unique<Resource>();
         if (!loadResource(*resPtr, filename)) {
-            // Check if file exists first
             if (!std::filesystem::exists(filename)) {
+                GameExceptions::getLogger().log(GameExceptions::LogLevel::Error, "[RESOURCE] File does not exist: " + filename);
                 throw GameExceptions::ResourceNotFoundException(filename);
             }
-            // File exists but couldn't be loaded
+            GameExceptions::getLogger().log(GameExceptions::LogLevel::Error, "[RESOURCE] Failed to load: " + filename);
             throw GameExceptions::ResourceLoadException(filename, "Failed to load resource");
         }
 
@@ -42,41 +39,38 @@ public:
         return ref;
     }
 
-    // Try to get a resource, returning a default if not found
+
+    // Try get with fallback resource
     Resource& tryGetResource(const std::string& filename, Resource& defaultResource) {
         try {
             return getResource(filename);
-        } 
+        }
         catch (const GameExceptions::ResourceException& ex) {
-            // Log the exception but don't propagate it
             GameExceptions::getLogger().logException(ex, GameExceptions::LogLevel::Warning);
             return defaultResource;
         }
     }
 
-    // Check if resource is loaded
+    // Check if resource is already loaded
     bool isLoaded(const std::string& filename) const {
         return m_resources.find(filename) != m_resources.end();
     }
 
-    // Pre-load a resource
+    // Preload resource
     bool preload(const std::string& filename) {
         try {
             getResource(filename);
             return true;
-        } 
+        }
         catch (const std::exception& ex) {
             GameExceptions::getLogger().logException(ex);
             return false;
         }
     }
 
-    // Release a specific resource
+    // Release specific resource
     void releaseResource(const std::string& filename) {
-        auto it = m_resources.find(filename);
-        if (it != m_resources.end()) {
-            m_resources.erase(it);
-        }
+        m_resources.erase(filename);
     }
 
     // Release all resources
@@ -84,14 +78,20 @@ public:
         m_resources.clear();
     }
 
+    // Number of loaded resources
+    size_t getResourceCount() const {
+        return m_resources.size();
+    }
+
 private:
-    // Overload resolution for different SFML types
     bool loadResource(sf::Texture& resource, const std::string& filename) {
         return resource.loadFromFile(filename);
     }
+
     bool loadResource(sf::Font& resource, const std::string& filename) {
         return resource.loadFromFile(filename);
     }
+
     bool loadResource(sf::SoundBuffer& resource, const std::string& filename) {
         return resource.loadFromFile(filename);
     }
@@ -99,7 +99,6 @@ private:
     std::unordered_map<std::string, std::unique_ptr<Resource>> m_resources;
 };
 
-// Convenience type aliases
 using TextureManager = ResourceManager<sf::Texture>;
 using FontManager = ResourceManager<sf::Font>;
 using SoundManager = ResourceManager<sf::SoundBuffer>;

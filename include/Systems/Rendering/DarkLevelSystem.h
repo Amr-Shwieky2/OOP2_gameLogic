@@ -101,7 +101,7 @@ private:
     std::vector<LightSource> m_lightSources;
     std::vector<Obstacle> m_obstacles;
     sf::Vector2f m_playerLightPos;
-    float m_playerLightRadius = 150.0f;
+    float m_playerLightRadius = 200.0f;
 
     // Render targets
     std::unique_ptr<sf::RenderTexture> m_lightTexture;
