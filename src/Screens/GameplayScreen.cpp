@@ -260,9 +260,8 @@ void GameplayScreen::handleKeyboardInput(sf::Keyboard::Key keyCode) {
         }
         break;
     case sf::Keyboard::Escape:
-        if (m_window) {
-            m_window->close();
-        }
+        // Return to the main menu rather than closing the window
+        AppContext::instance().screenManager().requestScreenChange(ScreenType::MENU);
         break;
     default:
         break;
